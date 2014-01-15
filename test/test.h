@@ -17,10 +17,12 @@ class PORK Foo
   int cake()
   {
     printf("");
+    
+    Pork<tmp>();
   }
 };
 
 // Test
-class PORK Foo
+class PORK Bar
 {
 };
