@@ -9,6 +9,7 @@ end
 library = Library.new("test", "test")
 library.addIncludePath(".")
 library.addFile("test.h")
+library.addFile("test_2.h")
 
 parser = Parser.new(library)
 

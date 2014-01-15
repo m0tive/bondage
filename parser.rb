@@ -15,7 +15,7 @@ class Parser
       args << "-I#{library.root}/#{path}"
     end
     
-    source = ""
+    source = "#define BINDER_PARSING\n"
     library.files.each do |file|
       source << "#include \"#{file}\"\n"
     end
