@@ -26,6 +26,10 @@ module FFI
 
 			libs = ["clang"]
 
+      if ENV['LLVM_CONFIG']
+          libs << ENV['LLVM_CONFIG'] + '/libclang.dylib'
+      end
+      
 			if Clang.platform == :linux
 				libs += [
 					"/usr/lib/llvm-3.3/lib/libclang.so",

@@ -3,6 +3,8 @@
 namespace Test
 {
 
+int tst();
+
 #define PORK
 /// \brief Test
 class PORK Foo
@@ -32,6 +34,12 @@ private:
     
     Pork<tmp>();
   }
+
+  template <typename T> class XXX
+  {
+  };
+
+  template <typename X> void foo2(int = tst());
 };
 
 template <typename T> class Test

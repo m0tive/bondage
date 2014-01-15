@@ -1,3 +1,4 @@
+ENV['LLVM_CONFIG'] = "/Library/Developer/CommandLineTools/usr/lib/"
 ENV["PATH"] = ENV["PATH"] + ";" + Dir.getwd() + "/bin"
 require_relative "ffi/clang.rb"
 require_relative "library.rb"
