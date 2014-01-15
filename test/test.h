@@ -1,4 +1,7 @@
 
+namespace Test
+{
+
 #define PORK
 /// \brief Test
 class PORK Foo
@@ -11,8 +14,16 @@ class PORK Foo
     float x;
   };
   
+  enum pork
+  {
+    PORK,
+    PIE
+  };
+  
   /// \brief Test
-  void bar();
+  pork bar(int cake, float pork = 4.5);
+  
+private:
   // test.
   int cake()
   {
@@ -22,7 +33,25 @@ class PORK Foo
   }
 };
 
-// Test
-class PORK Bar
+template <typename T> class Test
 {
+  template <typename X> void pork()
+  {
+  }
 };
+
+namespace Detail
+{
+
+// Test
+class PORK Bar : private Foo
+{
+  Bar(int a);
+  ~Bar();
+  
+  void test(const Test<Foo>& ) const;
+};
+
+}
+
+}
