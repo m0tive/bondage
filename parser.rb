@@ -5,21 +5,16 @@ require_relative "library.rb"
 require_relative "visitor.rb"
 
 class State
-  def initialize(enter=nil, exit=nil)
-    @onEnter = enter
-    @onExit = exit
+  def initialize(type, enter=nil)
+    @type = type
   end
   
-  def enter(stack, cursor, parent)
-    if(@onEnter)
-      @onEnter.call(stack, cursor, parent)
-    end
+  def enter(states, data)
+    states << @type
   end
   
-  def exit(stack, cursor, parent)
-    if(@onExit)
-      @onExit.call(stack, cursor, parent)
-    end
+  def exit(states, data)
+    states.pop()
   end
 end
 
@@ -44,55 +39,37 @@ class Parser
     
     @translator = @index.parse_translation_unit(nil, args, [ unsaved ], [ :detailed_preprocessing_record, :include_brief_comments, :skip_function_bodies ])
     
-    namespaceState = State.new(
-      ->(stack, cursor, parent){ stack << :namespace },
-      ->(stack, cursor, parent){ stack.pop } 
-    )
+    namespaceState = State.new(:namespace, ->(parent, data){ parent.addNamespace(data) })
       
-    classState = State.new(
-      ->(stack, cursor, parent){ stack << :class },
-      ->(stack, cursor, parent){ stack.pop } 
-    )
+    classState = State.new(:class, ->(parent, data){ parent.addClass(data) })
+    structState = State.new(:class, ->(parent, data){ parent.addStruct(data) })
+    unionState = State.new(:class, ->(parent, data){ parent.addUnion(data) })
+
+    classTemplateState = State.new(:class_template, ->(parent, data){ parent.addClassTemplate(data) })
+
+    templateParamState = State.new(:param, ->(parent, data){ parent.addTemplateParam(data) })
     
-    accessSpecifierState = State.new(
-    )
+    accessSpecifierState = State.new(:access_specifier, ->(parent, data){ parent.addAccessSpecifier(data) })
     
-    fieldState = State.new(
-      ->(stack, cursor, parent){ }
-    )
+    fieldState = State.new(:field, ->(parent, data){ parent.addField(data) })
     
-    enumState = State.new(
-      ->(stack, cursor, parent){ stack << :enum },
-      ->(stack, cursor, parent){ stack.pop } 
-    )
+    enumState = State.new(:enum, ->(parent, data){ parent.addEnum(data) })
     
-    enumMemberState = State.new(
-      ->(stack, cursor, parent){ }
-    )
-      
-    methodState = State.new(
-      ->(stack, cursor, parent){ stack << :function },
-      ->(stack, cursor, parent){ stack.pop } 
-    )
+    enumMemberState = State.new(:enumMember, ->(parent, data){ parent.addEnumMember(data) })
+
+    functionState = State.new(:function, ->(parent, data){ parent.addFunction(data) })
+
+    functionTemplateState = State.new(:function_template, ->(parent, data){ parent.addFunctionTemplate(data) })
     
-    returnTypeState = State.new(
-      ->(stack, cursor, parent){ }
-    )
+    returnTypeState = State.new(:return_type, ->(parent, data){ parent.addReturnType(data) })
     
-    paramState = State.new(
-      ->(stack, cursor, parent){ stack << :param },
-      ->(stack, cursor, parent){ stack.pop }
-    )
+    paramState = State.new(:param, ->(parent, data){ parent.addParam(data) })
     
-    paramDefaultExprState = State.new(
-      ->(stack, cursor, parent){ stack << :param_default_expr },
-      ->(stack, cursor, parent){ stack.pop }
-    )
+    paramDefaultExprState = State.new(:param_default_expr)
     
-    paramDefaultValueState = State.new(
-    )
+    paramDefaultValueState = State.new(:param_default_value, ->(parent, data){ parent.addParamDefault(data) })
     
-    functionBodyState = State.new()
+    functionBodyState = State.new(:function_body)
     
     @@transitions = {
       # root of the file.
@@ -101,12 +78,30 @@ class Parser
       },
       # inside a namespace
       :namespace => {
+        :cursor_struct => structState,
         :cursor_class => classState,
+        :cursor_function => functionState,
+        :cursor_class_template => classTemplateState,
+        :cursor_function_template => functionTemplateState,
       },
       # inside a class def
       :class => {
+        :cursor_struct => structState,
         :cursor_class => classState,
-        :cursor_method => methodState,
+        :cursor_union => unionState,
+        :cursor_class_template => classTemplateState,
+        :cursor_method => functionState,
+        :cursor_function_template => functionTemplateState,
+        :cursor_field => fieldState,
+        :cursor_enum => enumState,
+        :cursor_access_specifier => accessSpecifierState,
+      },
+      :class_template => {
+        :cursor_class => classState,
+        :cursor_class_template => classTemplateState,
+        :cursor_template_type_param => templateParamState,
+        :cursor_method => functionState,
+        :cursor_function_template => functionTemplateState,
         :cursor_field => fieldState,
         :cursor_enum => enumState,
         :cursor_access_specifier => accessSpecifierState,
@@ -118,6 +113,12 @@ class Parser
       :function => {
         :cursor_param_decl => paramState,
         :cursor_type_ref => returnTypeState,
+        :cursor_compound_statement => functionBodyState,
+      },
+      :function_template => {
+        :cursor_template_type_param => templateParamState,
+        :cursor_type_ref => returnTypeState,
+        :cursor_param_decl => paramState,
         :cursor_compound_statement => functionBodyState,
       },
       # inside a function parameter declaration
@@ -136,13 +137,14 @@ class Parser
     @depth = 0
     
     stateStack = [ :root ]
-    visitChildren(cursor, visitor, stateStack)
+    data = [ ]
+    visitChildren(cursor, visitor, stateStack, data)
     
     raise "Incomplete source" unless (stateStack.size == 1 && stateStack[0] == :root)
   end
   
 private
-  def visitChildren(cursor, visitor, states)
+  def visitChildren(cursor, visitor, states, data)
     parent = nil
     
       
@@ -150,18 +152,20 @@ private
       puts ('  ' * @depth) + "#{cursor.kind} #{cursor.spelling.inspect} #{cursor.raw_comment_text}"
 
       oldType = states[-1]
-      transit = @@transitions[oldType][cursor.kind]
-      
+      typeTransitions = @@transitions[oldType]
+      raise "Unexpected child for #{oldType}, with child type #{cursor.kind}" unless typeTransitions
+
+      transit = typeTransitions[cursor.kind]
       raise "Unexpected transition #{oldType} -> #{cursor.kind}" unless transit
       
       
-      transit.enter(states, cursor, parent)
+      transit.enter(states, data)
       
       @depth = @depth + 1
-      visitChildren(cursor, visitor, states)
+      visitChildren(cursor, visitor, states, data)
       @depth = @depth - 1
       
-      transit.exit(states, cursor, parent)
+      transit.exit(states, data)
       
       next :continue
     end

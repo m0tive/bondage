@@ -5,6 +5,8 @@ namespace Test
 {
 namespace Detail
 {
+	
+template <typename T> const Foo &fooer();
 
 // Test
 class PORK Bar : private Foo

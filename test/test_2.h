@@ -5,6 +5,17 @@ namespace Test
 
 int tst();
 
+struct
+{
+  virtual void a() = 0;
+
+  union
+  {
+    int a;
+    float b;
+  };
+};
+
 #define PORK
 /// \brief Test
 class PORK Foo
