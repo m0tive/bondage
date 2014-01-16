@@ -74,6 +74,11 @@ module FFI
 				:cursor_not_implemented, 72,
 				:cursor_invalid_code, 73,
 				:cursor_unexposed_expr, 100,
+				:cursor_decl_ref_expr, 101,
+				:cursor_member_ref_expr, 102,
+				:cursor_call_expr, 103,
+				# obj C at 104
+				:cursor_block_expr, 105,
 				:cursor_integer_literal, 106,
 				:cursor_floating_literal, 107,
 				:cursor_imaginary_literal, 108,

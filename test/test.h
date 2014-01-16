@@ -8,13 +8,17 @@ namespace Detail
 	
 template <typename T> const Foo &fooer();
 
+template <typename X> class SuperSuper
+{
+}
+
 // Test
-class PORK Bar : private Foo
+class PORK Bar : private Foo, public SuperSuper<Foo>
 {
   Bar(int a);
   ~Bar();
   
-  void test(const Test<Foo>& ) const;
+  void test(const Test<Foo>& = Test<Foo>()) const;
 };
 
 }

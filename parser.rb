@@ -4,22 +4,62 @@ require_relative "ffi/clang.rb"
 require_relative "library.rb"
 require_relative "visitor.rb"
 
+class StateData
+  def initialize(userData=nil)
+    @userData = userData
+  end
+  
+  attr_reader :userData
+end
+
 class State
   def initialize(type, enter=nil)
     @type = type
+    @onEnter = enter
   end
   
-  def enter(states, data)
+  def enter(states, data, cursor)
     states << @type
+    
+    newInfo = buildData(cursor)
+    
+    newData = nil
+    if (@onEnter && data[-1].userData)
+      newData = @onEnter.call(data[-1].userData, newInfo)
+    end
+    
+    data << StateData.new(newData)
+    
+    return newData != nil
   end
   
   def exit(states, data)
     states.pop()
+    data.pop()
+  end
+  
+private
+  def buildData(cursor)
+    comment = nil
+    if(cursor.comment.kind_of?(FFI::Clang::FullComment))
+      #comment = cursor.comment.to_xml
+      
+      cursor.comment.each do |comment|
+        puts comment
+      end
+    end
+    
+    return {
+      :name => cursor.spelling,
+      :type => "Some_type",
+      :comment => comment
+    }
   end
 end
 
 class Parser
   def initialize(library)
+    @debug = false
     @index = FFI::Clang::Index.new
     
     sourceName = "DATA.cpp"
@@ -45,6 +85,13 @@ class Parser
     structState = State.new(:class, ->(parent, data){ parent.addStruct(data) })
     unionState = State.new(:class, ->(parent, data){ parent.addUnion(data) })
 
+    classConstructor = State.new(:function, ->(parent, data){ parent.addConstructor(data) })
+    classDestructor = State.new(:destructor)
+    
+    superClassState = State.new(:base_class)
+    
+    superClassTypeState = State.new(:base_class_type)
+    
     classTemplateState = State.new(:class_template, ->(parent, data){ parent.addClassTemplate(data) })
 
     templateParamState = State.new(:param, ->(parent, data){ parent.addTemplateParam(data) })
@@ -65,7 +112,11 @@ class Parser
     
     paramState = State.new(:param, ->(parent, data){ parent.addParam(data) })
     
+    paramTypeState = State.new(:param_type)
+    
     paramDefaultExprState = State.new(:param_default_expr)
+    
+    paramDefaultExprCallState = State.new(:param_default_expr_call)
     
     paramDefaultValueState = State.new(:param_default_value, ->(parent, data){ parent.addParamDefault(data) })
     
@@ -78,6 +129,7 @@ class Parser
       },
       # inside a namespace
       :namespace => {
+        :cursor_namespace => namespaceState,
         :cursor_struct => structState,
         :cursor_class => classState,
         :cursor_function => functionState,
@@ -86,6 +138,9 @@ class Parser
       },
       # inside a class def
       :class => {
+        :cursor_constructor => classConstructor,
+        :cursor_destructor => classDestructor,
+        :cursor_base_specifier => superClassState,
         :cursor_struct => structState,
         :cursor_class => classState,
         :cursor_union => unionState,
@@ -95,6 +150,10 @@ class Parser
         :cursor_field => fieldState,
         :cursor_enum => enumState,
         :cursor_access_specifier => accessSpecifierState,
+      },
+      :base_class => {
+        :cursor_type_ref => superClassTypeState,
+        :cursor_template_ref => superClassTypeState,
       },
       :class_template => {
         :cursor_class => classState,
@@ -123,10 +182,21 @@ class Parser
       },
       # inside a function parameter declaration
       :param => {
+        :cursor_template_ref => paramTypeState,
+        :cursor_type_ref => paramTypeState,
         :cursor_unexposed_expr => paramDefaultExprState,
+        :cursor_call_expr => paramDefaultExprCallState,
+      },
+      :param_default_expr_call => {
+        :cursor_unexposed_expr => paramDefaultExprState,
+        :cursor_call_expr => paramDefaultExprCallState,
+        :cursor_template_ref => paramDefaultExprCallState,
+        :cursor_type_ref => paramDefaultExprCallState,
       },
       :param_default_expr => {
-        :cursor_floating_literal => paramDefaultValueState
+        :cursor_floating_literal => paramDefaultValueState,
+        :cursor_decl_ref_expr => paramDefaultValueState,
+        :cursor_unexposed_expr => paramDefaultExprCallState,
       }
     }
   end
@@ -137,7 +207,7 @@ class Parser
     @depth = 0
     
     stateStack = [ :root ]
-    data = [ ]
+    data = [ StateData.new(visitor) ]
     visitChildren(cursor, visitor, stateStack, data)
     
     raise "Incomplete source" unless (stateStack.size == 1 && stateStack[0] == :root)
@@ -147,23 +217,24 @@ private
   def visitChildren(cursor, visitor, states, data)
     parent = nil
     
-      
     cursor.visit_children do |cursor, parent|
-      puts ('  ' * @depth) + "#{cursor.kind} #{cursor.spelling.inspect} #{cursor.raw_comment_text}"
+      puts ('  ' * @depth) + "#{cursor.kind} #{cursor.spelling.inspect} #{cursor.raw_comment_text}" unless not @debug
 
       oldType = states[-1]
       typeTransitions = @@transitions[oldType]
-      raise "Unexpected child for #{oldType}, with child type #{cursor.kind}" unless typeTransitions
+      source_error(cursor, "Unexpected child for #{oldType}, with child type #{cursor.kind}") unless typeTransitions
 
       transit = typeTransitions[cursor.kind]
-      raise "Unexpected transition #{oldType} -> #{cursor.kind}" unless transit
+      source_error(cursor, "Unexpected transition #{oldType} -> #{cursor.kind}") unless transit
       
       
-      transit.enter(states, data)
+      enterChildren = transit.enter(states, data, cursor)
       
-      @depth = @depth + 1
-      visitChildren(cursor, visitor, states, data)
-      @depth = @depth - 1
+      if(enterChildren)
+        @depth = @depth + 1
+        visitChildren(cursor, visitor, states, data)
+        @depth = @depth - 1
+      end
       
       transit.exit(states, data)
       
@@ -172,4 +243,9 @@ private
     
   end
 
+  def source_error(cursor, desc)
+    loc = cursor.location
+    raise "\n\nError, File: #{loc.file}, line: #{loc.line}, column: #{loc.column}: #{cursor.display_name}\n  #{desc}"
+  end
+  
 end

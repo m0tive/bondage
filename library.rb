@@ -7,7 +7,7 @@ class Library
     @files = []
   end
   
-  attr_reader :files, :includePaths, :root
+  attr_reader :name, :files, :includePaths, :root
   
   def addFile(path)
     @files << path
