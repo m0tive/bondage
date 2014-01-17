@@ -19,6 +19,7 @@ class PORK Bar : private Foo, public SuperSuper<Foo>
   ~Bar();
   
   void test(const Test<Foo>& = Test<Foo>()) const;
+  void test(Bar ** = nullptr) const;
 };
 
 }

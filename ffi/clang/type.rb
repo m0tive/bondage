@@ -53,6 +53,26 @@ module FFI
 			def result_type
 				Type.new Lib.get_result_type(@type)
 			end
+      
+      def const?
+        Lib.get_is_const(@type)
+      end
+      
+      def volatile?
+        Lib.get_is_volatile(@type)
+      end
+      
+      def restrict?
+        Lib.get_is_restrict(@type)
+      end
+      
+      def pointee_type
+        Type.new Lib.get_pointee_type(@type)
+      end
+      
+      def canocial_type
+        Type.new Lib.get_canocial_type(@type)
+      end
 		end
 	end
 end
