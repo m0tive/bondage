@@ -5,6 +5,34 @@ require_relative "library.rb"
 require_relative "visitor.rb"
 
 class Comment
+  def initialize()
+    @commands = {}
+    @params = {}
+  end
+
+  def addCommand(name, text)
+    @commands[name] = text
+  end
+
+  def addParam(name, text)
+    @params[name] = text
+  end
+
+  def command(name)
+    return @commands[name]
+  end
+
+  def param(name)
+    return @params[name]
+  end
+end
+
+class Type
+  def initialize(type)
+    @type = type
+    puts "#{type} #{type.kind} #{type.spelling}"
+  end
+end
 
 class StateData
   def initialize(userData=nil)
@@ -45,23 +73,30 @@ private
     comment = Comment.new
     extractComment(comment, cursor.comment)
     
+    type = nil
+    if(cursor.type.kind != :type_invalid)
+      type = Type.new(cursor.type)
+    end
+
+
     return {
       :name => cursor.spelling,
-      :type => "Some_type",
+      :type => type,
       :comment => comment
     }
   end
 
   def extractComment(toFill, comment)
-    if(cursor.comment.kind_of?(FFI::Clang::Comment))
-      puts comment
+    if(comment.kind_of?(FFI::Clang::Comment))
 
       if(comment.kind_of?(FFI::Clang::TextComment) || comment.kind_of?(FFI::Clang::ParagraphComment))
-        puts "Text: #{comment.text}"
+        if(toFill.command("brief") == "")
+          toFill.addCommand("brief", comment.text)
+        end
       elsif(comment.kind_of?(FFI::Clang::BlockCommandComment))
-        puts "Block command #{comment.name} #{comment.comment}"
+        toFill.addCommand(comment.name, comment.comment)
       elsif(comment.kind_of?(FFI::Clang::ParamCommandComment))
-        puts "param command #{comment.name} #{comment.comment}"
+        toFill.addParam(comment.name, comment.comment)
       end
       
       comment.each do |comment|
