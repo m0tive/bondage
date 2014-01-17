@@ -4,6 +4,8 @@ require_relative "ffi/clang.rb"
 require_relative "library.rb"
 require_relative "visitor.rb"
 
+class Comment
+
 class StateData
   def initialize(userData=nil)
     @userData = userData
@@ -40,20 +42,34 @@ class State
   
 private
   def buildData(cursor)
-    comment = nil
-    if(cursor.comment.kind_of?(FFI::Clang::FullComment))
-      #comment = cursor.comment.to_xml
-      
-      cursor.comment.each do |comment|
-        puts comment
-      end
-    end
+    comment = Comment.new
+    extractComment(comment, cursor.comment)
     
     return {
       :name => cursor.spelling,
       :type => "Some_type",
       :comment => comment
     }
+  end
+
+  def extractComment(toFill, comment)
+    if(cursor.comment.kind_of?(FFI::Clang::Comment))
+      puts comment
+
+      if(comment.kind_of?(FFI::Clang::TextComment) || comment.kind_of?(FFI::Clang::ParagraphComment))
+        puts "Text: #{comment.text}"
+      elsif(comment.kind_of?(FFI::Clang::BlockCommandComment))
+        puts "Block command #{comment.name} #{comment.comment}"
+      elsif(comment.kind_of?(FFI::Clang::ParamCommandComment))
+        puts "param command #{comment.name} #{comment.comment}"
+      end
+      
+      comment.each do |comment|
+        extractComment(toFill, comment)
+      end
+    end
+
+    return comment
   end
 end
 

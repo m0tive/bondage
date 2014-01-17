@@ -10,7 +10,7 @@ template <typename T> const Foo &fooer();
 
 template <typename X> class SuperSuper
 {
-}
+};
 
 // Test
 class PORK Bar : private Foo, public SuperSuper<Foo>

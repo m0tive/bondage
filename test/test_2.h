@@ -17,14 +17,15 @@ struct
 };
 
 #define PORK
-/// \brief Test
+/// \brief Test Foo
 class PORK Foo
 {
-  /// \brief Test
+  /// \brief Test Sub Foo
   class SubFoo // Test
   {
-  /// \brief Test
-    void setX(float );
+    /// \brief Test SetX
+    /// \param x X value to setX
+    void setX(float x);
     float x;
   };
   
@@ -34,7 +35,8 @@ class PORK Foo
     PIE
   };
   
-  /// \brief Test
+  /// \brief Test bar method
+  /// \param cake gives much cake.
   pork bar(int cake, float pork = 4.5);
   
 private:
