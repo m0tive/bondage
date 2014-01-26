@@ -12,7 +12,7 @@ template <typename X> class SuperSuper
 {
 };
 
-// Test
+/// \expose
 class PORK Bar : private Foo, public SuperSuper<Foo>
 {
   Bar(int a);

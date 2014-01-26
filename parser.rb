@@ -1,6 +1,9 @@
-ENV['LLVM_CONFIG'] = "/Library/Developer/CommandLineTools/usr/lib/"
+    ENV['LLVM_CONFIG'] = "../llvm-build/Release+Asserts/bin/llvm-config"
 ENV["PATH"] = ENV["PATH"] + ";" + Dir.getwd() + "/bin"
-require_relative "ffi/clang.rb"
+
+$:.unshift File.dirname(__FILE__) + "/ffi-clang/lib"
+require "ffi/clang.rb"
+
 require_relative "library.rb"
 require_relative "visitor.rb"
 
@@ -18,6 +21,10 @@ class Comment
     @params[name] = text
   end
 
+  def hasCommand(name)
+    return @commands.has_key?(name)
+  end
+
   def command(name)
     return @commands[name]
   end
@@ -30,7 +37,6 @@ end
 class Type
   def initialize(type)
     @type = type
-    puts "#{type} #{type.kind} #{type.spelling}"
   end
 end
 
@@ -88,13 +94,14 @@ private
 
   def extractComment(toFill, comment)
     if(comment.kind_of?(FFI::Clang::Comment))
-
       if(comment.kind_of?(FFI::Clang::TextComment) || comment.kind_of?(FFI::Clang::ParagraphComment))
         if(toFill.command("brief") == "")
           toFill.addCommand("brief", comment.text)
         end
       elsif(comment.kind_of?(FFI::Clang::BlockCommandComment))
         toFill.addCommand(comment.name, comment.comment)
+      elsif(comment.kind_of?(FFI::Clang::InlineCommandComment))
+        toFill.addCommand(comment.name, "")
       elsif(comment.kind_of?(FFI::Clang::ParamCommandComment))
         toFill.addParam(comment.name, comment.comment)
       end
@@ -143,7 +150,7 @@ class Parser
     
     superClassTypeState = State.new(:base_class_type)
     
-    classTemplateState = State.new(:class_template, ->(parent, data){ parent.addClassTemplate(data) })
+    classTemplateState = State.new(:class, ->(parent, data){ parent.addClassTemplate(data) })
 
     templateParamState = State.new(:param, ->(parent, data){ parent.addTemplateParam(data) })
     
@@ -182,54 +189,46 @@ class Parser
       :namespace => {
         :cursor_namespace => namespaceState,
         :cursor_struct => structState,
-        :cursor_class => classState,
+        :cursor_class_decl => classState,
         :cursor_function => functionState,
         :cursor_class_template => classTemplateState,
+        :cursor_enum_decl => enumState,
         :cursor_function_template => functionTemplateState,
       },
       # inside a class def
       :class => {
         :cursor_constructor => classConstructor,
         :cursor_destructor => classDestructor,
-        :cursor_base_specifier => superClassState,
+        :cursor_cxx_base_specifier => superClassState,
+        :cursor_template_type_parameter => templateParamState,
         :cursor_struct => structState,
-        :cursor_class => classState,
+        :cursor_class_decl => classState,
         :cursor_union => unionState,
         :cursor_class_template => classTemplateState,
-        :cursor_method => functionState,
+        :cursor_cxx_method => functionState,
         :cursor_function_template => functionTemplateState,
-        :cursor_field => fieldState,
-        :cursor_enum => enumState,
-        :cursor_access_specifier => accessSpecifierState,
+        :cursor_field_decl => fieldState,
+        :cursor_enum_decl => enumState,
+        :cursor_cxx_access_specifier => accessSpecifierState,
       },
       :base_class => {
         :cursor_type_ref => superClassTypeState,
         :cursor_template_ref => superClassTypeState,
-      },
-      :class_template => {
-        :cursor_class => classState,
-        :cursor_class_template => classTemplateState,
-        :cursor_template_type_param => templateParamState,
-        :cursor_method => functionState,
-        :cursor_function_template => functionTemplateState,
-        :cursor_field => fieldState,
-        :cursor_enum => enumState,
-        :cursor_access_specifier => accessSpecifierState,
       },
       :enum => {
         :cursor_enum_constant_decl => enumMemberState
       },
       # inside a function declaration
       :function => {
-        :cursor_param_decl => paramState,
+        :cursor_parm_decl => paramState,
         :cursor_type_ref => returnTypeState,
-        :cursor_compound_statement => functionBodyState,
+        :cursor_compound_stmt => functionBodyState,
       },
       :function_template => {
         :cursor_template_type_param => templateParamState,
         :cursor_type_ref => returnTypeState,
         :cursor_param_decl => paramState,
-        :cursor_compound_statement => functionBodyState,
+        :cursor_compound_stmt => functionBodyState,
       },
       # inside a function parameter declaration
       :param => {

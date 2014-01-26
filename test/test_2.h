@@ -18,9 +18,11 @@ struct
 
 #define PORK
 /// \brief Test Foo
+/// \expose
 class PORK Foo
 {
   /// \brief Test Sub Foo
+  /// \expose
   class SubFoo // Test
   {
     /// \brief Test SetX
@@ -56,6 +58,13 @@ private:
 };
 
 template <typename T> class Test
+{
+  template <typename X> void pork()
+  {
+  }
+};
+
+template <typename T> struct   Test2
 {
   template <typename X> void pork()
   {
