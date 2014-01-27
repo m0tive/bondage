@@ -1,25 +1,34 @@
-require_relative "../parser.rb"
-require_relative "../library.rb"
-require_relative "../visitor.rb"
 
 class HierarchyItem
   def initialize(parent)
+    @isExposed = nil
     @parent = parent
     @visitor = parent.visitor()
+    @fullyQualified = nil
   end
   
-  attr_reader :parent
+  attr_reader :parent, :isExposed
   
+  def setExposed(val)
+    @isExposed = val
+  end
+
   def visitor
     return @visitor
   end
 
   def fullyQualifiedName()
-    if(@parent)
-      return "#{@parent.fullyQualifiedName()}::#{self.name()}"
-    else
-      return "::#{self.name()}"
+    if(@fullyQualified)
+      return @fullyQualified
     end
+
+    if(@parent)
+      @fullyQualified = "#{@parent.fullyQualifiedName()}::#{self.name()}"
+    else
+      @fullyQualified = "::#{self.name()}"
+    end
+
+    return @fullyQualified
   end
 
   def name()
@@ -76,15 +85,31 @@ class EnumItem < HierarchyItem
   end
 end
 
-class FunctionItem < HierarchyItem  
-  def self.build(parent, data)
-    return FunctionItem.new(parent)
+class FunctionItem < HierarchyItem
+  def initialize(parent, data, constructor) super(parent)
+    @name = data[:name]
+    @isConstructor = constructor
+    @comment = data[:comment]
+    @returnType = nil
+    @arguments = []
+  end
+
+  attr_reader :returnType, :arguments, :isConstructor
+
+  def self.build(parent, data, isCtor)
+    return FunctionItem.new(parent, data, isCtor)
+  end
+
+  def name
+    return @name
   end
   
   def addReturnType(data)
+    @returnType = data
   end
   
   def addParam(data)
+    @arguments << data
   end
 end
 
@@ -94,9 +119,10 @@ class ClassItem < ClassableItem
     @isStruct = struct
     @isTemplated = template
     @comment = data[:comment]
+    @functions = []
   end
 
-  attr_reader :name, :isStruct, :isTemplated, :comment
+  attr_reader :name, :isStruct, :isTemplated, :comment, :functions
 
   def self.build(parent, data, struct, template)
     return ClassItem.new(parent, data, struct, template)
@@ -110,13 +136,18 @@ class ClassItem < ClassableItem
   end
 
   def addConstructor(data)
+    fn = FunctionItem.build(self, data, true)
+    @functions << fn
+    return fn
   end
   
   def addDestructor(data)
   end
   
   def addFunction(data)
-    return FunctionItem.build(self, data)
+    fn = FunctionItem.build(self, data, false)
+    functions << fn
+    return fn
   end
   
   def addFunctionTemplate(data)
@@ -151,7 +182,7 @@ class NamespaceItem < ClassableItem
 
   
   def addFunction(data)
-    return FunctionItem.build(self, data)
+    return FunctionItem.build(self, data, false)
   end
   
   def addFunctionTemplate(data)
@@ -169,7 +200,6 @@ class NamespaceItem < ClassableItem
   def children
     return classes + super.children()
   end
-  
 end
 
 class VisitorImpl < Visitor
@@ -204,52 +234,3 @@ class VisitorImpl < Visitor
     @classes << cls
   end
 end
-
-class Exposer
-  def initialize(library, debug)
-    @debugOutput = debug
-    @exposedClasses = library.classes.select do |cls| canExposeClass(cls) end
-  end
-
-  attr_reader :exposedClasses
-
-private
-  def canExposeClass(cls)
-    hasExposeComment = cls.comment.hasCommand("expose")
-    if(@debugOutput)
-      puts "#{hasExposeComment}\t#{cls.name}"
-    end
-
-    if(!hasExposeComment)
-      return false
-    end
-
-    willExpose = 
-      !cls.isTemplated && 
-      !cls.name.empty?
-
-    if(!willExpose || @debugOutput)
-      puts "\tExposeRequested: #{hasExposeComment}\tTemplate: #{cls.isTemplated}"
-    end
-    raise "Unable to expose requested class #{cls.name}" if not willExpose 
-    return willExpose
-  end
-
-end
-
-library = Library.new("Test", "test")
-library.addIncludePath(".")
-library.addFile("test.h")
-library.addFile("test_2.h")
-
-debugging = true
-
-parser = Parser.new(library)
-
-visitor = VisitorImpl.new(library)
-parser.parse(visitor)
-
-exposer = Exposer.new(visitor, debugging)
-
-puts "Exposed Classes:"
-puts exposer.exposedClasses.map { |cls| cls.fullyQualifiedName }

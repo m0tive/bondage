@@ -37,6 +37,36 @@ end
 class Type
   def initialize(type)
     @type = type
+    @canonical = type.canonical
+  end
+
+  def isBasicType
+    if(@canonical.kind != :type_invalid &&
+       @canonical.kind != :type_unexposed &&
+       @canonical.kind <= :type_longdouble)
+      return true
+    end
+    return false
+  end
+
+  def isPointer
+    return @canonical.kind == :type_pointer
+  end
+
+  def isLValueReference
+    return @canonical.kind == :type_lvalue_ref
+  end
+
+  def isRValueReference
+    return @canonical.kind == :type_rvalue_ref
+  end
+
+  def pointeeType
+    return Type.new(@canonical.pointee)
+  end
+
+  def description
+    return "#{@canonical.spelling} #{@canonical.kind}"
   end
 end
 

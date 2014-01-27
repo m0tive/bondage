@@ -28,6 +28,7 @@ class PORK Foo
     /// \brief Test SetX
     /// \param x X value to setX
     void setX(float x);
+    float getX() const { return x; }
     float x;
   };
   

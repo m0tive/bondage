@@ -12,6 +12,7 @@ template <typename X> class SuperSuper
 {
 };
 
+/// Test
 /// \expose
 class PORK Bar : private Foo, public SuperSuper<Foo>
 {
@@ -20,6 +21,8 @@ class PORK Bar : private Foo, public SuperSuper<Foo>
   
   void test(const Test<Foo>& = Test<Foo>()) const;
   void test(Bar ** = nullptr) const;
+  void test(Bar *) const;
+  void test(nullptr_t) const;
 };
 
 }

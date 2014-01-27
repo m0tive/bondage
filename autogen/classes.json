@@ -1,0 +1,5 @@
+[
+  "::Test::Detail::Bar",
+  "::Test::Foo",
+  "::Test::Foo::SubFoo"
+]
