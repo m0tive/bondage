@@ -4,13 +4,14 @@ class Exposer
   def initialize(library, debug)
     @debugOutput = debug
     @exposedClasses = library.classes.select do |cls| canExposeClass(cls) end
+    @exposedClassPaths = @exposedClasses.map{ |cls| cls.fullyQualifiedName }
   end
 
   attr_reader :exposedClasses
 
   def canExposeMethod(fn)
     if(fn.isExposed == nil)
-      fn.setExposed(canExposeType(fn.returnType) && fn.arguments.all?{ |param| canExposeType(param) })
+      fn.setExposed((fn.returnType == nil || canExposeTypeImpl(fn.returnType)) && fn.arguments.all?{ |param| canExposeType(param) })
     end
 
     return fn.isExposed
@@ -49,8 +50,14 @@ private
       return canExposeTypeImpl(pointed)
     end
     
+    name = type.name
 
-    puts "not basic: #{type.description}"
+    if(@exposedClassPaths.any?{ |path| path[-name.length, path.length] == name })
+      return true
+    end
+
+    puts "not local: #{name}"
+
     return false
   end
 

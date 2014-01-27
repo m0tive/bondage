@@ -49,6 +49,43 @@ class Type
     return false
   end
 
+  def prettyName
+    return "#{@type.spelling}"
+  end
+
+  def isConstQualified
+    return @canonical.const_qualified?
+  end
+
+  def name
+    n = @canonical.spelling
+    if(isConstQualified)
+      n.sub!("const ", "")
+    end
+
+    templateBrackets = 0
+    endPoint = n.length
+    (n.length-1).step(0, -1).each do |idx|
+      isBracket = false
+      if(n[idx] == ">")
+        isBracket = true
+        templateBrackets = templateBrackets + 1
+      end
+
+      if(n[idx] == "<")
+        isBracket = true
+        templateBrackets = templateBrackets - 1
+      end
+
+      if(templateBrackets == 0 && !isBracket)
+        endPoint = idx + 1
+        break
+      end
+    end
+
+    return n[0, endPoint]
+  end
+
   def isPointer
     return @canonical.kind == :type_pointer
   end
@@ -67,6 +104,14 @@ class Type
 
   def description
     return "#{@canonical.spelling} #{@canonical.kind}"
+  end
+
+  def resultType
+    if(@type.result_type.kind == :type_void)
+      return nil
+    end
+
+    return Type.new(@type.result_type)
   end
 end
 
@@ -117,6 +162,7 @@ private
 
     return {
       :name => cursor.spelling,
+      :cursor => cursor,
       :type => type,
       :comment => comment
     }
@@ -147,15 +193,16 @@ end
 
 class Parser
   def initialize(library)
-    @debug = false
+    @debug = true  
     @index = FFI::Clang::Index.new
+    @library = library
     
     sourceName = "DATA.cpp"
     
     args = [ "-fparse-all-comments", "/TC", sourceName ]
     
     library.includePaths.each do |path|
-      args << "-I#{library.root}/#{path}"
+      args << "-I#{path}"
     end
     
     source = "#define BINDER_PARSING\n"
@@ -176,7 +223,7 @@ class Parser
     classConstructor = State.new(:function, ->(parent, data){ parent.addConstructor(data) })
     classDestructor = State.new(:destructor)
     
-    superClassState = State.new(:base_class)
+    superClassState = State.new(:base_class, ->(parent, data) { parent.addSuperClass(data) })
     
     superClassTypeState = State.new(:base_class_type)
     
@@ -196,7 +243,8 @@ class Parser
 
     functionTemplateState = State.new(:function_template, ->(parent, data){ parent.addFunctionTemplate(data) })
     
-    returnTypeState = State.new(:return_type, ->(parent, data){ parent.addReturnType(data) })
+    returnTypeNamespaceState = State.new(:return_type)
+    returnTypeState = State.new(:return_type)
     
     paramState = State.new(:param, ->(parent, data){ parent.addParam(data) })
     
@@ -231,6 +279,7 @@ class Parser
         :cursor_destructor => classDestructor,
         :cursor_cxx_base_specifier => superClassState,
         :cursor_template_type_parameter => templateParamState,
+        :cursor_non_type_template_parameter => templateParamState,
         :cursor_struct => structState,
         :cursor_class_decl => classState,
         :cursor_union => unionState,
@@ -252,11 +301,16 @@ class Parser
       :function => {
         :cursor_parm_decl => paramState,
         :cursor_type_ref => returnTypeState,
+        :cursor_namespace_ref => returnTypeNamespaceState,
+        :cursor_template_ref => returnTypeState,
         :cursor_compound_stmt => functionBodyState,
       },
       :function_template => {
         :cursor_template_type_param => templateParamState,
+        :cursor_non_type_template_parameter => templateParamState,
+        :cursor_namespace_ref => returnTypeNamespaceState,
         :cursor_type_ref => returnTypeState,
+        :cursor_template_ref => returnTypeState,
         :cursor_param_decl => paramState,
         :cursor_compound_stmt => functionBodyState,
       },
@@ -307,7 +361,14 @@ private
       transit = typeTransitions[cursor.kind]
       source_error(cursor, "Unexpected transition #{oldType} -> #{cursor.kind}") unless transit
       
-      
+      if(@depth == 0)
+        puts "TOP LEVEL #{cursor.location.file}"
+        toFind = cursor.location.file
+        unless(@library.files.any?{ |path| toFind[-path.length, toFind.length] == path })
+          next :continue
+        end
+      end
+
       enterChildren = transit.enter(states, data, cursor)
       
       if(enterChildren)

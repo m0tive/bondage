@@ -90,8 +90,10 @@ class FunctionItem < HierarchyItem
     @name = data[:name]
     @isConstructor = constructor
     @comment = data[:comment]
-    @returnType = nil
+    @accessSpecifier = data[:cursor].access_specifier
+    @static = data[:cursor].static?
     @arguments = []
+    @returnType = data[:type].resultType
   end
 
   attr_reader :returnType, :arguments, :isConstructor
@@ -102,10 +104,6 @@ class FunctionItem < HierarchyItem
 
   def name
     return @name
-  end
-  
-  def addReturnType(data)
-    @returnType = data
   end
   
   def addParam(data)
@@ -120,6 +118,7 @@ class ClassItem < ClassableItem
     @isTemplated = template
     @comment = data[:comment]
     @functions = []
+    @superClasses = []
   end
 
   attr_reader :name, :isStruct, :isTemplated, :comment, :functions
@@ -130,6 +129,10 @@ class ClassItem < ClassableItem
 
   def name()
     return @name
+  end
+
+  def addSuperClass(data)
+    @superClasses << data
   end
   
   def addTemplateParam(data)

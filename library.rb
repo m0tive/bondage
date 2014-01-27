@@ -5,16 +5,33 @@ class Library
     @root = path
     @includePaths = []
     @files = []
+    @dependencies = []
   end
   
-  attr_reader :name, :files, :includePaths, :root
+  attr_reader :name, :files, :root
   
+  def autogenPath
+    return "#{root}/autogen_#{name}"
+  end
+
   def addFile(path)
     @files << path
   end
   
+  def addDependency(dep)
+    @dependencies << dep
+  end
   
   def addIncludePath(path)
     @includePaths << path
+  end
+
+  def includePaths
+    localPaths = @includePaths.map{ |path| root + "/" + path + "/" }
+    externalPaths = @dependencies.map{ |dep| dep.includePaths }.reduce([]) { |sum, obj| sum + obj }
+
+    allPaths = (localPaths + externalPaths).uniq
+
+    return allPaths
   end
 end
