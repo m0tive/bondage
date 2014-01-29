@@ -58,7 +58,7 @@ private:
   template <typename X> void foo2(int = tst());
 };
 
-template <typename T> class Test
+  template <typename T> class Test
 {
   template <typename X> void pork()
   {

@@ -213,7 +213,7 @@ class VisitorImpl < Visitor
     @classes = []
   end
 
-  attr_reader :namespaces, :classes
+  attr_reader :namespaces, :classes, :library
 
   def fullyQualifiedName()
     return ""

@@ -7,8 +7,9 @@ class Generator
   end
 
   def generate(dir)
-    classPaths = @exposer.exposedClasses.map{ |cls| cls.fullyQualifiedName }.sort
-    File.open(dir + "/classes.json", 'w') { |file| file.write(JSON.pretty_generate(classPaths)) }
+    MetaDataGenerator.new(@exposer).save(dir)
+
+    classPaths = @exposer.exposedClassPaths
 
     File.open(dir + "/#{@library.name}.h", 'w') do |file|
       classPaths.map{ |path| "COBRA_EXPOSED_CLASS(#{path})\n" }.each { |data| file.write(data) }

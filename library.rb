@@ -8,7 +8,7 @@ class Library
     @dependencies = []
   end
   
-  attr_reader :name, :files, :root
+  attr_reader :name, :files, :root, :dependencies
   
   def autogenPath
     return "#{root}/autogen_#{name}"

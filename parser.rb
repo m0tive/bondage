@@ -13,6 +13,10 @@ class Comment
     @params = {}
   end
 
+  def to_s
+    return "commands - #{@commands.to_a}, params = #{@params.to_a}"
+  end
+
   def addCommand(name, text)
     @commands[name] = text
   end
@@ -152,7 +156,9 @@ class State
 private
   def buildData(cursor)
     comment = Comment.new
-    extractComment(comment, cursor.comment)
+    if(cursor.comment_range.start.file != nil)
+      extractComment(comment, cursor.comment)
+    end
     
     type = nil
     if(cursor.type.kind != :type_invalid)
@@ -193,7 +199,7 @@ end
 
 class Parser
   def initialize(library)
-    @debug = true  
+    @debug = true   
     @index = FFI::Clang::Index.new
     @library = library
     
@@ -362,7 +368,6 @@ private
       source_error(cursor, "Unexpected transition #{oldType} -> #{cursor.kind}") unless transit
       
       if(@depth == 0)
-        puts "TOP LEVEL #{cursor.location.file}"
         toFind = cursor.location.file
         unless(@library.files.any?{ |path| toFind[-path.length, toFind.length] == path })
           next :continue

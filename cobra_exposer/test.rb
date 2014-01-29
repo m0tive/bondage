@@ -20,9 +20,10 @@ def expose(library)
 	exposer = Exposer.new(visitor, DEBUGGING)
 
 	path = library.autogenPath
-	unless File.directory?(path)
-	  FileUtils.mkdir_p(path)
+	if File.directory?(path)
+		FileUtils.rm_rf(path)
 	end
+  FileUtils.mkdir_p(path)
 
 	Generator.new(library, exposer).generate(path)
 	LuaGenerator.new(library, exposer).generate(path)

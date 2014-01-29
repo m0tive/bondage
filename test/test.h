@@ -16,6 +16,10 @@ template <typename X> class SuperSuper
 {
 };
 
+class NotExposedFoo : public Foo
+{
+};
+
 /// Test
 /// \expose
 class PORK Bar : private Foo, public SuperSuper<Foo>
@@ -25,6 +29,8 @@ class PORK Bar : private Foo, public SuperSuper<Foo>
 
   const std::pork::vector<Foo> test2(int x, float y);
   std::pork::test test2(int x);
+
+  NotExposedFoo* getAFoo();
   
   void test(const Test<Foo>& = Test<Foo>()) const;
   List<int> test(Bar ** = nullptr) const;
