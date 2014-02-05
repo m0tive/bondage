@@ -13,10 +13,6 @@ class Comment
     @params = {}
   end
 
-  def to_s
-    return "commands - #{@commands.to_a}, params = #{@params.to_a}"
-  end
-
   def addCommand(name, text)
     @commands[name] = text
   end
@@ -198,8 +194,8 @@ private
 end
 
 class Parser
-  def initialize(library)
-    @debug = true   
+  def initialize(library, dbg)
+    @debug = dbg
     @index = FFI::Clang::Index.new
     @library = library
     

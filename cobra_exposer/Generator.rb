@@ -7,8 +7,6 @@ class Generator
   end
 
   def generate(dir)
-    MetaDataGenerator.new(@exposer).save(dir)
-
     classPaths = @exposer.exposedClassPaths
 
     File.open(dir + "/#{@library.name}.h", 'w') do |file|

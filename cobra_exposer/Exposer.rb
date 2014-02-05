@@ -9,8 +9,11 @@ class Exposer
     @partiallyExposedClasses = visitor.classes.select do |cls| canPartiallyExposeClass(cls) end
     @exposedClassPaths = @exposedClasses.reduce(Set.new) { |set, cls| set.add(cls.fullyQualifiedName) }
 
-    @dependencyClassPaths = Set.new
-    gatherDependencyClasses(@dependencyClassPaths, visitor.library)
+    @metaData = MetaDataGenerator.fromClasses(@exposedClasses, @partiallyExposedClasses)
+    puts "Exporting class data for '#{visitor.library.name}' to '#{visitor.library.autogenPath}'"
+    @metaData.export(visitor.library.autogenPath)
+
+    mergeDependencyClasses(@metaData, visitor.library)
   end
 
   attr_reader :exposedClasses, :partiallyExposedClasses, :exposedClassPaths
@@ -33,12 +36,12 @@ class Exposer
   end
 
 private
-  def gatherDependencyClasses(set, lib)
+  def mergeDependencyClasses(dataToMerge, lib)
     lib.dependencies.each do |dep| 
-      gatherDependencyClasses(set, dep)
+      mergeDependencyClasses(dataToMerge, dep)
 
-      readJson = JSON.parse(File.open("#{dep.autogenPath}/classes.json", "r").read())
-      set.merge(readJson)
+      metaData = MetaDataGenerator.import(dep.autogenPath)
+      dataToMerge.merge(metaData)
     end
   end
 
@@ -88,10 +91,9 @@ private
 
   def canExposeClass(cls)
     if(cls.isExposed == nil)
-      puts "#{cls.name} ... #{cls.comment.to_s}"
       hasExposeComment = cls.comment.hasCommand("expose")
       if(@debugOutput)
-        puts "#{hasExposeComment}\t#{cls.name}"
+        puts "#{hasExposeComment ? "Y" : "N"}\t#{cls.name}"
       end
 
       if(!hasExposeComment)

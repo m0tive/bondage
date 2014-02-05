@@ -8,22 +8,22 @@ require_relative "ExposeAST.rb"
 require 'json'
 require 'FileUtils'
 
-DEBUGGING = true
+DEBUGGING = false
 
 def expose(library)
 	puts "Generating '#{library.name}' library..."
-	parser = Parser.new(library)
-
-	visitor = VisitorImpl.new(library)
-	parser.parse(visitor)
-
-	exposer = Exposer.new(visitor, DEBUGGING)
-
 	path = library.autogenPath
 	if File.directory?(path)
 		FileUtils.rm_rf(path)
 	end
   FileUtils.mkdir_p(path)
+  
+	parser = Parser.new(library, DEBUGGING)
+
+	visitor = VisitorImpl.new(library)
+	parser.parse(visitor)
+
+	exposer = Exposer.new(visitor, DEBUGGING)
 
 	Generator.new(library, exposer).generate(path)
 	LuaGenerator.new(library, exposer).generate(path)
