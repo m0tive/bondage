@@ -121,7 +121,7 @@ class ClassItem < ClassableItem
     @superClasses = []
   end
 
-  attr_reader :name, :isStruct, :isTemplated, :comment, :functions
+  attr_reader :name, :isStruct, :isTemplated, :comment, :functions, :superClasses
 
   def self.build(parent, data, struct, template)
     return ClassItem.new(parent, data, struct, template)

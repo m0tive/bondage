@@ -7,14 +7,14 @@ class Generator
   end
 
   def generate(dir)
-    classPaths = @exposer.exposedClassPaths
+    toGenerate = @exposer.exposedMetaData
 
     File.open(dir + "/#{@library.name}.h", 'w') do |file|
-      classPaths.map{ |path| "COBRA_EXPOSED_CLASS(#{path})\n" }.each { |data| file.write(data) }
+      toGenerate.fullClasses.map{ |clsPath, cls| "COBRA_EXPOSED_CLASS(#{clsPath})\n" }.each { |data| file.write(data) }
     end
 
     File.open(dir + "/#{@library.name}.cpp", 'w') do |file|
-      @exposer.exposedClasses.map{ |cls| "#{generateClassData(cls)}\n" }.each { |data| file.write(data) }
+      toGenerate.fullClasses.map{ |clsPath, cls| "#{generateClassData(cls.parsedClass)}\n" }.each { |data| file.write(data) }
     end
   end
 

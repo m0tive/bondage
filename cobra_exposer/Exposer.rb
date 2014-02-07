@@ -5,18 +5,26 @@ require "set"
 class Exposer
   def initialize(visitor, debug)
     @debugOutput = debug
-    @exposedClasses = visitor.classes.select do |cls| canExposeClass(cls) end
-    @partiallyExposedClasses = visitor.classes.select do |cls| canPartiallyExposeClass(cls) end
-    @exposedClassPaths = @exposedClasses.reduce(Set.new) { |set, cls| set.add(cls.fullyQualifiedName) }
+    
+    @allMetaData = MetaDataGenerator.new()
+    mergeDependencyClasses(@allMetaData, visitor.library)
 
-    @metaData = MetaDataGenerator.fromClasses(@exposedClasses, @partiallyExposedClasses)
+    exposedClasses = visitor.classes.select do |cls| canExposeClass(cls) end
+    partiallyExposedClasses = []
+    visitor.classes.each do |cls|
+      if(canPartiallyExposeClass(cls, partiallyExposedClasses))
+        partiallyExposedClasses << cls
+      end
+    end
+
+    @exposedMetaData = MetaDataGenerator.fromClasses(exposedClasses, partiallyExposedClasses)
     puts "Exporting class data for '#{visitor.library.name}' to '#{visitor.library.autogenPath}'"
-    @metaData.export(visitor.library.autogenPath)
+    @exposedMetaData.export(visitor.library.autogenPath)
 
-    mergeDependencyClasses(@metaData, visitor.library)
+    @allMetaData.merge(@exposedMetaData)
   end
 
-  attr_reader :exposedClasses, :partiallyExposedClasses, :exposedClassPaths
+  attr_reader :exposedMetaData, :allMetaData
 
   def canExposeMethod(fn)
     if(fn.isExposed == nil)
@@ -72,11 +80,7 @@ private
 
     fullName = "::#{name}"
 
-    if(@exposedClassPaths.include?(fullName))
-      return true
-    end
-
-    if(@dependencyClassPaths.include?(fullName))
+    if(@allMetaData.fullyExposed?(fullName))
       return true
     end
 
@@ -85,8 +89,37 @@ private
     return false
   end
 
-  def canPartiallyExposeClass(cls)
-    return canExposeClass(cls)
+  def canPartiallyExposeClass(cls, otherPartiallyExposedTypes)
+    if(canExposeClass(cls))
+      return true
+    end
+
+    validSuperClasses = {}
+
+    puts "####{cls.name}"
+
+    anyExposed = false
+    cls.superClasses.each do |cls|
+      clsPath = cls[:name]
+      puts ">>> #{cls[:name]}"
+    if false then
+        validSuperClasses << cls
+        allMetaData.partiallyExposed?(clsPath) 
+      end
+    end
+    if(anyExposed)
+      return true
+    end
+
+    if(!validSuperClasses.empty?)
+      otherPartiallyExposedTypes.each do |cls|
+        if(false)
+          return canPartiallyExposeClass(cls, otherPartiallyExposedTypes)
+        end
+      end
+    end
+
+    return false
   end
 
   def canExposeClass(cls)
