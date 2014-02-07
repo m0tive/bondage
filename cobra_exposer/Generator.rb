@@ -10,24 +10,36 @@ class Generator
     toGenerate = @exposer.exposedMetaData
 
     File.open(dir + "/#{@library.name}.h", 'w') do |file|
-      toGenerate.fullClasses.map{ |clsPath, cls| "COBRA_EXPOSED_CLASS(#{clsPath})\n" }.each { |data| file.write(data) }
+      toGenerate.fullClasses.each do |clsPath, cls| 
+        if(!cls.hasParentClass())
+          file.write("COBRA_EXPOSED_CLASS(#{clsPath})\n")
+        end
+      end
     end
 
     File.open(dir + "/#{@library.name}.cpp", 'w') do |file|
-      toGenerate.fullClasses.map{ |clsPath, cls| "#{generateClassData(cls.parsedClass)}\n" }.each { |data| file.write(data) }
+      toGenerate.fullClasses.map{ |clsPath, cls| "#{generateClassData(cls)}\n" }.each { |data| file.write(data) }
     end
   end
 
 private
   def generateClassData(cls)
-    fullyQualified = cls.fullyQualifiedName()
+    parsedClass = cls.parsedClass
+    raise "Can't generate for restored class '#{cls.name}'" unless parsedClass
+    fullyQualified = parsedClass.fullyQualifiedName()
     literalName = fullyQualified.sub("::", "").gsub("::", "_")
 
     methodsLiteral = literalName + "_methods";
 
+    parent = cls.parentClass
+
     output = "// Exposing class #{fullyQualified}\n\n"
-    output += "const cobra::function #{methodsLiteral}[] = #{generateMethodData(cls)};\n\n";
-    output += "COBRA_IMPLEMENT_EXPOSED_CLASS(#{fullyQualified}, #{methodsLiteral})\n\n"
+    output += "const cobra::function #{methodsLiteral}[] = #{generateMethodData(parsedClass)};\n\n";
+    if(!parent)
+      output += "COBRA_IMPLEMENT_EXPOSED_CLASS(#{fullyQualified}, #{methodsLiteral})\n\n"
+    else
+      output += "COBRA_IMPLEMENT_DERIVED_EXPOSED_CLASS(#{fullyQualified}, #{methodsLiteral}, #{parent})\n\n"
+    end
 
     return output
   end

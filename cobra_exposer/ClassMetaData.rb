@@ -3,21 +3,27 @@ require_relative "ExposeAST.rb"
 require "json"
 
 class ClassData
-	def initialize(name, parsedClass=nil)
+	def initialize(name, parent, parsedClass=nil)
 		@name = name
 		@fullyExposed = false
 		@parsedClass = parsedClass
+		@parentClass = parent
 	end
 
-	attr_reader :name, :fullyExposed, :parsedClass
+	attr_reader :name, :fullyExposed, :parsedClass, :parentClass
 
 	def setFullyExposed()
 		@fullyExposed = true
 	end
 
+	def hasParentClass
+		return @parentClass != nil
+	end
+
 	def to_json(opt)
 		data = {
-			:name => @name
+			:name => @name,
+			:parent => @parentClass
 		}
 		if(!@fullyExposed)
 			data[:partial] = true
@@ -26,7 +32,7 @@ class ClassData
 	end
 
 	def self.from_json(data)
-		cls = ClassData.new(data[:name])
+		cls = ClassData.new(data[:name], data[:parent])
 		if(not data.include?(:partial))
 			cls.setFullyExposed()
 		end
@@ -47,6 +53,10 @@ class MetaDataGenerator
 		@fullClasses.merge!(other.fullClasses)
 	end
 
+	def findClass(clsPath)
+		return classes[clsPath]
+	end
+
 	def fullyExposed?(cls)
 		return fullClasses.include?(cls)
 	end
@@ -59,7 +69,18 @@ class MetaDataGenerator
 		classes = {}
 
 		partialClasses.each do |cls|
-			classes[cls.fullyQualifiedName] = ClassData.new(cls.name, cls)
+			superClass = nil
+	    cls.superClasses.each do |cls|
+	      if(cls[:accessSpecifier] == :public)
+	        clsPath = "::#{cls[:type].name}"
+	        if(partialClasses.any?{ |cls| cls.fullyQualifiedName == clsPath})
+	          superClass = clsPath
+	          break
+	        end
+	      end
+	    end
+
+			classes[cls.fullyQualifiedName] = ClassData.new(cls.name, superClass, cls)
 		end
 
 		fullClasses.each do |cls|	

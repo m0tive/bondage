@@ -26,7 +26,7 @@ class NotExposedVec : public std::pork::vector<Foo>
 
 /// Test
 /// \expose
-class PORK Bar : private Foo, public SuperSuper<Foo>
+class PORK Bar : public Foo, public SuperSuper<Foo>
 {
 public:
   Bar(int a);

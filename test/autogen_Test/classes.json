@@ -1,11 +1,24 @@
 {
   "::Test::Foo": {
-    "name": "Foo"
+    "name": "Foo",
+    "parent": null
   },
   "::Test::Foo::SubFoo": {
-    "name": "SubFoo"
+    "name": "SubFoo",
+    "parent": null
+  },
+  "::Test::Detail::NotExposedFoo": {
+    "name": "NotExposedFoo",
+    "parent": "::Test::Foo",
+    "partial": true
+  },
+  "::Test::Detail::NotExposedVec": {
+    "name": "NotExposedVec",
+    "parent": null,
+    "partial": true
   },
   "::Test::Detail::Bar": {
-    "name": "Bar"
+    "name": "Bar",
+    "parent": "::Test::Foo"
   }
 }

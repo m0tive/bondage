@@ -10,15 +10,16 @@ class LuaGenerator
     classPaths = toGenerate = @exposer.exposedMetaData.fullClasses.each do |path, cls|
       puts "Exposing #{cls.name} to lua"
   		File.open(dir + "/#{cls.name}.lua", 'w') do |file|
-  			file.write(generateClassData(cls.parsedClass))
+  			file.write(generateClassData(cls))
 			end
     end
   end
 
   def generateClassData(cls)
+    parsedClass = cls.parsedClass
     functions = {}
 
-    exposableFunctions = cls.functions.select{ |fn| @exposer.canExposeMethod(fn) }
+    exposableFunctions = parsedClass.functions.select{ |fn| @exposer.canExposeMethod(fn) }
 
     exposableFunctions.each do |fn|
       if(functions[fn.name] == nil)
@@ -32,7 +33,25 @@ class LuaGenerator
     	"#{name} = internal.getNative(\"#{@library.name}\", \"#{name}\")"
     end
 
+    name = cls.name
+
+    parentInsert = ""
+    parentPreamble = ""
+    if(cls.parentClass)
+      parent = @exposer.allMetaData.findClass(cls.parentClass)
+      raise "Missing parent dependency '#{ls.parentClass}'" unless parent
+
+      parentName = "#{parent.name}_def"
+
+      parentInsert = "  super = #{parentName},\n\n  "
+      parentPreamble = "local #{parentName} = require \"#{parent.name}\"\n\n"
+    end
+
     classData = fns.join(",\n  ")
-  	return "-- Class #{@library.name}.#{cls.name}\nlocal #{cls.name}_cls = class \"#{cls.name}\" {\n  #{classData}\n}\n\nreturn #{cls.name}_cls"
+  	output = parentPreamble
+    output += "-- Class #{@library.name}.#{name}\n"
+    output += "local #{name}_cls = class \"#{name}\" {\n"
+    output += parentInsert
+    output += "#{classData}\n}\n\nreturn #{name}_cls"
   end
 end

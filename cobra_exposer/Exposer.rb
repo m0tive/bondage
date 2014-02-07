@@ -32,11 +32,10 @@ class Exposer
 
   def canExposeMethod(fn)
     if(fn.isExposed == nil)
-      puts fn.accessSpecifier
       canExpose = fn.accessSpecifier == :public
-      canExpose = canExpose && (fn.returnType == nil || canExposeTypeImpl(fn.returnType))
+      canExpose = canExpose && (fn.returnType == nil || canExposeTypeImpl(fn.returnType, true))
 
-      canExpose = canExpose && fn.arguments.all?{ |param| canExposeType(param) }
+      canExpose = canExpose && fn.arguments.all?{ |param| canExposeType(param, false) }
 
       fn.setExposed(canExpose)
       puts "Can expose #{fn.isExposed ? "Y" : "N"} #{fn.name}"
@@ -45,13 +44,12 @@ class Exposer
     return fn.isExposed
   end
 
-  def canExposeType(obj)
+  def canExposeType(obj, partialOk)
     if(obj == nil)
       return true
     end
 
-    return canExposeTypeImpl(obj[:type])
-    
+    return canExposeTypeImpl(obj[:type], partialOk)
   end
 
 private
@@ -64,7 +62,7 @@ private
     end
   end
 
-  def canExposeTypeImpl(type)
+  def canExposeTypeImpl(type, partialOk)
     if(type.isBasicType())
       return true
     end
@@ -75,7 +73,7 @@ private
         return false
       end
 
-      return canExposeTypeImpl(pointed)
+      return canExposeTypeImpl(pointed, partialOk)
     end
 
     if(type.isLValueReference() || type.isRValueReference())
@@ -84,14 +82,15 @@ private
         return false
       end
 
-      return canExposeTypeImpl(pointed)
+      return canExposeTypeImpl(pointed, partialOk)
     end
     
     name = type.name
 
     fullName = "::#{name}"
 
-    if(@allMetaData.fullyExposed?(fullName))
+    if((partialOk && @allMetaData.partiallyExposed?(fullName)) ||
+      @allMetaData.fullyExposed?(fullName))
       return true
     end
 
@@ -105,7 +104,8 @@ private
     end
 
     # classes without super classes cannot be pushed at all.
-    if(cls.superClasses.empty? or cls.accessSpecifier != :public)
+    if(cls.superClasses.empty? or 
+      (cls.accessSpecifier != :invalid && cls.accessSpecifier != :public))
       return false
     end
 
@@ -122,7 +122,6 @@ private
     end
 
     if(!validSuperClasses.empty?)
-      puts validSuperClasses.to_a
       otherPartiallyExposedTypes.each do |cls|
         if(validSuperClasses.include?(cls.fullyQualifiedName))
           return canPartiallyExposeClass(cls, otherPartiallyExposedTypes)
