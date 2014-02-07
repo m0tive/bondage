@@ -8,11 +8,23 @@ class LuaGenerator
 
   def generate(dir)
     classPaths = toGenerate = @exposer.exposedMetaData.fullClasses.each do |path, cls|
-      puts "Exposing #{cls.name} to lua"
   		File.open(dir + "/#{cls.name}.lua", 'w') do |file|
   			file.write(generateClassData(cls))
 			end
     end
+  end
+
+  def generateFunction(name, fns)
+    output = ""
+
+    fns.each do |fn|
+      if(fn.comment.hasCommand("brief"))
+        output += "-- \\brief #{fn.comment.command("brief").strip}\n  "
+      end
+    end
+
+    output += "#{name} = internal.getNative(\"#{@library.name}\", \"#{name}\")"
+    return output
   end
 
   def generateClassData(cls)
@@ -30,10 +42,15 @@ class LuaGenerator
     end
 
     fns = functions.sort.map do |name, fns|
-    	"#{name} = internal.getNative(\"#{@library.name}\", \"#{name}\")"
+    	generateFunction(name, fns)
     end
 
     name = cls.name
+
+    brief = ""
+    if(parsedClass.comment.hasCommand("brief"))
+      brief = parsedClass.comment.command("brief").strip
+    end
 
     parentInsert = ""
     parentPreamble = ""
@@ -41,17 +58,18 @@ class LuaGenerator
       parent = @exposer.allMetaData.findClass(cls.parentClass)
       raise "Missing parent dependency '#{ls.parentClass}'" unless parent
 
-      parentName = "#{parent.name}_def"
+      parentName = "#{parent.name}_cls"
 
-      parentInsert = "  super = #{parentName},\n\n  "
-      parentPreamble = "local #{parentName} = require \"#{parent.name}\"\n\n"
+      parentInsert = "  super = #{parentName},\n"
+      parentPreamble = "local #{parentName} = require \"#{parent.name}\""
     end
 
-    classData = fns.join(",\n  ")
+    classData = fns.join(",\n\n  ")
+
   	output = parentPreamble
-    output += "-- Class #{@library.name}.#{name}\n"
-    output += "local #{name}_cls = class \"#{name}\" {\n"
+    output += "-- \\brief #{brief}\n"
+    output += "--\nlocal #{name}_cls = class \"#{name}\" {\n"
     output += parentInsert
-    output += "#{classData}\n}\n\nreturn #{name}_cls"
+    output += "\n  #{classData}\n}\n\nreturn #{name}_cls"
   end
 end

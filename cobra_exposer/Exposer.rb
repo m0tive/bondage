@@ -38,7 +38,6 @@ class Exposer
       canExpose = canExpose && fn.arguments.all?{ |param| canExposeType(param, false) }
 
       fn.setExposed(canExpose)
-      puts "Can expose #{fn.isExposed ? "Y" : "N"} #{fn.name}"
     end
 
     return fn.isExposed

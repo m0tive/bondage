@@ -17,17 +17,17 @@ struct
 };
 
 #define PORK
-/// \brief Test Foo
+/// \brief Foo allows people to do foo like things
 /// \expose
 class PORK Foo
 {
 public:
-  /// \brief Test Sub Foo
+  /// \brief Test Sub Foo, is contained withing foo!
   /// \expose
   class SubFoo // Test
   {
   public:
-    /// \brief Test SetX
+    /// \brief allows setting of x, or course
     /// \param x X value to setX
     void setX(float x);
     float getX() const { return x; }
@@ -40,7 +40,7 @@ public:
     PIE
   };
   
-  /// \brief Test bar method
+  /// \brief invokes barr-iness.
   /// \param cake gives much cake.
   pork bar(int cake, float pork = 4.5);
   
