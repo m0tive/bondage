@@ -1,0 +1,3 @@
+COBRA_EXPOSED_CLASS(::Test::Foo)
+COBRA_EXPOSED_CLASS(::Test::Foo::SubFoo)
+COBRA_EXPOSED_CLASS(::Test::Detail::Bar)

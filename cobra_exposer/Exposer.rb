@@ -9,10 +9,14 @@ class Exposer
     @allMetaData = MetaDataGenerator.new()
     mergeDependencyClasses(@allMetaData, visitor.library)
 
-    exposedClasses = visitor.classes.select do |cls| canExposeClass(cls) end
+    exposedClasses = []
     partiallyExposedClasses = []
+
     visitor.classes.each do |cls|
-      if(canPartiallyExposeClass(cls, partiallyExposedClasses))
+      if(canExposeClass(cls))
+        exposedClasses << cls
+        partiallyExposedClasses << cls
+      elsif(canPartiallyExposeClass(cls, partiallyExposedClasses))
         partiallyExposedClasses << cls
       end
     end
@@ -28,7 +32,14 @@ class Exposer
 
   def canExposeMethod(fn)
     if(fn.isExposed == nil)
-      fn.setExposed((fn.returnType == nil || canExposeTypeImpl(fn.returnType)) && fn.arguments.all?{ |param| canExposeType(param) })
+      puts fn.accessSpecifier
+      canExpose = fn.accessSpecifier == :public
+      canExpose = canExpose && (fn.returnType == nil || canExposeTypeImpl(fn.returnType))
+
+      canExpose = canExpose && fn.arguments.all?{ |param| canExposeType(param) }
+
+      fn.setExposed(canExpose)
+      puts "Can expose #{fn.isExposed ? "Y" : "N"} #{fn.name}"
     end
 
     return fn.isExposed
@@ -84,36 +95,36 @@ private
       return true
     end
 
-    puts "not exposing #{fullName}"
-
     return false
   end
 
   def canPartiallyExposeClass(cls, otherPartiallyExposedTypes)
+    # exposed classes are also partially exposed
     if(canExposeClass(cls))
       return true
     end
 
-    validSuperClasses = {}
-
-    puts "####{cls.name}"
-
-    anyExposed = false
-    cls.superClasses.each do |cls|
-      clsPath = cls[:name]
-      puts ">>> #{cls[:name]}"
-    if false then
-        validSuperClasses << cls
-        allMetaData.partiallyExposed?(clsPath) 
-      end
+    # classes without super classes cannot be pushed at all.
+    if(cls.superClasses.empty? or cls.accessSpecifier != :public)
+      return false
     end
-    if(anyExposed)
-      return true
+
+    validSuperClasses = Set.new
+
+    cls.superClasses.each do |cls|
+      if(cls[:accessSpecifier] == :public)
+        clsPath = "::#{cls[:type].name}"
+        validSuperClasses << clsPath
+        if(allMetaData.partiallyExposed?(clsPath))
+          return true
+        end
+      end
     end
 
     if(!validSuperClasses.empty?)
+      puts validSuperClasses.to_a
       otherPartiallyExposedTypes.each do |cls|
-        if(false)
+        if(validSuperClasses.include?(cls.fullyQualifiedName))
           return canPartiallyExposeClass(cls, otherPartiallyExposedTypes)
         end
       end
@@ -129,14 +140,15 @@ private
         puts "#{hasExposeComment ? "Y" : "N"}\t#{cls.name}"
       end
 
-      if(!hasExposeComment)
+      if(!hasExposeComment )
         cls.setExposed(false)
         return false
       end
 
       willExpose = 
         !cls.isTemplated && 
-        !cls.name.empty?
+        !cls.name.empty? && 
+        (cls.accessSpecifier == :public || cls.accessSpecifier == :invalid)
 
       if(!willExpose || @debugOutput)
         puts "\tExposeRequested: #{hasExposeComment}\tTemplate: #{cls.isTemplated}"

@@ -20,10 +20,15 @@ class NotExposedFoo : public Foo
 {
 };
 
+class NotExposedVec : public std::pork::vector<Foo>
+{
+};
+
 /// Test
 /// \expose
 class PORK Bar : private Foo, public SuperSuper<Foo>
 {
+public:
   Bar(int a);
   ~Bar();
 
@@ -31,6 +36,7 @@ class PORK Bar : private Foo, public SuperSuper<Foo>
   std::pork::test test2(int x);
 
   NotExposedFoo* getAFoo();
+  NotExposedVec* getAVec();
   
   void test(const Test<Foo>& = Test<Foo>()) const;
   List<int> test(Bar ** = nullptr) const;

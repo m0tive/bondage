@@ -1,0 +1,11 @@
+{
+  "::Test::Foo": {
+    "name": "Foo"
+  },
+  "::Test::Foo::SubFoo": {
+    "name": "SubFoo"
+  },
+  "::Test::Detail::Bar": {
+    "name": "Bar"
+  }
+}

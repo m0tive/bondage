@@ -109,6 +109,10 @@ class FunctionItem < HierarchyItem
   def addParam(data)
     @arguments << data
   end
+
+  def accessSpecifier
+    return @accessSpecifier
+  end
 end
 
 class ClassItem < ClassableItem
@@ -117,6 +121,7 @@ class ClassItem < ClassableItem
     @isStruct = struct
     @isTemplated = template
     @comment = data[:comment]
+    @accessSpecifier = data[:cursor].access_specifier
     @functions = []
     @superClasses = []
   end
@@ -129,6 +134,10 @@ class ClassItem < ClassableItem
 
   def name()
     return @name
+  end
+
+  def accessSpecifier
+    return @accessSpecifier
   end
 
   def addSuperClass(data)

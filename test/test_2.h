@@ -21,10 +21,12 @@ struct
 /// \expose
 class PORK Foo
 {
+public:
   /// \brief Test Sub Foo
   /// \expose
   class SubFoo // Test
   {
+  public:
     /// \brief Test SetX
     /// \param x X value to setX
     void setX(float x);
