@@ -6,7 +6,7 @@ class Exposer
   def initialize(visitor, debug)
     @debugOutput = debug
     
-    @allMetaData = MetaDataGenerator.new()
+    @allMetaData = ClassDataSet.new()
     mergeDependencyClasses(@allMetaData, visitor.library)
 
     exposedClasses = []
@@ -21,7 +21,7 @@ class Exposer
       end
     end
 
-    @exposedMetaData = MetaDataGenerator.fromClasses(exposedClasses, partiallyExposedClasses)
+    @exposedMetaData = ClassDataSet.fromClasses(exposedClasses, partiallyExposedClasses)
     puts "Exporting class data for '#{visitor.library.name}' to '#{visitor.library.autogenPath}'"
     @exposedMetaData.export(visitor.library.autogenPath)
 
@@ -33,9 +33,9 @@ class Exposer
   def canExposeMethod(fn)
     if(fn.isExposed == nil)
       canExpose = fn.accessSpecifier == :public
-      canExpose = canExpose && (fn.returnType == nil || canExposeTypeImpl(fn.returnType, true))
+      canExpose = canExpose && (fn.returnType == nil || canExposeType(fn.returnType, true))
 
-      canExpose = canExpose && fn.arguments.all?{ |param| canExposeType(param, false) }
+      canExpose = canExpose && fn.arguments.all?{ |param| canExposeArgument(param) }
 
       fn.setExposed(canExpose)
     end
@@ -43,12 +43,12 @@ class Exposer
     return fn.isExposed
   end
 
-  def canExposeType(obj, partialOk)
+  def canExposeArgument(obj)
     if(obj == nil)
       return true
     end
 
-    return canExposeTypeImpl(obj[:type], partialOk)
+    return canExposeType(obj.type, false)
   end
 
 private
@@ -56,12 +56,12 @@ private
     lib.dependencies.each do |dep| 
       mergeDependencyClasses(dataToMerge, dep)
 
-      metaData = MetaDataGenerator.import(dep.autogenPath)
+      metaData = ClassDataSet.import(dep.autogenPath)
       dataToMerge.merge(metaData)
     end
   end
 
-  def canExposeTypeImpl(type, partialOk)
+  def canExposeType(type, partialOk)
     if(type.isBasicType())
       return true
     end
@@ -72,7 +72,7 @@ private
         return false
       end
 
-      return canExposeTypeImpl(pointed, partialOk)
+      return canExposeType(pointed, partialOk)
     end
 
     if(type.isLValueReference() || type.isRValueReference())
@@ -81,7 +81,7 @@ private
         return false
       end
 
-      return canExposeTypeImpl(pointed, partialOk)
+      return canExposeType(pointed, partialOk)
     end
     
     name = type.name

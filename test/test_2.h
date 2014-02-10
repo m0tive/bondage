@@ -30,7 +30,10 @@ public:
     /// \brief allows setting of x, or course
     /// \param x X value to setX
     void setX(float x);
+    /// \brief get x
+    /// \return The result of X
     float getX() const { return x; }
+
     float x;
   };
   
@@ -42,6 +45,7 @@ public:
   
   /// \brief invokes barr-iness.
   /// \param cake gives much cake.
+  /// \returns lots of pork
   pork bar(int cake, float pork = 4.5);
   
 private:

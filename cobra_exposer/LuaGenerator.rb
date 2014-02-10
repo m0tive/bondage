@@ -17,11 +17,27 @@ class LuaGenerator
   def generateFunction(name, fns)
     output = ""
 
+    brief = ""
+    returnComment = ""
+    cmds = { }
+
+    puts "funtion #{fns[0].name}"
+
     fns.each do |fn|
       if(fn.comment.hasCommand("brief"))
-        output += "-- \\brief #{fn.comment.command("brief").strip}\n  "
+        brief = fn.comment.command("brief").strip
+
+        if (!fn.returnBrief.empty? && returnComment.empty?)
+          returnComment = fn.returnBrief.strip
+        end
+
+        fn.arguments.each do |arg|
+          puts "Arg #{arg.name} #{arg.brief.strip} #{arg.input?} #{arg.output?}"
+        end
       end
     end
+
+    puts "reutrn comment = #{returnComment}"
 
     output += "#{name} = internal.getNative(\"#{@library.name}\", \"#{name}\")"
     return output

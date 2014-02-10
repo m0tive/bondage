@@ -2,7 +2,6 @@
 --
 local Foo_cls = class "Foo" {
 
-  -- \brief invokes barr-iness.
   bar = internal.getNative("Test", "bar")
 }
 

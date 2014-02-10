@@ -3,6 +3,10 @@
 #include "example.h"
 #include "example_manual.h"
 
+class UnnamespacedClass
+{
+};
+
 namespace Test
 {
 template<typename T> class List;
@@ -34,7 +38,9 @@ public:
   ~Bar();
 
   /// \brief get a porky list from some types
-  const std::pork::vector<Foo> test2(int x, float y);
+  /// \param x input integer for xing
+  /// \param[out] y output float after xing.
+  const std::pork::vector<Foo> test2(int x, float &y);
   /// \brief something else overloaded
   std::pork::test test2(int x);
 

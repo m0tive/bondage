@@ -4,7 +4,6 @@ local SubFoo_cls = class "SubFoo" {
 
   getX = internal.getNative("Test", "getX"),
 
-  -- \brief allows setting of x, or course
   setX = internal.getNative("Test", "setX")
 }
 

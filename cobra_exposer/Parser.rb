@@ -7,18 +7,28 @@ require "ffi/clang.rb"
 require_relative "library.rb"
 require_relative "visitor.rb"
 
+class Param
+  def initialize(text, expDir, dir)
+    @text = text
+    @explicitDirection = expDir
+    @direction = dir
+  end
+
+  attr_reader :text, :explicitDirection, :direction
+end
+
 class Comment
   def initialize()
     @commands = {}
-    @params = {}
+    @params = []
   end
 
   def addCommand(name, text)
     @commands[name] = text
   end
 
-  def addParam(name, text)
-    @params[name] = text
+  def addParam(index, text, explicitDirection, dir)
+    @params[index] = Param.new(text, explicitDirection, dir)
   end
 
   def hasCommand(name)
@@ -29,8 +39,8 @@ class Comment
     return @commands[name]
   end
 
-  def param(name)
-    return @params[name]
+  def paramforArgIndex(index)
+    return @params[index]
   end
 end
 
@@ -186,7 +196,9 @@ private
       elsif(comment.kind_of?(FFI::Clang::InlineCommandComment))
         toFill.addCommand(comment.name, "")
       elsif(comment.kind_of?(FFI::Clang::ParamCommandComment))
-        toFill.addParam(comment.name, comment.comment)
+        if(comment.valid_index?)
+          toFill.addParam(comment.index, comment.comment, comment.direction_explicit?, comment.direction)
+        end
       end
       
       comment.each do |comment|
@@ -219,7 +231,7 @@ class Parser
     
     unsaved = FFI::Clang::UnsavedFile.new(sourceName, source)
     
-    @translator = @index.parse_translation_unit(nil, args, [ unsaved ], [ :detailed_preprocessing_record, :include_brief_comments, :skip_function_bodies ])
+    @translator = @index.parse_translation_unit(nil, args, [ unsaved ], [ :detailed_preprocessing_record, :include_brief_comments_in_code_completion, :skip_function_bodies ])
     
     namespaceState = State.new(:namespace, ->(parent, data){ parent.addNamespace(data) })
       
@@ -266,10 +278,6 @@ class Parser
     functionBodyState = State.new(:function_body)
     
     @@transitions = {
-      # root of the file.
-      :root => {
-        :cursor_namespace => namespaceState,
-      },
       # inside a namespace
       :namespace => {
         :cursor_namespace => namespaceState,
@@ -348,11 +356,11 @@ class Parser
     
     @depth = 0
     
-    stateStack = [ :root ]
-    data = [ StateData.new(visitor) ]
+    stateStack = [ :namespace ]
+    data = [ StateData.new(visitor.rootItem) ]
     visitChildren(cursor, visitor, stateStack, data)
     
-    raise "Incomplete source" unless (stateStack.size == 1 && stateStack[0] == :root)
+    raise "Incomplete source" unless (stateStack.size == 1 && stateStack[0] == :namespace)
   end
   
 private
