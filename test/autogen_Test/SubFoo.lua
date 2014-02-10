@@ -1,3 +1,9 @@
+--  Copyright me, fool. No, copying and stuff.
+-- 		
+--  This file is auto generated, do not change it!
+-- 
+
+
 -- \brief Test Sub Foo, is contained withing foo, it does not derive from foo.
 --
 local SubFoo_cls = class "SubFoo" {

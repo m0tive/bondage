@@ -1,4 +1,5 @@
 require_relative "ExposeAST.rb"
+require_relative "GeneratorHelper.rb"
 
 class Generator
   def initialize(library, exposer)
@@ -10,6 +11,8 @@ class Generator
     toGenerate = @exposer.exposedMetaData
 
     File.open(dir + "/#{@library.name}.h", 'w') do |file|
+      writePreamble(file)
+
       toGenerate.fullClasses.each do |clsPath, cls| 
         if(!cls.hasParentClass())
           file.write("COBRA_EXPOSED_CLASS(#{clsPath})\n")
@@ -18,6 +21,8 @@ class Generator
     end
 
     File.open(dir + "/#{@library.name}.cpp", 'w') do |file|
+      writePreamble(file)
+
       toGenerate.fullClasses.map{ |clsPath, cls| "#{generateClassData(cls)}\n" }.each { |data| file.write(data) }
     end
   end
@@ -33,13 +38,29 @@ private
 
     parent = cls.parentClass
 
-    output = "// Exposing class #{fullyQualified}\n\n"
-    output += "const cobra::function #{methodsLiteral}[] = #{generateMethodData(parsedClass)};\n\n";
+    classInfo = ""
     if(!parent)
-      output += "COBRA_IMPLEMENT_EXPOSED_CLASS(#{fullyQualified}, #{methodsLiteral})\n\n"
+      classInfo += 
+"COBRA_IMPLEMENT_EXPOSED_CLASS(
+  #{fullyQualified}, 
+  #{methodsLiteral})"
     else
-      output += "COBRA_IMPLEMENT_DERIVED_EXPOSED_CLASS(#{fullyQualified}, #{methodsLiteral}, #{parent})\n\n"
+      classInfo += 
+"COBRA_IMPLEMENT_DERIVED_EXPOSED_CLASS(
+  #{fullyQualified}, 
+  #{methodsLiteral}, 
+  #{parent})"
     end
+
+    output = 
+"// Exposing class #{fullyQualified}
+
+const cobra::function #{methodsLiteral}[] = #{generateMethodData(parsedClass)};
+
+#{classInfo}
+
+";
+
 
     return output
   end
@@ -72,5 +93,9 @@ private
 
   def generateSingularMethod(fn)
     "cobra::function_builder::build<&#{fn.fullyQualifiedName()}>(\"#{fn.name}\")"
+  end
+
+  def writePreamble(file)
+    Object.send(:writePreamble, file, "// ")
   end
 end

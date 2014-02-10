@@ -1,4 +1,11 @@
-local Foo_cls = require "Foo"-- \brief Bar is a thing with stuff
+--  Copyright me, fool. No, copying and stuff.
+-- 		
+--  This file is auto generated, do not change it!
+-- 
+
+local Foo_cls = require "Foo"
+
+-- \brief Bar is a thing with stuff
 --
 local Bar_cls = class "Bar" {
   super = Foo_cls,

@@ -1,4 +1,5 @@
 require_relative "ExposeAST.rb"
+require_relative "GeneratorHelper.rb"
 
 class LuaGenerator
   def initialize(library, exposer)
@@ -9,6 +10,7 @@ class LuaGenerator
   def generate(dir)
     classPaths = toGenerate = @exposer.exposedMetaData.fullClasses.each do |path, cls|
   		File.open(dir + "/#{cls.name}.lua", 'w') do |file|
+        writePreamble(file, "-- ")
   			file.write(generateClassData(cls))
 			end
     end
@@ -98,15 +100,21 @@ class LuaGenerator
       parentName = "#{parent.name}_cls"
 
       parentInsert = "  super = #{parentName},\n"
-      parentPreamble = "local #{parentName} = require \"#{parent.name}\""
+      parentPreamble = "local #{parentName} = require \"#{parent.name}\"\n"
     end
 
     classData = fns.join(",\n\n")
 
   	output = parentPreamble
-    output += "-- \\brief #{brief}\n"
-    output += "--\nlocal #{name}_cls = class \"#{name}\" {\n"
-    output += parentInsert
-    output += "\n#{classData}\n}\n\nreturn #{name}_cls"
+
+    output += "
+-- \\brief #{brief}
+--
+local #{name}_cls = class \"#{name}\" {
+#{parentInsert}
+#{classData}
+}
+
+return #{name}_cls"
   end
 end
