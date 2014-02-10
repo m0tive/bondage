@@ -167,7 +167,7 @@ class FunctionItem < HierarchyItem
     @returnType = data[:type].resultType
   end
 
-  attr_reader :returnType, :arguments, :isConstructor, :comment, :accessSpecifier
+  attr_reader :returnType, :arguments, :isConstructor, :comment, :accessSpecifier, :static
 
   def self.build(parent, data, isCtor)
     return FunctionItem.new(parent, data, isCtor)

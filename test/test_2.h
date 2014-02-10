@@ -22,7 +22,7 @@ struct
 class PORK Foo
 {
 public:
-  /// \brief Test Sub Foo, is contained withing foo!
+  /// \brief Test Sub Foo, is contained withing foo, it does not derive from foo.
   /// \expose
   class SubFoo // Test
   {

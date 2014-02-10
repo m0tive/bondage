@@ -2,6 +2,9 @@
 --
 local Foo_cls = class "Foo" {
 
+  -- Test::Foo::pork Foo:bar(int cake, float pork)
+  -- \brief invokes barr-iness.
+  -- \param cake gives much cake.
   bar = internal.getNative("Test", "bar")
 }
 

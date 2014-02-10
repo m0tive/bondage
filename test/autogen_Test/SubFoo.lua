@@ -1,9 +1,14 @@
--- \brief Test Sub Foo, is contained withing foo!
+-- \brief Test Sub Foo, is contained withing foo, it does not derive from foo.
 --
 local SubFoo_cls = class "SubFoo" {
 
+  -- float SubFoo:getX()
+  -- \brief get x
   getX = internal.getNative("Test", "getX"),
 
+  -- nil SubFoo:setX(float x)
+  -- \brief allows setting of x, or course
+  -- \param x X value to setX
   setX = internal.getNative("Test", "setX")
 }
 
