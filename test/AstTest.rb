@@ -2,8 +2,8 @@ require_relative 'TestUtils.rb'
 
 require_relative "../cobra_parser/Library.rb"
 require_relative "../cobra_parser/Parser.rb"
-require_relative "../cobra_exposer/ExposeAst.rb"
 require_relative "../cobra_exposer/Exposer.rb"
+require_relative "../cobra_exposer/ExposeAst.rb"
 
 require 'test/unit'
 
