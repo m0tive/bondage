@@ -1,11 +1,9 @@
-require "bundler/gem_tasks"
+require 'rake/testtask'
 
-require 'rspec/core/rake_task'
+#desc 'Default: run specs.'
+task :default => :tests
  
-desc 'Default: run specs.'
-task :default => :spec
- 
-desc "Run specs"
-RSpec::Core::RakeTask.new do |t|
-	t.pattern = "./test/*Test.rb"
+#desc "Run specs"
+Rake::TestTask.new(:tests) do |t|
+	t.test_files = FileList["./test/*Test.rb"]
 end
