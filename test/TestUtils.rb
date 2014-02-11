@@ -1,8 +1,32 @@
 require 'fileutils'
 
+require 'rbconfig'
+
+def os
+  @os ||= (
+    host_os = RbConfig::CONFIG['host_os']
+    case host_os
+    when /mswin|msys|mingw|cygwin|bccwin|wince|emc/
+      :windows
+    when /darwin|mac os/
+      :macosx
+    when /linux/
+      :linux
+    when /solaris|bsd/
+      :unix
+    else
+      raise Error::WebDriverError, "unknown os: #{host_os.inspect}"
+    end
+  )
+end
+
 # preamble helps us set up libclang, and ffi-clang. 
-#ENV['LLVM_CONFIG'] = "../llvm-build/Release+Asserts/bin/llvm-config"
-#ENV["PATH"] = ENV["PATH"] + ";" + Dir.getwd() + "/../bin"
+case os
+	when :macosx
+		ENV['LLVM_CONFIG'] = "../llvm-build/Release+Asserts/bin/llvm-config"
+	when :windows
+		ENV['LLVM_CONFIG'] = "../llvm-build/Release+Asserts/bin/llvm-config"
+end
 
 $:.unshift File.dirname(__FILE__) + "/../ffi-clang/lib"
 
