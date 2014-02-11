@@ -1,4 +1,4 @@
-require_relative "ExposeAST.rb"
+require_relative "ExposeAst.rb"
 require_relative "ClassMetaData.rb"
 require "set"
 

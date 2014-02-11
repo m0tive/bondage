@@ -38,7 +38,7 @@ class Generator
 private
   # Generate binding data for a class
   def generateClassData(cls)
-    # parsedClass is the ExposeAST data for a class, which is not present in classes restored from JSON
+    # parsedClass is the ExposeAst data for a class, which is not present in classes restored from JSON
     parsedClass = cls.parsedClass
     raise "Can't generate for restored class '#{cls.name}'" unless parsedClass
 

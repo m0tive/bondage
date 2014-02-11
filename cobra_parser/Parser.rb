@@ -1,8 +1,3 @@
-# preamble helps us set up libclang, and ffi-clang. 
-ENV['LLVM_CONFIG'] = "../llvm-build/Release+Asserts/bin/llvm-config"
-ENV["PATH"] = ENV["PATH"] + ";" + Dir.getwd() + "/bin"
-
-$:.unshift File.dirname(__FILE__) + "/../ffi-clang/lib"
 require "ffi/clang.rb"
 
 require_relative "library.rb"
@@ -273,7 +268,7 @@ private
 end
 
 class Parser
-  def initialize(library, dbg)
+  def initialize(library, dbg=false)
     @debug = dbg
     @index = FFI::Clang::Index.new
     @library = library

@@ -1,3 +1,4 @@
+require_relative "../cobra_parser/Visitor.rb"
 # The expose AST is a hierarchy of classes produced from visiting the Clang AST.
 # The expose AST groups data (and comments) in ways more useful when exposing later.
 #
@@ -21,7 +22,7 @@ class HierarchyItem
   end
 
   # Find the fully qualified path for this item (ie ::XXX::YYY::ZZZ)
-  def fullyQualifiedName()
+  def fullyQualifiedName
     # this is cached as we use it a lot
     if(@fullyQualified)
       return @fullyQualified
@@ -273,6 +274,8 @@ class NamespaceItem < ClassableItem
     @name = name
   end
   
+  attr_reader :namespaces
+
   def self.build(parent, data)
     return NamespaceItem.new(parent, data[:name])
   end
@@ -295,6 +298,7 @@ class NamespaceItem < ClassableItem
     ns = @namespaces[data[:name]]
     if (!ns)
       ns = NamespaceItem.build(self, data)
+      @namespaces[data[:name]] = ns
     end
 
     return ns
@@ -305,9 +309,9 @@ class NamespaceItem < ClassableItem
   end
 end
 
-# VisitorImpl implements the Parsers Visitor interface
+# ExposeAstVisitor implements the Parsers Visitor interface
 # and is the owner of a single parse operation
-class VisitorImpl < Visitor
+class ExposeAstVisitor < Visitor
   # Create a visitor from a library
   def initialize(library)
     @library = library
@@ -315,7 +319,7 @@ class VisitorImpl < Visitor
     @classes = []
   end
 
-  attr_reader :namespaces, :classes, :library, :rootItem
+  attr_reader :classes, :library, :rootItem
 
   def fullyQualifiedName
     return ""

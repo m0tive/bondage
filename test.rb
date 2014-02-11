@@ -1,10 +1,16 @@
+# preamble helps us set up libclang, and ffi-clang. 
+ENV['LLVM_CONFIG'] = "../llvm-build/Release+Asserts/bin/llvm-config"
+ENV["PATH"] = ENV["PATH"] + ";" + Dir.getwd() + "/bin"
+
+$:.unshift File.dirname(__FILE__) + "/../ffi-clang/lib"
+
 require_relative "cobra_exposer/Parser.rb"
 require_relative "cobra_exposer/Library.rb"
 require_relative "cobra_exposer/Visitor.rb"
 require_relative "cobra_exposer/Generator.rb"
 require_relative "cobra_exposer/LuaGenerator.rb"
 require_relative "cobra_exposer/Exposer.rb"
-require_relative "cobra_exposer/ExposeAST.rb"
+require_relative "cobra_exposer/ExposeAst.rb"
 require 'json'
 require 'FileUtils'
 
@@ -20,7 +26,7 @@ def expose(library)
   
 	parser = Parser.new(library, DEBUGGING)
 
-	visitor = VisitorImpl.new(library)
+	visitor = ExposeAstVisitor.new(library)
 	parser.parse(visitor)
 
 	exposer = Exposer.new(visitor, DEBUGGING)

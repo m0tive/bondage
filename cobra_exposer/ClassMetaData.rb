@@ -1,5 +1,5 @@
 require_relative "Exposer.rb"
-require_relative "ExposeAST.rb"
+require_relative "ExposeAst.rb"
 require "json"
 
 # A serialisable class which is exposed in a library.
@@ -82,6 +82,10 @@ class ClassDataSet
 	# Is the class path passed partially exposed (ie contained at all in the set)?
 	def partiallyExposed?(cls)
 		return classes.include?(cls)
+	end
+
+	def fullClassCount
+		return fullClasses.length
 	end
 
 	# Create a ClassDataSet from two arrays, of fully exposed
