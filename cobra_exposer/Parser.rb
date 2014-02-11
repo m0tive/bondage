@@ -1,3 +1,4 @@
+# preamble helps us set up libclang, and ffi-clang. 
 ENV['LLVM_CONFIG'] = "../llvm-build/Release+Asserts/bin/llvm-config"
 ENV["PATH"] = ENV["PATH"] + ";" + Dir.getwd() + "/bin"
 
@@ -7,7 +8,8 @@ require "ffi/clang.rb"
 require_relative "library.rb"
 require_relative "visitor.rb"
 
-class Param
+# ParamComment wraps a parameter comment, and its direction data
+class ParamComment
   def initialize(text, expDir, dir)
     @text = text
     @explicitDirection = expDir
@@ -17,39 +19,52 @@ class Param
   attr_reader :text, :explicitDirection, :direction
 end
 
+# Comment wraps a comment section in code, and any commands/param commands provided.
 class Comment
   def initialize()
     @commands = {}
     @params = []
   end
 
+  # add a simple command to the comment. [name] is the command, [text] the command text.
   def addCommand(name, text)
     @commands[name] = text
   end
 
+  # add a param command to the comment. [index] is the parameter index, 
+  # [text] is the brief for the param, [explicitDirection] is whether there was an 
+  # explicit in or out direction, and dir is that direction
   def addParam(index, text, explicitDirection, dir)
-    @params[index] = Param.new(text, explicitDirection, dir)
+    @params[index] = ParamComment.new(text, explicitDirection, dir)
   end
 
+  # find if the comment has a command [name].
   def hasCommand(name)
     return @commands.has_key?(name)
   end
 
+  # get the command text for the command [name].
   def command(name)
     return @commands[name]
   end
 
+  # find a ParamCommand (or nil), for the param at [index].
   def paramforArgIndex(index)
     return @params[index]
   end
 end
 
+# Type wraps a parsed type from clang.
+# Provided during argument/return type parsing.
 class Type
+  # create a type from the clang type.
+  # it is not possible to create a type without a clang type.
   def initialize(type)
     @type = type
     @canonical = type.canonical
   end
 
+  # strip any template brackets from the string [n].
   def self.stripTemplates(n)
     templateBrackets = 0
     endPoint = n.length
@@ -74,14 +89,17 @@ class Type
     return n[0, endPoint]
   end
 
+  # find if the type is "void"
   def isVoid
     return @canonical.kind == :type_void
   end
 
+  # find if the type is a bool
   def isBoolean
     return @canonical.kind == :type_bool
   end
 
+  # find if the type is a const char* or a const wchar_t*
   def isStringLiteral
     if(!isPointer())
       return false
@@ -95,6 +113,7 @@ class Type
     return ptd.kind == :type_schar || ptd.kind == :type_wchar
   end
 
+  # find if the type is an integer.
   def isInteger
     return @canonical.kind == :type_char_u ||
         @canonical.kind == :type_uchar ||
@@ -115,18 +134,22 @@ class Type
         @canonical.kind == :type_int128
   end
 
+  # find if the type is a floating point type.
   def isFloatingPoint
     return @canonical.kind == :type_float || @canonical.kind == :type_double || @canonical.kind == :type_longdouble
   end
 
+  # find a pretty string to represent the type
   def prettyName
     return "#{@type.spelling}"
   end
 
+  # find if the type has a const qualification
   def isConstQualified
     return @canonical.const_qualified?
   end
 
+  # find a short name, without decoration or templating for the type.
   def name
     n = @canonical.spelling
     if(isConstQualified)
@@ -136,30 +159,37 @@ class Type
     return Type.stripTemplates(n)
   end
 
+  # find the clang :kind for the type.
   def kind
     return @canonical.kind
   end
 
+  # find if the type is a pointer
   def isPointer
     return @canonical.kind == :type_pointer
   end
 
+  # find if the type is an lvalue reference
   def isLValueReference
     return @canonical.kind == :type_lvalue_ref
   end
 
+  # find if the type is an rvalue reference
   def isRValueReference
     return @canonical.kind == :type_rvalue_ref
   end
 
+  # find the type the pointer or reference refers to.
   def pointeeType
     return Type.new(@canonical.pointee)
   end
 
+  # find a string description for the type, for debugging
   def description
     return "#{@canonical.spelling} #{@canonical.kind}"
   end
 
+  # find the result type for this type, if the type is a function signature.
   def resultType
     if(@type.result_type.kind == :type_void)
       return nil
@@ -167,14 +197,6 @@ class Type
 
     return Type.new(@type.result_type)
   end
-end
-
-class StateData
-  def initialize(userData=nil)
-    @userData = userData
-  end
-  
-  attr_reader :userData
 end
 
 class State
@@ -189,11 +211,11 @@ class State
     newInfo = buildData(cursor)
     
     newData = nil
-    if (@onEnter && data[-1].userData)
-      newData = @onEnter.call(data[-1].userData, newInfo)
+    if (@onEnter && data[-1])
+      newData = @onEnter.call(data[-1], newInfo)
     end
     
-    data << StateData.new(newData)
+    data << newData
     
     return newData != nil
   end
@@ -397,7 +419,7 @@ class Parser
     @depth = 0
     
     stateStack = [ :namespace ]
-    data = [ StateData.new(visitor.rootItem) ]
+    data = [ visitor.rootItem ]
     visitChildren(cursor, visitor, stateStack, data)
     
     raise "Incomplete source" unless (stateStack.size == 1 && stateStack[0] == :namespace)

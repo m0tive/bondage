@@ -7,11 +7,6 @@
     "name": "SubFoo",
     "parent": null
   },
-  "::Test::Detail::NotExposedFoo": {
-    "name": "NotExposedFoo",
-    "parent": "::Test::Foo",
-    "partial": true
-  },
   "::Test::Detail::NotExposedVec": {
     "name": "NotExposedVec",
     "parent": null,

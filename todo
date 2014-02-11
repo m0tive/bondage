@@ -1,8 +1,6 @@
 todo
 
+classes that may be exposed already being exposed in parent libraries...
 inheritance
-all functions exposed?
 casting
-access specifiers
-comment extraction
 constructors

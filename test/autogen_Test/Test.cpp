@@ -30,7 +30,6 @@ COBRA_IMPLEMENT_EXPOSED_CLASS(
 
 const cobra::function Test_Detail_Bar_methods[] = {
   cobra::function_builder::build<&::Test::Detail::Bar::Bar>("Bar"),
-  cobra::function_builder::build<&::Test::Detail::Bar::getAFoo>("getAFoo"),
   cobra::function_builder::build<&::Test::Detail::Bar::getAVec>("getAVec"),
   cobra::function_builder::build_overloaded<
     &::Test::Detail::Bar::test,

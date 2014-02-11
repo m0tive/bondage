@@ -11,7 +11,7 @@ require 'FileUtils'
 DEBUGGING = false
 
 def expose(library)
-	puts "Generating '#{library.name}' library..."
+	puts "Generating '#{library.name}' library... into '#{library.autogenPath}'"
 	path = library.autogenPath
 	if File.directory?(path)
 		FileUtils.rm_rf(path)

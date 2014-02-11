@@ -14,10 +14,6 @@ local Bar_cls = class "Bar" {
   -- \brief construct a bar from some sweet int
   Bar = internal.getNative("Test", "Bar"),
 
-  -- Test::Detail::NotExposedFoo Bar:getAFoo()
-  -- \brief get some foo
-  getAFoo = internal.getNative("Test", "getAFoo"),
-
   -- Test::Detail::NotExposedVec Bar:getAVec()
   -- \brief get some vec
   getAVec = internal.getNative("Test", "getAVec"),
