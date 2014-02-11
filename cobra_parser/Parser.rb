@@ -1,7 +1,7 @@
 require "ffi/clang.rb"
 
-require_relative "library.rb"
-require_relative "visitor.rb"
+require_relative "Library.rb"
+require_relative "Visitor.rb"
 
 # ParamComment wraps a parameter comment, and its direction data
 class ParamComment
