@@ -33,6 +33,11 @@ class TestAst < Test::Unit::TestCase
 
 		assert_equal ns.classes.values[0], cls
 
+		assert_equal 1, cls.functions.length
+		fn = cls.functions[0]
+		assert_equal "test", fn.name
+
+		assert_equal true, cls.comment.hasCommand("expose")
 	end
 
   def test_metaData
