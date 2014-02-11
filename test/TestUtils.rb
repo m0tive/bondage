@@ -1,7 +1,7 @@
-require 'FileUtils'
+require 'fileutils'
 
 # preamble helps us set up libclang, and ffi-clang. 
-ENV['LLVM_CONFIG'] = "../../llvm-build/Release+Asserts/bin/llvm-config"
+ENV['LLVM_CONFIG'] = "../llvm-build/Release+Asserts/bin/llvm-config"
 ENV["PATH"] = ENV["PATH"] + ";" + Dir.getwd() + "/../bin"
 
 $:.unshift File.dirname(__FILE__) + "/../ffi-clang/lib"

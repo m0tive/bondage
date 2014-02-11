@@ -10,13 +10,13 @@ require 'test/unit'
 
 class TestAst < Test::Unit::TestCase
   def setup
-		@astTest = Library.new("AstTest", "testData/BasicAst")
+		@astTest = Library.new("AstTest", "test/testData/BasicAst")
 		@astTest.addIncludePath(".")
 		@astTest.addFile("BasicAst.h")
   end
 
   def cleanup
-		cleanLibrary(@astTest)  
+		cleanLibrary(@astTest)
 	end
 
   def test_ast
