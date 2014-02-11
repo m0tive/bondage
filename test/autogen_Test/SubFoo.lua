@@ -8,11 +8,12 @@
 --
 local SubFoo_cls = class "SubFoo" {
 
-  -- float SubFoo:getX()
+  -- number SubFoo:getX()
   -- \brief get x
+  -- \return The result of X
   getX = internal.getNative("Test", "getX"),
 
-  -- nil SubFoo:setX(float x)
+  -- nil SubFoo:setX(number x)
   -- \brief allows setting of x, or course
   -- \param x X value to setX
   setX = internal.getNative("Test", "setX")

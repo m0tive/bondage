@@ -10,25 +10,25 @@ local Foo_cls = require "Foo"
 local Bar_cls = class "Bar" {
   super = Foo_cls,
 
-  -- nil Bar:Bar(int a)
+  -- nil Bar:Bar(number a)
   -- \brief construct a bar from some sweet int
   Bar = internal.getNative("Test", "Bar"),
 
-  -- Test::Detail::NotExposedFoo * Bar:getAFoo()
+  -- Test::Detail::NotExposedFoo Bar:getAFoo()
   -- \brief get some foo
   getAFoo = internal.getNative("Test", "getAFoo"),
 
-  -- Test::Detail::NotExposedVec * Bar:getAVec()
+  -- Test::Detail::NotExposedVec Bar:getAVec()
   -- \brief get some vec
   getAVec = internal.getNative("Test", "getAVec"),
 
-  -- nil Bar:test(Test::Detail::Bar * )
-  -- nil Bar:test(int )
+  -- nil Bar:test(Test::Detail::Bar )
+  -- nil Bar:test(number )
   -- \brief test stuff, from Bar*
   test = internal.getNative("Test", "test"),
 
-  -- const std::pork::vector<Foo> Bar:test2(int x, float & y)
-  -- std::pork::test Bar:test2(int x)
+  -- std::pork::vector Bar:test2(number x, number y)
+  -- std::pork::test Bar:test2(number x)
   -- \brief something else overloaded
   -- \param y output float after xing.
   test2 = internal.getNative("Test", "test2")

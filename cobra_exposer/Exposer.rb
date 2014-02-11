@@ -62,7 +62,11 @@ private
   end
 
   def canExposeType(type, partialOk)
-    if(type.isBasicType())
+    if(type.isVoid() || 
+       type.isBoolean() || 
+       type.isStringLiteral() ||
+       type.isInteger() ||
+       type.isFloatingPoint())
       return true
     end
 

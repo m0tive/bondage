@@ -74,13 +74,49 @@ class Type
     return n[0, endPoint]
   end
 
-  def isBasicType
-    if(@canonical.kind != :type_invalid &&
-       @canonical.kind != :type_unexposed &&
-       @canonical.kind <= :type_longdouble)
-      return true
+  def isVoid
+    return @canonical.kind == :type_void
+  end
+
+  def isBoolean
+    return @canonical.kind == :type_bool
+  end
+
+  def isStringLiteral
+    if(!isPointer())
+      return false
     end
-    return false
+
+    ptd = pointeeType()
+    if(!ptd.isConstQualified())
+      return false
+    end
+
+    return ptd.kind == :type_schar || ptd.kind == :type_wchar
+  end
+
+  def isInteger
+    return @canonical.kind == :type_char_u ||
+        @canonical.kind == :type_uchar ||
+        @canonical.kind == :type_char16 ||
+        @canonical.kind == :type_char32 ||
+        @canonical.kind == :type_ushort ||
+        @canonical.kind == :type_uint ||
+        @canonical.kind == :type_ulong ||
+        @canonical.kind == :type_ulonglong ||
+        @canonical.kind == :type_uint128 ||
+        @canonical.kind == :type_char_s ||
+        @canonical.kind == :type_schar ||
+        @canonical.kind == :type_wchar ||
+        @canonical.kind == :type_short ||
+        @canonical.kind == :type_int ||
+        @canonical.kind == :type_long ||
+        @canonical.kind == :type_longlong ||
+        @canonical.kind == :type_int128
+  end
+
+  def isFloatingPoint
+    return @canonical.kind == :type_float || @canonical.kind == :type_double || @canonical.kind == :type_longdouble
   end
 
   def prettyName
@@ -98,6 +134,10 @@ class Type
     end
 
     return Type.stripTemplates(n)
+  end
+
+  def kind
+    return @canonical.kind
   end
 
   def isPointer

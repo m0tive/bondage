@@ -23,8 +23,6 @@ class LuaGenerator
     args = { }
     signatures = []
 
-    puts "funtion #{fns[0].name}"
-
     fns.each do |fn|
       if(fn.comment.hasCommand("brief"))
         brief = fn.comment.command("brief").strip
@@ -47,8 +45,6 @@ class LuaGenerator
       signatures << "#{formatType(fn.returnType)} #{cls.name}#{callConv}#{name}(#{argString})"
     end
 
-    puts "reutrn comment = #{returnComment}"
-
     comment = signatures.map{ |sig| "  -- #{sig}" }.join("\n")
     comment += "\n  -- \\brief #{brief}"
     args.to_a.sort.each do |argName, arg|
@@ -57,13 +53,37 @@ class LuaGenerator
       end
     end
 
+    if(!returnComment.empty?)
+      comment += "\n  -- \\return #{returnComment}"
+    end
+
 
     output = comment + "\n  #{name} = internal.getNative(\"#{@library.name}\", \"#{name}\")"
     return output
   end
 
   def formatType(type)
-    return type ? "#{type.prettyName}" : "nil"
+    if(!type || type.isVoid())
+      return "nil"
+    end
+
+    if(type.isStringLiteral())
+      return "string"
+    end
+
+    if(type.isPointer() || type.isLValueReference() || type.isLValueReference())
+      return formatType(type.pointeeType())
+    end
+
+    if(type.isBoolean())
+      return "boolean"
+    end
+
+    if(type.isInteger() || type.isFloatingPoint())
+      return "number"
+    end
+
+    return "#{type.name}"
   end
 
   def generateClassData(cls)

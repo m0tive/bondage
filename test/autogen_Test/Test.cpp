@@ -6,7 +6,7 @@
 // Exposing class ::Test::Foo
 
 const cobra::function Test_Foo_methods[] = {
-  cobra::function_builder::build<&::Test::Foo::bar>("bar")
+  
 };
 
 COBRA_IMPLEMENT_EXPOSED_CLASS(
