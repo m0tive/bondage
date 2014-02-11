@@ -7,16 +7,22 @@ require_relative "../cobra_exposer/Exposer.rb"
 
 require 'test/unit'
 
+
 class TestAst < Test::Unit::TestCase
+  def setup
+		@astTest = Library.new("AstTest", "testData/BasicAst")
+		@astTest.addIncludePath(".")
+		@astTest.addFile("BasicAst.h")
+  end
+
+  def cleanup
+		cleanLibrary(@astTest)  
+	end
+
   def test_ast
-		astTest = Library.new("AstTest", "testData/BasicAst")
-		astTest.addIncludePath(".")
-		astTest.addFile("BasicAst.h")
-		cleanLibrary(astTest)
+		parser = Parser.new(@astTest)
 
-		parser = Parser.new(astTest)
-
-		visitor = ExposeAstVisitor.new(astTest)
+		visitor = ExposeAstVisitor.new(@astTest)
 		parser.parse(visitor)
 
 		assert_equal 1, visitor.classes.length
@@ -41,14 +47,9 @@ class TestAst < Test::Unit::TestCase
 	end
 
   def test_metaData
-		astTest = Library.new("AstTest", "testData/BasicAst")
-		astTest.addIncludePath(".")
-		astTest.addFile("BasicAst.h")
-		cleanLibrary(astTest)
+		parser = Parser.new(@astTest)
 
-		parser = Parser.new(astTest)
-
-		visitor = ExposeAstVisitor.new(astTest)
+		visitor = ExposeAstVisitor.new(@astTest)
 		parser.parse(visitor)
 
 		exposer = Exposer.new(visitor)
@@ -56,7 +57,7 @@ class TestAst < Test::Unit::TestCase
 		all = exposer.allMetaData
 		exposed = exposer.exposedMetaData
 
-		loaded = ClassDataSet.import(astTest.autogenPath)
+		loaded = ClassDataSet.import(@astTest.autogenPath)
 
 		assert_equal 1, all.classes.length
 		assert_equal 1, all.fullClasses.length
@@ -71,7 +72,5 @@ class TestAst < Test::Unit::TestCase
 		assert_equal true, exposed.partiallyExposed?("::BasicAst::Foo")
 		assert_equal true, loaded.fullyExposed?("::BasicAst::Foo")
 		assert_equal true, loaded.partiallyExposed?("::BasicAst::Foo")
-
-
   end
 end
