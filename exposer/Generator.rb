@@ -18,7 +18,7 @@ class Generator
     File.open(dir + "/#{@library.name}.h", 'w') do |file|
       writePreamble(file)
 
-      toGenerate.fullClasses.each do |clsPath, cls| 
+      toGenerate.fullClasses.each do |clsPath, cls|
         if(!cls.hasParentClass())
           file.write("COBRA_EXPOSED_CLASS(#{clsPath})\n")
         else
@@ -52,19 +52,19 @@ private
 
     classInfo = ""
     if(!parent)
-      classInfo += 
+      classInfo +=
 "COBRA_IMPLEMENT_EXPOSED_CLASS(
-  #{fullyQualified}, 
+  #{fullyQualified},
   #{methodsLiteral})"
     else
-      classInfo += 
+      classInfo +=
 "COBRA_IMPLEMENT_DERIVED_EXPOSED_CLASS(
-  #{fullyQualified}, 
-  #{methodsLiteral}, 
+  #{fullyQualified},
+  #{methodsLiteral},
   #{parent})"
     end
 
-    output = 
+    output =
 "// Exposing class #{fullyQualified}
 
 const cobra::function #{methodsLiteral}[] = #{generateMethodData(parsedClass)};

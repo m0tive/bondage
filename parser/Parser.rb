@@ -26,8 +26,8 @@ class Comment
     @commands[name] = text
   end
 
-  # add a param command to the comment. [index] is the parameter index, 
-  # [text] is the brief for the param, [explicitDirection] is whether there was an 
+  # add a param command to the comment. [index] is the parameter index,
+  # [text] is the brief for the param, [explicitDirection] is whether there was an
   # explicit in or out direction, and dir is that direction
   def addParam(index, text, explicitDirection, dir)
     @params[index] = ParamComment.new(text, explicitDirection, dir)
@@ -130,7 +130,7 @@ class Type
         @canonical.kind == :type_uint ||
         @canonical.kind == :type_ulong ||
         @canonical.kind == :type_ulonglong ||
-        @canonical.kind == :type_uint128 ||
+        @canonical.kind == :type_uint128
   end
 
   # find if the type is an integer.
@@ -208,34 +208,34 @@ class State
     @type = type
     @onEnter = enter
   end
-  
+
   def enter(states, data, cursor)
     states << @type
-    
+
     newInfo = buildData(cursor)
-    
+
     newData = nil
     if (@onEnter && data[-1])
       newData = @onEnter.call(data[-1], newInfo)
     end
-    
+
     data << newData
-    
+
     return newData != nil
   end
-  
+
   def exit(states, data)
     states.pop()
     data.pop()
   end
-  
+
 private
   def buildData(cursor)
     comment = Comment.new
     if(cursor.comment_range.start.file != nil)
       extractComment(comment, cursor.comment)
     end
-    
+
     type = nil
     if(cursor.type.kind != :type_invalid)
       type = Type.new(cursor.type)
@@ -266,7 +266,7 @@ private
           toFill.addParam(comment.index, comment.comment, comment.direction_explicit?, comment.direction)
         end
       end
-      
+
       comment.each do |comment|
         extractComment(toFill, comment)
       end
@@ -281,68 +281,68 @@ class Parser
     @debug = dbg
     @index = FFI::Clang::Index.new
     @library = library
-    
+
     sourceName = "DATA.cpp"
-    
+
     args = [ "-fparse-all-comments", "/TC", sourceName ]
-    
+
     library.includePaths.each do |path|
       args << "-I#{path}"
     end
-    
+
     source = "#define BINDER_PARSING\n"
     library.files.each do |file|
       source << "#include \"#{file}\"\n"
     end
-    
+
     unsaved = FFI::Clang::UnsavedFile.new(sourceName, source)
-    
+
     @translator = @index.parse_translation_unit(nil, args, [ unsaved ], [ :detailed_preprocessing_record, :include_brief_comments_in_code_completion, :skip_function_bodies ])
-    
+
     namespaceState = State.new(:namespace, ->(parent, data){ parent.addNamespace(data) })
-      
+
     classState = State.new(:class, ->(parent, data){ parent.addClass(data) })
     structState = State.new(:class, ->(parent, data){ parent.addStruct(data) })
     unionState = State.new(:class, ->(parent, data){ parent.addUnion(data) })
 
     classConstructor = State.new(:function, ->(parent, data){ parent.addConstructor(data) })
     classDestructor = State.new(:destructor)
-    
+
     superClassState = State.new(:base_class, ->(parent, data) { parent.addSuperClass(data) })
-    
+
     superClassTypeState = State.new(:base_class_type)
-    
+
     classTemplateState = State.new(:class, ->(parent, data){ parent.addClassTemplate(data) })
 
     templateParamState = State.new(:param, ->(parent, data){ parent.addTemplateParam(data) })
-    
+
     accessSpecifierState = State.new(:access_specifier, ->(parent, data){ parent.addAccessSpecifier(data) })
-    
+
     fieldState = State.new(:field, ->(parent, data){ parent.addField(data) })
-    
+
     enumState = State.new(:enum, ->(parent, data){ parent.addEnum(data) })
-    
+
     enumMemberState = State.new(:enumMember, ->(parent, data){ parent.addEnumMember(data) })
 
     functionState = State.new(:function, ->(parent, data){ parent.addFunction(data) })
 
     functionTemplateState = State.new(:function_template, ->(parent, data){ parent.addFunctionTemplate(data) })
-    
+
     returnTypeNamespaceState = State.new(:return_type)
     returnTypeState = State.new(:return_type)
-    
+
     paramState = State.new(:param, ->(parent, data){ parent.addParam(data) })
-    
+
     paramTypeState = State.new(:param_type)
-    
+
     paramDefaultExprState = State.new(:param_default_expr)
-    
+
     paramDefaultExprCallState = State.new(:param_default_expr_call)
-    
+
     paramDefaultValueState = State.new(:param_default_value, ->(parent, data){ parent.addParamDefault(data) })
-    
+
     functionBodyState = State.new(:function_body)
-    
+
     @@transitions = {
       # inside a namespace
       :namespace => {
@@ -416,23 +416,23 @@ class Parser
       }
     }
   end
-  
+
   def parse(visitor)
     cursor = @translator.cursor
-    
+
     @depth = 0
-    
+
     stateStack = [ :namespace ]
     data = [ visitor.rootItem ]
     visitChildren(cursor, visitor, stateStack, data)
-    
+
     raise "Incomplete source" unless (stateStack.size == 1 && stateStack[0] == :namespace)
   end
-  
+
 private
   def visitChildren(cursor, visitor, states, data)
     parent = nil
-    
+
     cursor.visit_children do |cursor, parent|
       puts ('  ' * @depth) + "#{cursor.kind} #{cursor.spelling.inspect} #{cursor.raw_comment_text}" unless not @debug
 
@@ -442,7 +442,7 @@ private
 
       transit = typeTransitions[cursor.kind]
       source_error(cursor, "Unexpected transition #{oldType} -> #{cursor.kind}") unless transit
-      
+
       if(@depth == 0)
         toFind = cursor.location.file
         unless(@library.files.any?{ |path| toFind[-path.length, toFind.length] == path })
@@ -451,23 +451,23 @@ private
       end
 
       enterChildren = transit.enter(states, data, cursor)
-      
+
       if(enterChildren)
         @depth = @depth + 1
         visitChildren(cursor, visitor, states, data)
         @depth = @depth - 1
       end
-      
+
       transit.exit(states, data)
-      
+
       next :continue
     end
-    
+
   end
 
   def source_error(cursor, desc)
     loc = cursor.location
     raise "\n\nError, File: #{loc.file}, line: #{loc.line}, column: #{loc.column}: #{cursor.display_name}\n  #{desc}"
   end
-  
+
 end

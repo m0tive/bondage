@@ -7,9 +7,9 @@ class Library
     @files = []
     @dependencies = []
   end
-  
+
   attr_reader :name, :files, :root, :dependencies
-  
+
   # The path which should hold auto gen files for the library
   def autogenPath
     return "#{root}/autogen_#{name}"
@@ -19,12 +19,12 @@ class Library
   def addFile(path)
     @files << path
   end
-  
+
   # add a dependency library to this library
   def addDependency(dep)
     @dependencies << dep
   end
-  
+
   # add an include path to the library
   def addIncludePath(path)
     @includePaths << path

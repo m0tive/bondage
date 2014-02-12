@@ -6,8 +6,8 @@ require "json"
 # Allows querying data of classes from other libraries, not parsed in the current operation.
 #
 class ClassData
-	# Create a ClassData, given a short name and a parent, fully qualified path. 
-	# [parsedClass] is optional, and should only be supplied if it was parsed in this library. 
+	# Create a ClassData, given a short name and a parent, fully qualified path.
+	# [parsedClass] is optional, and should only be supplied if it was parsed in this library.
 	def initialize(name, parent, parsedClass=nil)
 		@name = name
 		@fullyExposed = false
@@ -23,7 +23,7 @@ class ClassData
 		@fullyExposed = true
 	end
 
-	# The parent class is supplied on construction, and worked out when creating all 
+	# The parent class is supplied on construction, and worked out when creating all
 	# class meta data (in the Meta Data Generator). The parent class is the first
 	# inherited class which is also exposed.
 	def hasParentClass
@@ -98,7 +98,7 @@ class ClassDataSet
 
 			superClass = nil
 	    cls.superClasses.each do |cls|
-	    	# Parent classes must be public
+		# Parent classes must be public
 	      if(cls[:accessSpecifier] == :public)
 	        clsPath = "::#{cls[:type].name}"
 
@@ -114,7 +114,7 @@ class ClassDataSet
 		end
 
 		# Now iterate and set any partial classes which are full to be full.
-		fullClasses.each do |cls|	
+		fullClasses.each do |cls|
 			obj = classes[cls.fullyQualifiedName]
 			raise "Classes must also be partial classes #{cls.fullyQualifiedName}" unless obj
 
@@ -126,7 +126,7 @@ class ClassDataSet
 
 	# Save this set into [dir], in json form
 	def export(dir)
-		File.open(dir + "/classes.json", 'w') do |file| 
+		File.open(dir + "/classes.json", 'w') do |file|
 			file.write(JSON.pretty_generate(@classes))
 		end
 	end
@@ -135,9 +135,9 @@ class ClassDataSet
 	def self.import(dir)
     classes = JSON.parse(File.open("#{dir}/classes.json", "r").read())
 
-  	outClasses = {}
-  	classes.each do |ary|
-			outClasses[ary[0]] = ClassData.from_json(ary[1]) 
+	outClasses = {}
+	classes.each do |ary|
+			outClasses[ary[0]] = ClassData.from_json(ary[1])
 		end
 
 		return ClassDataSet.new(outClasses)

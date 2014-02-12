@@ -4,13 +4,13 @@ ENV["PATH"] = ENV["PATH"] + ";" + Dir.getwd() + "/bin"
 
 $:.unshift File.dirname(__FILE__) + "/../ffi-clang/lib"
 
-require_relative "cobra_exposer/Parser.rb"
-require_relative "cobra_exposer/Library.rb"
-require_relative "cobra_exposer/Visitor.rb"
-require_relative "cobra_exposer/Generator.rb"
-require_relative "cobra_exposer/LuaGenerator.rb"
-require_relative "cobra_exposer/Exposer.rb"
-require_relative "cobra_exposer/ExposeAst.rb"
+require_relative "exposer/Parser.rb"
+require_relative "exposer/Library.rb"
+require_relative "exposer/Visitor.rb"
+require_relative "exposer/Generator.rb"
+require_relative "exposer/LuaGenerator.rb"
+require_relative "exposer/Exposer.rb"
+require_relative "exposer/ExposeAst.rb"
 require 'json'
 require 'FileUtils'
 

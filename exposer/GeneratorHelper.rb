@@ -5,7 +5,7 @@ AUTOGEN_MESSAGE = "This file is auto generated, do not change it!"
 def writePreamble(file, lineStart)
 	file.write(
 "#{lineStart} #{COPYRIGHT_MESSAGE}
-#{lineStart}		
+#{lineStart}
 #{lineStart} #{AUTOGEN_MESSAGE}
 #{lineStart}
 

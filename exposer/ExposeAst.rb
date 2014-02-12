@@ -1,4 +1,4 @@
-require_relative "../cobra_parser/Visitor.rb"
+require_relative "../parser/Visitor.rb"
 # The expose AST is a hierarchy of classes produced from visiting the Clang AST.
 # The expose AST groups data (and comments) in ways more useful when exposing later.
 #
@@ -13,9 +13,9 @@ class HierarchyItem
     @visitor = parent.visitor()
     @fullyQualified = nil
   end
-  
+
   attr_reader :parent, :isExposed, :visitor
-  
+
   # Set whether the item is exposed
   def setExposed(val)
     @isExposed = val
@@ -65,7 +65,7 @@ class ClassableItem < HierarchyItem
     visitor().addDescendantClass(cls)
     return cls
   end
-  
+
   # Add a class to the container, [data] is a hash of data from clang
   def addClass(data)
     cls = ClassItem.build(self, data, false, false)
@@ -73,7 +73,7 @@ class ClassableItem < HierarchyItem
     visitor().addDescendantClass(cls)
     return cls
   end
-  
+
   # Add a template class to the container, [data] is a hash of data from clang
   def addClassTemplate(data)
     cls = ClassItem.build(self, data, false, true)
@@ -81,7 +81,7 @@ class ClassableItem < HierarchyItem
     visitor().addDescendantClass(cls)
     return cls
   end
-  
+
   # Add a union to the container, [data] is a hash of data from clang
   def addUnion(data)
   end
@@ -92,11 +92,11 @@ class ClassableItem < HierarchyItem
 end
 
 # An enum item
-class EnumItem < HierarchyItem  
+class EnumItem < HierarchyItem
   def self.build(parent, data)
     return EnumItem.new(parent)
   end
-  
+
   def addEnumMember(data)
   end
 end
@@ -185,7 +185,7 @@ class FunctionItem < HierarchyItem
     end
     return brief ? brief : ""
   end
-  
+
   # Add a function parameter.
   def addParam(data)
     @arguments << ArgumentItem.new(data, @arguments.length, self)
@@ -205,12 +205,12 @@ class ClassItem < ClassableItem
     @superClasses = []
   end
 
-  attr_reader :name, 
-    :isStruct, 
-    :isTemplated, 
-    :comment, 
-    :functions, 
-    :superClasses, 
+  attr_reader :name,
+    :isStruct,
+    :isTemplated,
+    :comment,
+    :functions,
+    :superClasses,
     :accessSpecifier
 
   def self.build(parent, data, struct, template)
@@ -225,7 +225,7 @@ class ClassItem < ClassableItem
   def addSuperClass(data)
     @superClasses << data
   end
-  
+
   # Add a template param for this class
   def addTemplateParam(data)
   end
@@ -236,30 +236,30 @@ class ClassItem < ClassableItem
     @functions << fn
     return fn
   end
-  
+
   # Add a descructor for this class
   def addDestructor(data)
   end
-  
+
   # add a function for this class
   def addFunction(data)
     fn = FunctionItem.build(self, data, false)
     functions << fn
     return fn
   end
-  
+
   # add a function template to this class
   def addFunctionTemplate(data)
   end
-  
+
   # add a member to the class
   def addField(data)
   end
-  
+
   # add an access specifier to the class
   def addAccessSpecifier(data)
   end
-  
+
   # add an enum to the class
   def addEnum(data)
     return EnumItem.build(self, data)
@@ -273,7 +273,7 @@ class NamespaceItem < ClassableItem
     @namespaces = {}
     @name = name
   end
-  
+
   attr_reader :namespaces
 
   def self.build(parent, data)
@@ -288,11 +288,11 @@ class NamespaceItem < ClassableItem
   def addFunction(data)
     return FunctionItem.build(self, data, false)
   end
-  
+
   # Add a function template to the namespace
   def addFunctionTemplate(data)
   end
-  
+
   # add a namespace to the namespace
   def addNamespace(data)
     ns = @namespaces[data[:name]]
@@ -327,7 +327,7 @@ class ExposeAstVisitor < Visitor
 
   # derived namespaces call this to find their visitor.
   def visitor
-    return self 
+    return self
   end
 
   def addDescendantClass(cls)

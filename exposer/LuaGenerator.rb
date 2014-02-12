@@ -14,9 +14,9 @@ class LuaGenerator
 
     # for each fully exposed class, we write a file containing the classes methods and data.
     @exposer.exposedMetaData.fullClasses.each do |path, cls|
-  		File.open(dir + "/#{cls.name}.lua", 'w') do |file|
+		File.open(dir + "/#{cls.name}.lua", 'w') do |file|
         writePreamble(file, "-- ")
-  			file.write(generateClassData(cls))
+			file.write(generateClassData(cls))
 			end
     end
   end
@@ -29,7 +29,7 @@ class LuaGenerator
     args = { }
     signatures = []
 
-    # for each function, find argument docs, return docs (only one of these 
+    # for each function, find argument docs, return docs (only one of these
     # is used), and briefs (only one is used.)
     fns.each do |fn|
       if(fn.comment.hasCommand("brief"))
@@ -73,7 +73,7 @@ class LuaGenerator
     return comment + "\n  #{name} = internal.getNative(\"#{@library.name}\", \"#{name}\")"
   end
 
-  # Format [type], a Type instance, in a way lua users can understand 
+  # Format [type], a Type instance, in a way lua users can understand
   def formatType(type)
     # void maps to nil
     if(!type || type.isVoid())
@@ -122,7 +122,7 @@ class LuaGenerator
 
     # generate functions for each group, so fns is a set of overloaded method exposures.
     fns = functions.sort.map do |name, fns|
-    	generateFunction(name, cls, fns)
+	generateFunction(name, cls, fns)
     end
 
     name = cls.name
@@ -149,7 +149,7 @@ class LuaGenerator
     classData = fns.join(",\n\n")
 
     # generate class output.
-  	output = parentPreamble
+	output = parentPreamble
 
     output += "
 -- \\brief #{brief}

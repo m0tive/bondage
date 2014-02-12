@@ -7,7 +7,7 @@ class Exposer
   # Create an exposed from a [visitor] derived class, which links to the library to expose
   def initialize(visitor, debug=false)
     @debugOutput = debug
-    
+
     @allMetaData = ClassDataSet.new()
     mergeDependencyClasses(@allMetaData, visitor.library)
 
@@ -59,7 +59,7 @@ class Exposer
 private
   # Merge dependencies from [lib] (and its dependents), into [dataToMerge].
   def mergeDependencyClasses(dataToMerge, lib)
-    lib.dependencies.each do |dep| 
+    lib.dependencies.each do |dep|
       mergeDependencyClasses(dataToMerge, dep)
 
       metaData = ClassDataSet.import(dep.autogenPath)
@@ -70,8 +70,8 @@ private
   # Find if [type], a Type class, can be exposed.
   def canExposeType(type, partialOk)
     # basic types can always be exposed
-    if(type.isVoid() || 
-       type.isBoolean() || 
+    if(type.isVoid() ||
+       type.isBoolean() ||
        type.isStringLiteral() ||
        type.isInteger() ||
        type.isFloatingPoint())
@@ -88,7 +88,7 @@ private
 
       return canExposeType(pointed, partialOk)
     end
-    
+
     # otherwise, find the fully qualified type name, and find out if its exposed.
     name = type.name
 
@@ -105,7 +105,7 @@ private
   # find if a class can be partially exposed (ie, if one of its parent classes is exposed.)
   def canPartiallyExposeClass(cls, otherPartiallyExposedTypes)
     # classes without super classes cannot be pushed at all.
-    if(cls.superClasses.empty? or 
+    if(cls.superClasses.empty? or
       (cls.accessSpecifier != :invalid && cls.accessSpecifier != :public))
       return false
     end
@@ -138,7 +138,7 @@ private
     return false
   end
 
-  # find if a class can be exposed 
+  # find if a class can be exposed
   def canExposeClass(cls)
     if(cls.isExposed == nil)
       # exposed classes must opt in.
@@ -158,9 +158,9 @@ private
       # these cases will raise errors if encountered, as someone has asked for an
       # exposure which cannot be provided.
       #
-      willExpose = 
-        !cls.isTemplated && 
-        !cls.name.empty? && 
+      willExpose =
+        !cls.isTemplated &&
+        !cls.name.empty? &&
         (cls.accessSpecifier == :public || cls.accessSpecifier == :invalid)
 
       if(!willExpose || @debugOutput)
