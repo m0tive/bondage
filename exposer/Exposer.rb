@@ -128,7 +128,6 @@ private
       return false
     end
 
-
     validSuperClasses = Set.new
 
     # find valid super classes
@@ -144,11 +143,16 @@ private
       end
     end
 
+    return canPartiallyExposeAny(validSuperClasses, otherPartiallyExposedTypes)
+  end
+
+  # find if any classes in array [clss] are contained in array [activeExposedTypes]
+  def canPartiallyExposeAny(clss, activeExposedTypes)
     # otherwise, search for a super class in the current library.
-    if(!validSuperClasses.empty?)
-      otherPartiallyExposedTypes.each do |cls|
-        if(validSuperClasses.include?(cls.fullyQualifiedName))
-          return canPartiallyExposeClass(cls, otherPartiallyExposedTypes)
+    if(!clss.empty?)
+      activeExposedTypes.each do |cls|
+        if(clss.include?(cls.fullyQualifiedName))
+          return canPartiallyExposeClass(cls, activeExposedTypes)
         end
       end
     end
@@ -170,27 +174,31 @@ private
         return false
       end
 
-      # there are a few other enforcements to whether a class is exposed, template
-      # classes and anonymous classes are banned, and private/protected
-      #
-      # these cases will raise errors if encountered, as someone has asked for an
-      # exposure which cannot be provided.
-      #
-      willExpose =
-        !cls.isTemplated &&
-        !cls.name.empty? &&
-        (cls.accessSpecifier == :public || cls.accessSpecifier == :invalid)
-
-      if(!willExpose || @debugOutput)
-        puts "\tExposeRequested: #{hasExposeComment}\tTemplate: #{cls.isTemplated}"
-      end
-
-      raise "Unable to expose requested class #{cls.name}" if not willExpose
-
-      cls.setExposed(willExpose)
-      return willExpose
+      verifyAbleToExposeClass(cls)
+      cls.setExposed(true)
     end
 
     return cls.isExposed
+  end
+
+  # classes must meet some requirements to be exposed, this method checks [cls meets these.]
+  def verifyAbleToExposeClass(cls)
+    # there are a few other enforcements to whether a class is exposed, template
+    # classes and anonymous classes are banned, and private/protected
+    #
+    # these cases will raise errors if encountered, as someone has asked for an
+    # exposure which cannot be provided.
+    #
+    willExpose =
+      !cls.isTemplated &&
+      !cls.name.empty? &&
+      (cls.accessSpecifier == :public || cls.accessSpecifier == :invalid)
+
+    if(!willExpose || @debugOutput)
+      puts "\tExposeRequested: #{hasExposeComment}\tTemplate: #{cls.isTemplated}"
+    end
+
+    raise "Unable to expose requested class #{cls.name}" if not willExpose
+    return willExpose
   end
 end
