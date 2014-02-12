@@ -2,7 +2,6 @@ require_relative 'TestUtils.rb'
 
 require_relative "../parser/Library.rb"
 require_relative "../parser/Parser.rb"
-require_relative "../exposer/Exposer.rb"
 require_relative "../exposer/ExposeAst.rb"
 
 require 'test/unit'
@@ -47,32 +46,4 @@ class TestAst < Test::Unit::TestCase
 
 		assert_equal true, cls.comment.hasCommand("expose")
 	end
-
-  def test_metaData
-		parser = Parser.new(@astTest)
-
-		visitor = ExposeAstVisitor.new(@astTest)
-		parser.parse(visitor)
-
-		exposer = Exposer.new(visitor)
-
-		all = exposer.allMetaData
-		exposed = exposer.exposedMetaData
-
-		loaded = ClassDataSet.import(@astTest.autogenPath)
-
-		assert_equal 1, all.classes.length
-		assert_equal 1, all.fullClasses.length
-		assert_equal 1, exposed.classes.length
-		assert_equal 1, exposed.fullClasses.length
-		assert_equal 1, loaded.classes.length
-		assert_equal 1, loaded.fullClasses.length
-
-		assert_equal true, all.fullyExposed?("::BasicAst::Foo")
-		assert_equal true, all.partiallyExposed?("::BasicAst::Foo")
-		assert_equal true, exposed.fullyExposed?("::BasicAst::Foo")
-		assert_equal true, exposed.partiallyExposed?("::BasicAst::Foo")
-		assert_equal true, loaded.fullyExposed?("::BasicAst::Foo")
-		assert_equal true, loaded.partiallyExposed?("::BasicAst::Foo")
-  end
 end
