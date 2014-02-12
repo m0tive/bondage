@@ -141,7 +141,9 @@ class Type
 
   # find if the type is a floating point type.
   def isFloatingPoint
-    return @canonical.kind == :type_float || @canonical.kind == :type_double || @canonical.kind == :type_longdouble
+    return @canonical.kind == :type_float ||
+      @canonical.kind == :type_double ||
+      @canonical.kind == :type_longdouble
   end
 
   # find a pretty string to represent the type
@@ -277,6 +279,105 @@ private
   end
 end
 
+
+NAMESPACE_STATE =               State.new(:namespace,               ->(parent, data){ parent.addNamespace(data) })
+CLASS_STATE =                   State.new(:class,                   ->(parent, data){ parent.addClass(data) })
+STRUCT_STATE =                  State.new(:class,                   ->(parent, data){ parent.addStruct(data) })
+UNION_STATE =                   State.new(:class,                   ->(parent, data){ parent.addUnion(data) })
+CLASS_CONSTRUCTOR_STATE =       State.new(:function,                ->(parent, data){ parent.addConstructor(data) })
+CLASS_DESTRUCTOR_STATE =        State.new(:destructor)
+SUPER_CLASS_STATE =             State.new(:base_class,              ->(parent, data) { parent.addSuperClass(data) })
+SUPER_CLASS_TYPE_STATE =        State.new(:base_class_type)
+CLASS_TEMPLATE_STATE =          State.new(:class,                   ->(parent, data){ parent.addClassTemplate(data) })
+TEMPLATE_PARAM_STATE =          State.new(:param,                   ->(parent, data){ parent.addTemplateParam(data) })
+ACCESS_SPECIFIER_STATE =        State.new(:access_specifier,        ->(parent, data){ parent.addAccessSpecifier(data) })
+FIELD_STATE =                   State.new(:field,                   ->(parent, data){ parent.addField(data) })
+ENUM_STATE =                    State.new(:enum,                    ->(parent, data){ parent.addEnum(data) })
+ENUM_MEMBER_STATE =             State.new(:enumMember,              ->(parent, data){ parent.addEnumMember(data) })
+FUNCTION_STATE =                State.new(:function,                ->(parent, data){ parent.addFunction(data) })
+FUNCTION_TEMPLATE_STATE =       State.new(:function_template,       ->(parent, data){ parent.addFunctionTemplate(data) })
+RETURN_TYPE_NAMESPACE_STATE =   State.new(:return_type)
+RETURN_TYPE_STATE =             State.new(:return_type)
+PARAM_STATE =                   State.new(:param,                   ->(parent, data){ parent.addParam(data) })
+PARAM_TYPE_STATE =              State.new(:param_type)
+PARAM_DEFAULT_EXPR_STATE =      State.new(:param_default_expr)
+PARAM_DEFAULT_EXPR_CALL_STATE = State.new(:param_default_expr_call)
+PARAM_DEFAULT_VALUE_STATE =     State.new(:param_default_value,     ->(parent, data){ parent.addParamDefault(data) })
+FUNCTION_BODY_STATE =           State.new(:function_body)
+
+TRANSITIONS = {
+  # inside a namespace
+  :namespace => {
+    :cursor_namespace => NAMESPACE_STATE,
+    :cursor_struct => STRUCT_STATE,
+    :cursor_class_decl => CLASS_STATE,
+    :cursor_function => FUNCTION_STATE,
+    :cursor_class_template => CLASS_TEMPLATE_STATE,
+    :cursor_enum_decl => ENUM_STATE,
+    :cursor_function_template => FUNCTION_TEMPLATE_STATE,
+  },
+  # inside a class def
+  :class => {
+    :cursor_constructor => CLASS_CONSTRUCTOR_STATE,
+    :cursor_destructor => CLASS_DESTRUCTOR_STATE,
+    :cursor_cxx_base_specifier => SUPER_CLASS_STATE,
+    :cursor_template_type_parameter => TEMPLATE_PARAM_STATE,
+    :cursor_non_type_template_parameter => TEMPLATE_PARAM_STATE,
+    :cursor_struct => STRUCT_STATE,
+    :cursor_class_decl => CLASS_STATE,
+    :cursor_union => UNION_STATE,
+    :cursor_class_template => CLASS_TEMPLATE_STATE,
+    :cursor_cxx_method => FUNCTION_STATE,
+    :cursor_function_template => FUNCTION_TEMPLATE_STATE,
+    :cursor_field_decl => FIELD_STATE,
+    :cursor_enum_decl => ENUM_STATE,
+    :cursor_cxx_access_specifier => ACCESS_SPECIFIER_STATE,
+  },
+  :base_class => {
+    :cursor_type_ref => SUPER_CLASS_TYPE_STATE,
+    :cursor_template_ref => SUPER_CLASS_TYPE_STATE,
+    :cursor_namespace_ref => SUPER_CLASS_TYPE_STATE,
+  },
+  :enum => {
+    :cursor_enum_constant_decl => ENUM_MEMBER_STATE
+  },
+  # inside a function declaration
+  :function => {
+    :cursor_parm_decl => PARAM_STATE,
+    :cursor_type_ref => RETURN_TYPE_STATE,
+    :cursor_namespace_ref => RETURN_TYPE_NAMESPACE_STATE,
+    :cursor_template_ref => RETURN_TYPE_STATE,
+    :cursor_compound_stmt => FUNCTION_BODY_STATE,
+  },
+  :function_template => {
+    :cursor_template_type_param => TEMPLATE_PARAM_STATE,
+    :cursor_non_type_template_parameter => TEMPLATE_PARAM_STATE,
+    :cursor_namespace_ref => RETURN_TYPE_NAMESPACE_STATE,
+    :cursor_type_ref => RETURN_TYPE_STATE,
+    :cursor_template_ref => RETURN_TYPE_STATE,
+    :cursor_param_decl => PARAM_STATE,
+    :cursor_compound_stmt => FUNCTION_BODY_STATE,
+  },
+  # inside a function parameter declaration
+  :param => {
+    :cursor_template_ref => PARAM_TYPE_STATE,
+    :cursor_type_ref => PARAM_TYPE_STATE,
+    :cursor_unexposed_expr => PARAM_DEFAULT_EXPR_STATE,
+    :cursor_call_expr => PARAM_DEFAULT_EXPR_CALL_STATE,
+  },
+  :param_default_expr_call => {
+    :cursor_unexposed_expr => PARAM_DEFAULT_EXPR_STATE,
+    :cursor_call_expr => PARAM_DEFAULT_EXPR_CALL_STATE,
+    :cursor_template_ref => PARAM_DEFAULT_EXPR_CALL_STATE,
+    :cursor_type_ref => PARAM_DEFAULT_EXPR_CALL_STATE,
+  },
+  :param_default_expr => {
+    :cursor_floating_literal => PARAM_DEFAULT_VALUE_STATE,
+    :cursor_decl_ref_expr => PARAM_DEFAULT_VALUE_STATE,
+    :cursor_unexposed_expr => PARAM_DEFAULT_EXPR_CALL_STATE,
+  }
+}
+
 class Parser
   def initialize(library, dbg=false)
     @debug = dbg
@@ -299,123 +400,6 @@ class Parser
     unsaved = FFI::Clang::UnsavedFile.new(sourceName, source)
 
     @translator = @index.parse_translation_unit(nil, args, [ unsaved ], [ :detailed_preprocessing_record, :include_brief_comments_in_code_completion, :skip_function_bodies ])
-
-    namespaceState = State.new(:namespace, ->(parent, data){ parent.addNamespace(data) })
-
-    classState = State.new(:class, ->(parent, data){ parent.addClass(data) })
-    structState = State.new(:class, ->(parent, data){ parent.addStruct(data) })
-    unionState = State.new(:class, ->(parent, data){ parent.addUnion(data) })
-
-    classConstructor = State.new(:function, ->(parent, data){ parent.addConstructor(data) })
-    classDestructor = State.new(:destructor)
-
-    superClassState = State.new(:base_class, ->(parent, data) { parent.addSuperClass(data) })
-
-    superClassTypeState = State.new(:base_class_type)
-
-    classTemplateState = State.new(:class, ->(parent, data){ parent.addClassTemplate(data) })
-
-    templateParamState = State.new(:param, ->(parent, data){ parent.addTemplateParam(data) })
-
-    accessSpecifierState = State.new(:access_specifier, ->(parent, data){ parent.addAccessSpecifier(data) })
-
-    fieldState = State.new(:field, ->(parent, data){ parent.addField(data) })
-
-    enumState = State.new(:enum, ->(parent, data){ parent.addEnum(data) })
-
-    enumMemberState = State.new(:enumMember, ->(parent, data){ parent.addEnumMember(data) })
-
-    functionState = State.new(:function, ->(parent, data){ parent.addFunction(data) })
-
-    functionTemplateState = State.new(:function_template, ->(parent, data){ parent.addFunctionTemplate(data) })
-
-    returnTypeNamespaceState = State.new(:return_type)
-    returnTypeState = State.new(:return_type)
-
-    paramState = State.new(:param, ->(parent, data){ parent.addParam(data) })
-
-    paramTypeState = State.new(:param_type)
-
-    paramDefaultExprState = State.new(:param_default_expr)
-
-    paramDefaultExprCallState = State.new(:param_default_expr_call)
-
-    paramDefaultValueState = State.new(:param_default_value, ->(parent, data){ parent.addParamDefault(data) })
-
-    functionBodyState = State.new(:function_body)
-
-    @@transitions = {
-      # inside a namespace
-      :namespace => {
-        :cursor_namespace => namespaceState,
-        :cursor_struct => structState,
-        :cursor_class_decl => classState,
-        :cursor_function => functionState,
-        :cursor_class_template => classTemplateState,
-        :cursor_enum_decl => enumState,
-        :cursor_function_template => functionTemplateState,
-      },
-      # inside a class def
-      :class => {
-        :cursor_constructor => classConstructor,
-        :cursor_destructor => classDestructor,
-        :cursor_cxx_base_specifier => superClassState,
-        :cursor_template_type_parameter => templateParamState,
-        :cursor_non_type_template_parameter => templateParamState,
-        :cursor_struct => structState,
-        :cursor_class_decl => classState,
-        :cursor_union => unionState,
-        :cursor_class_template => classTemplateState,
-        :cursor_cxx_method => functionState,
-        :cursor_function_template => functionTemplateState,
-        :cursor_field_decl => fieldState,
-        :cursor_enum_decl => enumState,
-        :cursor_cxx_access_specifier => accessSpecifierState,
-      },
-      :base_class => {
-        :cursor_type_ref => superClassTypeState,
-        :cursor_template_ref => superClassTypeState,
-        :cursor_namespace_ref => superClassTypeState,
-      },
-      :enum => {
-        :cursor_enum_constant_decl => enumMemberState
-      },
-      # inside a function declaration
-      :function => {
-        :cursor_parm_decl => paramState,
-        :cursor_type_ref => returnTypeState,
-        :cursor_namespace_ref => returnTypeNamespaceState,
-        :cursor_template_ref => returnTypeState,
-        :cursor_compound_stmt => functionBodyState,
-      },
-      :function_template => {
-        :cursor_template_type_param => templateParamState,
-        :cursor_non_type_template_parameter => templateParamState,
-        :cursor_namespace_ref => returnTypeNamespaceState,
-        :cursor_type_ref => returnTypeState,
-        :cursor_template_ref => returnTypeState,
-        :cursor_param_decl => paramState,
-        :cursor_compound_stmt => functionBodyState,
-      },
-      # inside a function parameter declaration
-      :param => {
-        :cursor_template_ref => paramTypeState,
-        :cursor_type_ref => paramTypeState,
-        :cursor_unexposed_expr => paramDefaultExprState,
-        :cursor_call_expr => paramDefaultExprCallState,
-      },
-      :param_default_expr_call => {
-        :cursor_unexposed_expr => paramDefaultExprState,
-        :cursor_call_expr => paramDefaultExprCallState,
-        :cursor_template_ref => paramDefaultExprCallState,
-        :cursor_type_ref => paramDefaultExprCallState,
-      },
-      :param_default_expr => {
-        :cursor_floating_literal => paramDefaultValueState,
-        :cursor_decl_ref_expr => paramDefaultValueState,
-        :cursor_unexposed_expr => paramDefaultExprCallState,
-      }
-    }
   end
 
   def parse(visitor)
@@ -438,7 +422,7 @@ private
       puts ('  ' * @depth) + "#{cursor.kind} #{cursor.spelling.inspect} #{cursor.raw_comment_text}" unless not @debug
 
       oldType = states[-1]
-      typeTransitions = @@transitions[oldType]
+      typeTransitions = TRANSITIONS[oldType]
       source_error(cursor, "Unexpected child for #{oldType}, with child type #{cursor.kind}") unless typeTransitions
 
       transit = typeTransitions[cursor.kind]
