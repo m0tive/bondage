@@ -32,7 +32,7 @@ class LuaGenerator
   def generateFunctionComment(name, cls, fns)
     brief = ""
     returnComment = ""
-    args = { }
+    args = {}
     signatures = []
 
     # for each function, find argument docs, return docs (only one of these
@@ -58,6 +58,10 @@ class LuaGenerator
       signatures << generateFunctionSignature(name, cls, fn, argIndexed)
     end
 
+    return formatFunctionComment(signatures, brief, args, returnComment)
+  end
+
+  def formatFunctionComment(signatures, brief, args, returnComment)
     # format the signatures with the param comments to form the preable for a funtion.
     comment = signatures.map{ |sig| "  -- #{sig}" }.join("\n")
     comment += "\n  -- \\brief #{brief}"
@@ -119,7 +123,7 @@ class LuaGenerator
 
     # if [cls] has a parent class, find its data and require path.
     parentInsert, parentPreamble = generateClassParentData(cls)
-    
+
     # generate functions for each group, so fns is a set of overloaded method exposures.
     fns = functions.sort.map do |name, fns|
       generateFunction(name, cls, fns)
