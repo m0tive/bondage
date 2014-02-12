@@ -79,19 +79,7 @@ const cobra::function #{methodsLiteral}[] = #{generateMethodData(parsedClass)};
 
   # Generate function exposure data for [cls]
   def generateMethodData(cls)
-    functions = {}
-
-    # find all exposable functions as an array
-    exposableFunctions = cls.functions.select{ |fn| @exposer.canExposeMethod(fn) }
-
-    # group these functions by overload
-    exposableFunctions.each do |fn|
-      if(functions[fn.name] == nil)
-        functions[fn.name] = []
-      end
-
-      functions[fn.name] << fn
-    end
+    functions = @exposer.findExposedFunctions(cls)
 
     # for each function, work out how best to call it.
     fns = functions.sort.map do |name, fns|

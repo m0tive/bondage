@@ -106,23 +106,11 @@ class LuaGenerator
   # Generate the lua class data for [cls]
   def generateClassData(cls)
     parsedClass = cls.parsedClass
-    functions = {}
-
-    # find all exposable methods
-    exposableFunctions = parsedClass.functions.select{ |fn| @exposer.canExposeMethod(fn) }
-
-    # group methods by name
-    exposableFunctions.each do |fn|
-      if(functions[fn.name] == nil)
-        functions[fn.name] = []
-      end
-
-      functions[fn.name] << fn
-    end
+    functions = @exposer.findExposedFunctions(cls)
 
     # generate functions for each group, so fns is a set of overloaded method exposures.
     fns = functions.sort.map do |name, fns|
-	generateFunction(name, cls, fns)
+      generateFunction(name, cls, fns)
     end
 
     name = cls.name

@@ -56,6 +56,24 @@ class Exposer
     return canExposeType(obj.type, false)
   end
 
+  def findExposedFunctions(cls)
+    functions = {}
+
+    # find all exposable functions as an array
+    exposableFunctions = cls.functions.select{ |fn| @exposer.canExposeMethod(fn) }
+
+    # group these functions by overload
+    exposableFunctions.each do |fn|
+      if(functions[fn.name] == nil)
+        functions[fn.name] = []
+      end
+
+      functions[fn.name] << fn
+    end
+
+    return functions
+  end
+
 private
   # Merge dependencies from [lib] (and its dependents), into [dataToMerge].
   def mergeDependencyClasses(dataToMerge, lib)
