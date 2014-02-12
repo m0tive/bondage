@@ -30,10 +30,14 @@ end
 
 $:.unshift File.dirname(__FILE__) + "/../ffi-clang/lib"
 
+def setupLibrary(library)
+  path = library.autogenPath
+  FileUtils.mkdir_p(path)
+end
+
 def cleanLibrary(library)
 	path = library.autogenPath
 	if File.directory?(path)
-		FileUtils.rm_rf(path)
+		result = FileUtils.rm_rf(path)
 	end
-  FileUtils.mkdir_p(path)
 end

@@ -24,7 +24,7 @@ class LuaGenerator
   def generateFunctionSignature(name, cls, fn, indexedArgs)
     # extract signature
     callConv = fn.static ? "." : ":"
-    argString = argIndexed.map{ |arg| "#{formatType(arg.type)} #{arg.name}" }.join(", ")
+    argString = indexedArgs.map{ |arg| "#{formatType(arg.type)} #{arg.name}" }.join(", ")
 
     return "#{formatType(fn.returnType)} #{cls.name}#{callConv}#{name}(#{argString})"
   end
@@ -115,7 +115,7 @@ class LuaGenerator
   # Generate the lua class data for [cls]
   def generateClassData(cls)
     parsedClass = cls.parsedClass
-    functions = @exposer.findExposedFunctions(cls)
+    functions = @exposer.findExposedFunctions(parsedClass)
 
     # generate functions for each group, so fns is a set of overloaded method exposures.
     fns = functions.sort.map do |name, fns|

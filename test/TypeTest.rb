@@ -13,9 +13,11 @@ class TestPod < Test::Unit::TestCase
 		@podTest = Library.new("AstTest", "test/testData/BasicPodTypes")
 		@podTest.addIncludePath(".")
 		@podTest.addFile("BasicPodTypes.h")
+    
+    setupLibrary(@podTest)
   end
 
-  def cleanup
+  def teardown
 		cleanLibrary(@podTest)  
 	end
 

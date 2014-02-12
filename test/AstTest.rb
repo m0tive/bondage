@@ -13,9 +13,11 @@ class TestAst < Test::Unit::TestCase
 		@astTest = Library.new("AstTest", "test/testData/BasicAst")
 		@astTest.addIncludePath(".")
 		@astTest.addFile("BasicAst.h")
+    
+    setupLibrary(@astTest)
   end
 
-  def cleanup
+  def teardown
 		cleanLibrary(@astTest)
 	end
 

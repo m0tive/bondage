@@ -60,7 +60,7 @@ class Exposer
     functions = {}
 
     # find all exposable functions as an array
-    exposableFunctions = cls.functions.select{ |fn| @exposer.canExposeMethod(fn) }
+    exposableFunctions = cls.functions.select{ |fn| canExposeMethod(fn) }
 
     # group these functions by overload
     exposableFunctions.each do |fn|
