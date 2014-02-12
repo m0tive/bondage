@@ -38,7 +38,7 @@ class LuaGenerator
     # for each function, find argument docs, return docs (only one of these
     # is used), and briefs (only one is used.)
     fns.each do |fn|
-      if(fn.comment.hasCommand("brief"))
+      if(brief.empty?)
         brief = fn.comment.strippedCommand("brief")
       end
 
