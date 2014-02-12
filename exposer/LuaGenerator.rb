@@ -39,7 +39,7 @@ class LuaGenerator
     # is used), and briefs (only one is used.)
     fns.each do |fn|
       if(fn.comment.hasCommand("brief"))
-        brief = fn.comment.command("brief").strip
+        brief = fn.comment.strippedCommand("brief")
       end
 
       argIndexed = []
@@ -117,19 +117,31 @@ class LuaGenerator
     parsedClass = cls.parsedClass
     functions = @exposer.findExposedFunctions(parsedClass)
 
+    # if [cls] has a parent class, find its data and require path.
+    parentInsert, parentPreamble = generateClassParentData(cls)
+    
     # generate functions for each group, so fns is a set of overloaded method exposures.
     fns = functions.sort.map do |name, fns|
       generateFunction(name, cls, fns)
     end
 
-    name = cls.name
-
     # find a brief comment for [cls]
-    brief = ""
-    if(parsedClass.comment.hasCommand("brief"))
-      brief = parsedClass.comment.command("brief").strip
-    end
+    brief = parsedClass.comment.strippedCommand("brief")
 
+    # generate class output.
+    output = "#{parentPreamble}
+-- \\brief #{brief}
+--
+local #{cls.name}_cls = class \"#{cls.name}\" {
+#{parentInsert}
+#{fns.join(",\n\n")}
+}
+
+return #{cls.name}_cls"
+  end
+
+private
+  def generateClassParentData(cls)
     # if [cls] has a parent class, find its data and require path.
     parentInsert = ""
     parentPreamble = ""
@@ -143,19 +155,6 @@ class LuaGenerator
       parentPreamble = "local #{parentName} = require \"#{parent.name}\"\n"
     end
 
-    classData = fns.join(",\n\n")
-
-    # generate class output.
-    output = parentPreamble
-
-    output += "
--- \\brief #{brief}
---
-local #{name}_cls = class \"#{name}\" {
-#{parentInsert}
-#{classData}
-}
-
-return #{name}_cls"
+    return parentInsert, parentPreamble
   end
 end

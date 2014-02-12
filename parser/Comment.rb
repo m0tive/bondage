@@ -38,6 +38,13 @@ class Comment
     return @commands[name]
   end
 
+  def strippedCommand(name)
+    if(hasCommand(name))
+      return command(name).strip
+    end
+    return ""
+  end
+
   # find a ParamCommand (or nil), for the param at [index].
   def paramforArgIndex(index)
     return @params[index]
