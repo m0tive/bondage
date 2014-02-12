@@ -67,6 +67,7 @@ class TestExpose < Test::Unit::TestCase
 	# exposed constructors
 	# class copyability
 	# pushing - push style?
+	# diagnostic information? - clang_getDiagnostic - http://llvm.org/devmtg/2010-11/Gregor-libclang.pdf
 
 
 end
