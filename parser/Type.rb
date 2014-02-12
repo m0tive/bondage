@@ -9,28 +9,31 @@ class Type
   end
 
   # strip any template brackets from the string [n].
-  def self.stripTemplates(n)
-    templateBrackets = 0
-    endPoint = n.length
-    (n.length-1).step(0, -1).each do |idx|
-      isBracket = false
-      if(n[idx] == ">")
-        isBracket = true
-        templateBrackets = templateBrackets + 1
+  def self.findTemplateStart(n, start=nil)
+    endPoint = start ? start : n.length
+
+    (endPoint-1).step(0, -1).each do |idx|
+
+      if(n[idx] != ">")
+        next
       end
 
-      if(n[idx] == "<")
-        isBracket = true
-        templateBrackets = templateBrackets - 1
-      end
+      thisSegmentStart = Type.findTemplateStart(n, idx) - 1
 
-      if(templateBrackets == 0 && !isBracket)
-        endPoint = idx + 1
-        break
+      thisSegmentStart.step(0, -1).each do |idx|
+
+        if(n[idx] != "<")
+          next
+        end
+
+        return idx
       end
     end
+    return endPoint
+  end
 
-    return n[0, endPoint]
+  def self.stripTemplates(n)
+    return n[0, Type.findTemplateStart(n)]
   end
 
   # find if the type is "void"
