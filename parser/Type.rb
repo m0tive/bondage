@@ -60,30 +60,40 @@ class Type
     return ptd.isCharacter()
   end
 
+  CHARACTER_TYPES = [ 
+    :type_schar,
+    :type_wchar, 
+    :type_char_s 
+  ]
+  SIGNED_INTEGER_TYPES = [ 
+    :type_char_u,
+    :type_char16,
+    :type_char32,
+    :type_short,
+    :type_int,
+    :type_long,
+    :type_longlong, 
+    :type_int128
+  ]
+  UNSIGNED_INTEGER_TYPES = [ 
+    :type_uchar,
+    :type_ushort,
+    :type_uint,
+    :type_ulong,
+    :type_ulonglong,
+    :type_uint128
+  ]
+
   def isCharacter
-    return @canonical.kind == :type_schar ||
-        @canonical.kind == :type_wchar ||
-        @canonical.kind == :type_char_s
+    return CHARACTER_TYPES.include?(@canonical.kind)
   end
 
   def isSignedInteger
-    return @canonical.kind == :type_char_u ||
-        @canonical.kind == :type_char16 ||
-        @canonical.kind == :type_char32 ||
-        @canonical.kind == :type_short ||
-        @canonical.kind == :type_int ||
-        @canonical.kind == :type_long ||
-        @canonical.kind == :type_longlong ||
-        @canonical.kind == :type_int128
+    return SIGNED_INTEGER_TYPES.include?(@canonical.kind)
   end
 
   def isUnsignedInteger
-    return @canonical.kind == :type_uchar ||
-        @canonical.kind == :type_ushort ||
-        @canonical.kind == :type_uint ||
-        @canonical.kind == :type_ulong ||
-        @canonical.kind == :type_ulonglong ||
-        @canonical.kind == :type_uint128
+    return UNSIGNED_INTEGER_TYPES.include?(@canonical.kind)
   end
 
   # find if the type is an integer.
