@@ -415,35 +415,42 @@ class Parser
   end
 
 private
-  def visitChildren(cursor, visitor, states, data)
-    parent = nil
+  def shouldIgnoreCursor(cursor)
+    toFind = cursor.location.file
+    if(@library.files.any?{ |path| toFind[-path.length, toFind.length] == path })
+      return false
+    end
+    return true
+  end
 
+  def findNextState(oldType, cursor)
+    typeTransitions = TRANSITIONS[oldType]
+    source_error(cursor, "Unexpected child for #{oldType}, with child type #{cursor.kind}") unless typeTransitions
+
+    newState = typeTransitions[cursor.kind]
+    source_error(cursor, "Unexpected transition #{oldType} -> #{cursor.kind}") unless newState
+    return newState
+  end
+
+  def visitChildren(cursor, visitor, states, data)
     cursor.visit_children do |cursor, parent|
       puts ('  ' * @depth) + "#{cursor.kind} #{cursor.spelling.inspect} #{cursor.raw_comment_text}" unless not @debug
 
-      oldType = states[-1]
-      typeTransitions = TRANSITIONS[oldType]
-      source_error(cursor, "Unexpected child for #{oldType}, with child type #{cursor.kind}") unless typeTransitions
+      newState = findNextState(states[-1], cursor)
 
-      transit = typeTransitions[cursor.kind]
-      source_error(cursor, "Unexpected transition #{oldType} -> #{cursor.kind}") unless transit
-
-      if(@depth == 0)
-        toFind = cursor.location.file
-        unless(@library.files.any?{ |path| toFind[-path.length, toFind.length] == path })
-          next :continue
-        end
+      if(@depth == 0 && shouldIgnoreCursor(cursor))
+        next :continue          
       end
 
-      enterChildren = transit.enter(states, data, cursor)
+      enterChildren = newState.enter(states, data, cursor)
 
       if(enterChildren)
-        @depth = @depth + 1
+        @depth += 1
         visitChildren(cursor, visitor, states, data)
-        @depth = @depth - 1
+        @depth -= 1
       end
 
-      transit.exit(states, data)
+      newState.exit(states, data)
 
       next :continue
     end
