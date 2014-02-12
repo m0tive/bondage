@@ -105,18 +105,19 @@ class Type
       return false
     end
 
-    return ptd.kind == :type_schar || ptd.kind == :type_wchar
+    return ptd.isCharacter()
   end
 
   def isCharacter
-    return @canonical.kind == :type_schar || @canonical.kind == :type_wchar
+    return @canonical.kind == :type_schar ||
+        @canonical.kind == :type_wchar ||
+        @canonical.kind == :type_char_s
   end
 
   def isSignedInteger
     return @canonical.kind == :type_char_u ||
         @canonical.kind == :type_char16 ||
         @canonical.kind == :type_char32 ||
-        @canonical.kind == :type_char_s ||
         @canonical.kind == :type_short ||
         @canonical.kind == :type_int ||
         @canonical.kind == :type_long ||
