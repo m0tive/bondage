@@ -25,7 +25,7 @@ case os
 	when :macosx
 		ENV['LLVM_CONFIG'] = "../llvm-build/Release+Asserts/bin/llvm-config"
 	when :windows
-		ENV['LLVM_CONFIG'] = "../llvm-build/Release+Asserts/bin/llvm-config"
+		ENV["PATH"] = ENV["PATH"] + ";" + "..\\llvm-build\\Release+Asserts\\bin"
 end
 
 $:.unshift File.dirname(__FILE__) + "/../ffi-clang/lib"
