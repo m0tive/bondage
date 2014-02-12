@@ -21,9 +21,15 @@ class LuaGenerator
     end
   end
 
-  # generate exposing data for a set of named functions [fns], with [name], for class [cls].
-  def generateFunction(name, cls, fns)
+  def generateFunctionSignature(name, cls, fn, indexedArgs)
+    # extract signature
+    callConv = fn.static ? "." : ":"
+    argString = argIndexed.map{ |arg| "#{formatType(arg.type)} #{arg.name}" }.join(", ")
 
+    return "#{formatType(fn.returnType)} #{cls.name}#{callConv}#{name}(#{argString})"
+  end
+
+  def generateFunctionComment(name, cls, fns)
     brief = ""
     returnComment = ""
     args = { }
@@ -49,11 +55,7 @@ class LuaGenerator
         argIndexed << arg
       end
 
-      # extract signature
-      callConv = fn.static ? "." : ":"
-      argString = argIndexed.map{ |arg| "#{formatType(arg.type)} #{arg.name}" }.join(", ")
-
-      signatures << "#{formatType(fn.returnType)} #{cls.name}#{callConv}#{name}(#{argString})"
+      signatures << generateFunctionSignature(name, cls, fn, argIndexed)
     end
 
     # format the signatures with the param comments to form the preable for a funtion.
@@ -68,6 +70,13 @@ class LuaGenerator
     if(!returnComment.empty?)
       comment += "\n  -- \\return #{returnComment}"
     end
+
+    return comment
+  end
+
+  # generate exposing data for a set of named functions [fns], with [name], for class [cls].
+  def generateFunction(name, cls, fns)
+    comment = generateFunctionComment(name, cls, fns)
 
     # exposure for a function is the comment, then the native extraction.
     return comment + "\n  #{name} = internal.getNative(\"#{@library.name}\", \"#{name}\")"
@@ -137,7 +146,7 @@ class LuaGenerator
     classData = fns.join(",\n\n")
 
     # generate class output.
-	output = parentPreamble
+    output = parentPreamble
 
     output += "
 -- \\brief #{brief}
