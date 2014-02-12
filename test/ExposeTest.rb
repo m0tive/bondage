@@ -64,6 +64,9 @@ class TestExpose < Test::Unit::TestCase
 	# super classes
 	# - partial classes
 	# exposed functions
+	# exposed constructors
+	# class copyability
+	# pushing - push style?
 
 
 end
