@@ -108,25 +108,34 @@ class Type
     return ptd.kind == :type_schar || ptd.kind == :type_wchar
   end
 
-  # find if the type is an integer.
-  def isInteger
+  def isCharacter
+    return @canonical.kind == :type_schar || @canonical.kind == :type_wchar
+  end
+
+  def isSignedInteger
     return @canonical.kind == :type_char_u ||
-        @canonical.kind == :type_uchar ||
         @canonical.kind == :type_char16 ||
         @canonical.kind == :type_char32 ||
-        @canonical.kind == :type_ushort ||
-        @canonical.kind == :type_uint ||
-        @canonical.kind == :type_ulong ||
-        @canonical.kind == :type_ulonglong ||
-        @canonical.kind == :type_uint128 ||
         @canonical.kind == :type_char_s ||
-        @canonical.kind == :type_schar ||
-        @canonical.kind == :type_wchar ||
         @canonical.kind == :type_short ||
         @canonical.kind == :type_int ||
         @canonical.kind == :type_long ||
         @canonical.kind == :type_longlong ||
         @canonical.kind == :type_int128
+  end
+
+  def isUnsignedInteger
+    return @canonical.kind == :type_uchar ||
+        @canonical.kind == :type_ushort ||
+        @canonical.kind == :type_uint ||
+        @canonical.kind == :type_ulong ||
+        @canonical.kind == :type_ulonglong ||
+        @canonical.kind == :type_uint128 ||
+  end
+
+  # find if the type is an integer.
+  def isInteger
+    return isCharacter() || isSignedInteger() || isUnsignedInteger()
   end
 
   # find if the type is a floating point type.
