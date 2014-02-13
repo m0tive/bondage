@@ -1,0 +1,10 @@
+{
+  "::ParentA::B": {
+    "name": "B",
+    "parent": null
+  },
+  "::ParentA::F": {
+    "name": "F",
+    "parent": null
+  }
+}

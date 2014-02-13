@@ -14,7 +14,18 @@ class TestExpose < Test::Unit::TestCase
 		@astTest.addIncludePath(".")
 		@astTest.addFile("BasicAst.h")
 
+		@parentA = Library.new("ParentA", "test/testData/ParentA")
+		@parentA.addIncludePath(".")
+		@parentA.addFile("ParentA.h")
+
+		@parentB = Library.new("ParentB", "test/testData/ParentB")
+		@parentB.addIncludePath(".")
+		@parentB.addFile("ParentB.h")
+
     setupLibrary(@astTest)
+    setupLibrary(@parentA)
+    setupLibrary(@parentB)
+
   end
 
   def teardown
@@ -56,6 +67,35 @@ class TestExpose < Test::Unit::TestCase
 		parser.parse(visitor)
 
 		exposer = Exposer.new(visitor)
+
+	end
+
+  def test_parenting
+  	# Generate parent A
+		parser = Parser.new(@parentA)
+
+		visitor = ExposeAstVisitor.new(@parentA)
+		parser.parse(visitor)
+
+		exposer = Exposer.new(visitor)
+
+		assert_equal 2, exposer.exposedMetaData.fullClasses.length
+		#assert_equal 3, exposer.exposedMetaData.classes.length
+
+		assert_equal "::ParentA::B", exposer.exposedMetaData.fullClasses.keys[0]
+		assert_equal "::ParentA::B", exposer.exposedMetaData.classes.keys[0]
+		assert_equal "::ParentA::F", exposer.exposedMetaData.fullClasses.keys[1]
+		assert_equal "::ParentA::F", exposer.exposedMetaData.classes.keys[1]
+		#assert_equal "::ParentA::E", exposer.exposedMetaData.classes.keys[2]
+
+		# Generate parent B
+		parser = Parser.new(@parentB)
+
+		visitor = ExposeAstVisitor.new(@parentB)
+		parser.parse(visitor)
+
+		exposer = Exposer.new(visitor)
+
 
 	end
 
