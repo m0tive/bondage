@@ -152,7 +152,7 @@ private
     if(!clss.empty?)
       activeExposedTypes.each do |cls|
         if(clss.include?(cls.fullyQualifiedName))
-          return canPartiallyExposeClass(cls, activeExposedTypes)
+          return canExposeClass(cls) || canPartiallyExposeClass(cls, activeExposedTypes)
         end
       end
     end

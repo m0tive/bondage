@@ -80,13 +80,13 @@ class TestExpose < Test::Unit::TestCase
 		exposer = Exposer.new(visitor)
 
 		assert_equal 2, exposer.exposedMetaData.fullClasses.length
-		#assert_equal 3, exposer.exposedMetaData.classes.length
+		assert_equal 3, exposer.exposedMetaData.classes.length
 
 		assert_equal "::ParentA::B", exposer.exposedMetaData.fullClasses.keys[0]
 		assert_equal "::ParentA::B", exposer.exposedMetaData.classes.keys[0]
+		assert_equal "::ParentA::E", exposer.exposedMetaData.classes.keys[1]
 		assert_equal "::ParentA::F", exposer.exposedMetaData.fullClasses.keys[1]
-		assert_equal "::ParentA::F", exposer.exposedMetaData.classes.keys[1]
-		#assert_equal "::ParentA::E", exposer.exposedMetaData.classes.keys[2]
+		assert_equal "::ParentA::F", exposer.exposedMetaData.classes.keys[2]
 
 		# Generate parent B
 		parser = Parser.new(@parentB)

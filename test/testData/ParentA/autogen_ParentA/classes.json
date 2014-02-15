@@ -3,8 +3,13 @@
     "name": "B",
     "parent": null
   },
+  "::ParentA::E": {
+    "name": "E",
+    "parent": "::ParentA::B",
+    "partial": true
+  },
   "::ParentA::F": {
     "name": "F",
-    "parent": null
+    "parent": "::ParentA::E"
   }
 }
