@@ -14,10 +14,10 @@ class LuaGenerator
 
     # for each fully exposed class, we write a file containing the classes methods and data.
     @exposer.exposedMetaData.fullClasses.each do |path, cls|
-		File.open(dir + "/#{cls.name}.lua", 'w') do |file|
+    File.open(dir + "/#{cls.name}.lua", 'w') do |file|
         writePreamble(file, "-- ")
-			file.write(generateClassData(cls))
-			end
+      file.write(generateClassData(cls))
+      end
     end
   end
 
