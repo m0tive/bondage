@@ -45,7 +45,7 @@ class ClassData
 	# Create a ClassData from json, with a nil [@parsedClass]
 	def self.from_json(data)
 		cls = ClassData.new(data[:name], data[:parent])
-		if(not data.include?(:partial))
+		if(!data.include?("partial"))
 			cls.setFullyExposed()
 		end
 		return cls
@@ -98,8 +98,8 @@ class ClassDataSet
 
 			superClass = nil
 	    cls.superClasses.each do |cls|
-		# Parent classes must be public
-	      if(cls[:accessSpecifier] == :public)
+        # Parent classes must be public
+        if(cls[:accessSpecifier] == :public)
 	        clsPath = "::#{cls[:type].name}"
 
 	        # Parent classes only need to be partially exposed...
@@ -135,11 +135,11 @@ class ClassDataSet
 	def self.import(dir)
     classes = JSON.parse(File.open("#{dir}/classes.json", "r").read())
 
-	outClasses = {}
-	classes.each do |ary|
-			outClasses[ary[0]] = ClassData.from_json(ary[1])
+    outClasses = {}
+    classes.each do |ary|
+      outClasses[ary[0]] = ClassData.from_json(ary[1])
 		end
 
-		return ClassDataSet.new(outClasses)
+    return ClassDataSet.new(outClasses)
 	end
 end

@@ -22,10 +22,10 @@ end
 
 # preamble helps us set up libclang, and ffi-clang. 
 case os
-	when :macosx
-		ENV['LLVM_CONFIG'] = "../llvm-build/Release+Asserts/bin/llvm-config"
-	when :windows
-		ENV["PATH"] = ENV["PATH"] + ";" + "..\\llvm-build\\Release+Asserts\\bin"
+  when :macosx
+    ENV['LLVM_CONFIG'] = "../llvm-build/Release+Asserts/bin/llvm-config"
+  when :windows
+    ENV["PATH"] = ENV["PATH"] + ";" + "..\\llvm-build\\Release+Asserts\\bin"
 end
 
 $:.unshift File.dirname(__FILE__) + "/../ffi-clang/lib"
@@ -36,8 +36,8 @@ def setupLibrary(library)
 end
 
 def cleanLibrary(library)
-	path = library.autogenPath
-	if File.directory?(path)
-		result = FileUtils.rm_rf(path)
-	end
+  path = library.autogenPath
+  if File.directory?(path)
+    result = FileUtils.rm_rf(path)
+  end
 end

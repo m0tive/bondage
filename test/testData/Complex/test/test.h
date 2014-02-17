@@ -13,7 +13,7 @@ template<typename T> class List;
 
 namespace Detail
 {
-	
+  
 template <typename T> const Foo &fooer();
 
 template <typename X> class SuperSuper

@@ -4,7 +4,7 @@ namespace BasicAst
 /// \expose
 class Foo
 {
-	void test();
+  void test();
 };
 
 }

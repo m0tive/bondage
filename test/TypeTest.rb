@@ -10,27 +10,27 @@ require 'test/unit'
 
 class TestPod < Test::Unit::TestCase
   def setup
-		@podTest = Library.new("AstTest", "test/testData/BasicPodTypes")
-		@podTest.addIncludePath(".")
-		@podTest.addFile("BasicPodTypes.h")
+    @podTest = Library.new("AstTest", "test/testData/BasicPodTypes")
+    @podTest.addIncludePath(".")
+    @podTest.addFile("BasicPodTypes.h")
     
     setupLibrary(@podTest)
   end
 
   def teardown
-		cleanLibrary(@podTest)  
-	end
+    cleanLibrary(@podTest)  
+  end
 
   def test_pod
 
-		parser = Parser.new(@podTest)
+    parser = Parser.new(@podTest)
 
-		visitor = ExposeAstVisitor.new(@podTest)
-		parser.parse(visitor)
+    visitor = ExposeAstVisitor.new(@podTest)
+    parser.parse(visitor)
 
-		assert_equal 1, visitor.classes.length
-		cls = visitor.classes[0]
-		assert_not_nil cls
+    assert_equal 1, visitor.classes.length
+    cls = visitor.classes[0]
+    assert_not_nil cls
 
     fns = cls.functions
     assert_equal 12, fns.length
@@ -169,11 +169,11 @@ class TestPod < Test::Unit::TestCase
     assert_equal false, test12.returnType.pointeeType.isUnsignedInteger
     assert_equal false, test12.returnType.pointeeType.isInteger
     assert_equal true, test12.returnType.pointeeType.isFloatingPoint
-	end
+  end
 
 
   def cleanup
-		cleanLibrary($podTest)  
-	end
+    cleanLibrary($podTest)  
+  end
 
 end

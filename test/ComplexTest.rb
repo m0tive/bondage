@@ -12,7 +12,7 @@ require 'test/unit'
 DEBUGGING = false
 
 class TestComplex < Test::Unit::TestCase
-  def setup		
+  def setup    
     @example_lib = Library.new("Example", "test/testData/Complex/example_lib")
     @example_lib.addIncludePath(".")
     @example_lib.addFile("example.h")
@@ -34,15 +34,14 @@ class TestComplex < Test::Unit::TestCase
   def teardown
     cleanLibrary(@test_lib)
     cleanLibrary(@example_lib)
-	end
+  end
 
   def test_complex
     expose(@example_lib)
     expose(@test_lib)
-	end
+  end
 
   def expose(library)
-    puts "Generating '#{library.name}' library... into '#{library.autogenPath}'"
     path = library.autogenPath
 
     parser = Parser.new(library, DEBUGGING)
