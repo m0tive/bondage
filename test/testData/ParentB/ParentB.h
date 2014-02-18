@@ -4,6 +4,12 @@ namespace ParentB
 {
 
 /// \expose
+class R
+{
+
+};
+
+/// \expose
 class S
 {
 
@@ -31,6 +37,11 @@ class X : public ParentA::F
 
 /// \expose
 class Y : public ParentA::E
+{
+
+};
+
+class Z : public ParentA::E
 {
 
 };

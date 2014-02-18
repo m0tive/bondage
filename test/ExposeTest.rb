@@ -18,19 +18,23 @@ class TestExpose < Test::Unit::TestCase
     @parentA.addIncludePath(".")
     @parentA.addFile("ParentA.h")
 
+    @parentBManual = Library.new("ParentBManual", "test/testData/ParentB/ParentBManual")
+
     @parentB = Library.new("ParentB", "test/testData/ParentB")
     @parentB.addIncludePath(".")
     @parentB.addFile("ParentB.h")
     @parentB.addDependency(@parentA)
+    @parentB.addDependency(@parentBManual)
 
     setupLibrary(@astTest)
     setupLibrary(@parentA)
     setupLibrary(@parentB)
-
   end
 
   def teardown
     cleanLibrary(@astTest)
+    cleanLibrary(@parentA)
+    cleanLibrary(@parentB)
   end
 
   def test_metaData
@@ -73,12 +77,7 @@ class TestExpose < Test::Unit::TestCase
 
   def test_parentingA
     # Generate parent A
-    parser = Parser.new(@parentA)
-
-    visitor = ExposeAstVisitor.new(@parentA)
-    parser.parse(visitor)
-
-    exposer = Exposer.new(visitor)
+    exposer = expose(@parentA)
 
     assert_equal 2, exposer.exposedMetaData.fullClasses.length
     assert_equal 3, exposer.exposedMetaData.classes.length
@@ -91,13 +90,10 @@ class TestExpose < Test::Unit::TestCase
   end
 
   def test_parentingB
+    # Generate parent A
+    expose(@parentA)
     # Generate parent B
-    parser = Parser.new(@parentB)
-
-    visitor = ExposeAstVisitor.new(@parentB)
-    parser.parse(visitor)
-
-    exposer = Exposer.new(visitor)
+    exposer = expose(@parentB)
 
     assert_equal 2, exposer.exposedMetaData.fullClasses.length
     assert_equal 5, exposer.exposedMetaData.classes.length
@@ -115,14 +111,25 @@ class TestExpose < Test::Unit::TestCase
     assert_equal "::ParentA::E", exposer.allMetaData.classes.keys[1]
     assert_equal "::ParentA::F", exposer.allMetaData.fullClasses.keys[1]
     assert_equal "::ParentA::F", exposer.allMetaData.classes.keys[2]
-    assert_equal "::ParentB::S", exposer.allMetaData.fullClasses.keys[2]
-    assert_equal "::ParentB::S", exposer.allMetaData.classes.keys[3]
-    assert_equal "::ParentB::U", exposer.allMetaData.classes.keys[4]
-    assert_equal "::ParentB::V", exposer.allMetaData.classes.keys[5]
-    assert_equal "::ParentB::X", exposer.allMetaData.classes.keys[6]
-    assert_equal "::ParentB::Y", exposer.allMetaData.fullClasses.keys[3]
-    assert_equal "::ParentB::Y", exposer.allMetaData.classes.keys[7]
+    assert_equal "::ParentB::Z", exposer.allMetaData.fullClasses.keys[2] # Manually exposed
+    assert_equal "::ParentB::Z", exposer.allMetaData.classes.keys[3] # Manually exposed
+    assert_equal "::ParentB::R", exposer.allMetaData.fullClasses.keys[3] # Manually exposed
+    assert_equal "::ParentB::R", exposer.allMetaData.classes.keys[4] # Manually exposed
+    assert_equal "::ParentB::S", exposer.allMetaData.fullClasses.keys[4]
+    assert_equal "::ParentB::S", exposer.allMetaData.classes.keys[5]
+    assert_equal "::ParentB::U", exposer.allMetaData.classes.keys[6]
+    assert_equal "::ParentB::V", exposer.allMetaData.classes.keys[7]
+    assert_equal "::ParentB::X", exposer.allMetaData.classes.keys[8]
+    assert_equal "::ParentB::Y", exposer.allMetaData.fullClasses.keys[5]
+    assert_equal "::ParentB::Y", exposer.allMetaData.classes.keys[9]
 
+  end
+
+  def expose(lib)
+    parser = Parser.new(lib)
+    visitor = ExposeAstVisitor.new(lib)
+    parser.parse(visitor)
+    return Exposer.new(visitor)
   end
 
   # exposed classes

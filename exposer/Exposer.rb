@@ -122,6 +122,10 @@ private
 
   # find if a class can be partially exposed (ie, if one of its parent classes is exposed.)
   def canPartiallyExposeClass(cls, otherPartiallyExposedTypes)
+    if(@allMetaData.partiallyExposed?(cls.fullyQualifiedName()))
+      return false
+    end
+    
     # classes without super classes cannot be pushed at all.
     if(cls.superClasses.empty? or
       (cls.accessSpecifier != :invalid && cls.accessSpecifier != :public))
@@ -171,6 +175,10 @@ private
 
       if(!hasExposeComment)
         cls.setExposed(false)
+        return false
+      end
+
+      if(@allMetaData.partiallyExposed?(cls.fullyQualifiedName()))
         return false
       end
 
