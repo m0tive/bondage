@@ -4,7 +4,12 @@ namespace ParentB
 {
 
 /// \expose
-class R
+class Q
+{
+
+};
+
+class R : public Q
 {
 
 };

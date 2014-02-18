@@ -3,8 +3,8 @@
     "name": "Z",
     "parent": null
   },
-  "::ParentB::R": {
-    "name": "R",
+  "::ParentB::Q": {
+    "name": "Q",
     "parent": null  
   }
 }

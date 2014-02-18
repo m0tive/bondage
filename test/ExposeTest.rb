@@ -87,6 +87,10 @@ class TestExpose < Test::Unit::TestCase
     assert_equal "::ParentA::E", exposer.exposedMetaData.classes.keys[1]
     assert_equal "::ParentA::F", exposer.exposedMetaData.fullClasses.keys[1]
     assert_equal "::ParentA::F", exposer.exposedMetaData.classes.keys[2]
+
+    assert_equal nil, exposer.exposedMetaData.findClass("::ParentA::B").parentClass
+    assert_equal "::ParentA::B", exposer.exposedMetaData.findClass("::ParentA::E").parentClass
+    assert_equal "::ParentA::E", exposer.exposedMetaData.findClass("::ParentA::F").parentClass
   end
 
   def test_parentingB
@@ -96,15 +100,23 @@ class TestExpose < Test::Unit::TestCase
     exposer = expose(@parentB)
 
     assert_equal 2, exposer.exposedMetaData.fullClasses.length
-    assert_equal 5, exposer.exposedMetaData.classes.length
+    assert_equal 6, exposer.exposedMetaData.classes.length
 
+    assert_equal "::ParentB::R", exposer.exposedMetaData.classes.keys[0]
     assert_equal "::ParentB::S", exposer.exposedMetaData.fullClasses.keys[0]
-    assert_equal "::ParentB::S", exposer.exposedMetaData.classes.keys[0]
-    assert_equal "::ParentB::U", exposer.exposedMetaData.classes.keys[1]
-    assert_equal "::ParentB::V", exposer.exposedMetaData.classes.keys[2]
-    assert_equal "::ParentB::X", exposer.exposedMetaData.classes.keys[3]
+    assert_equal "::ParentB::S", exposer.exposedMetaData.classes.keys[1]
+    assert_equal "::ParentB::U", exposer.exposedMetaData.classes.keys[2]
+    assert_equal "::ParentB::V", exposer.exposedMetaData.classes.keys[3]
+    assert_equal "::ParentB::X", exposer.exposedMetaData.classes.keys[4]
     assert_equal "::ParentB::Y", exposer.exposedMetaData.fullClasses.keys[1]
-    assert_equal "::ParentB::Y", exposer.exposedMetaData.classes.keys[4]
+    assert_equal "::ParentB::Y", exposer.exposedMetaData.classes.keys[5]
+
+    assert_equal "::ParentB::Q", exposer.exposedMetaData.findClass("::ParentB::R").parentClass
+    assert_equal nil, exposer.exposedMetaData.findClass("::ParentB::S").parentClass
+    assert_equal "::ParentA::B", exposer.exposedMetaData.findClass("::ParentB::U").parentClass
+    assert_equal "::ParentA::E", exposer.exposedMetaData.findClass("::ParentB::V").parentClass
+    assert_equal "::ParentA::F", exposer.exposedMetaData.findClass("::ParentB::X").parentClass
+    assert_equal "::ParentA::E", exposer.exposedMetaData.findClass("::ParentB::Y").parentClass
 
     assert_equal "::ParentA::B", exposer.allMetaData.fullClasses.keys[0]
     assert_equal "::ParentA::B", exposer.allMetaData.classes.keys[0]
@@ -113,15 +125,17 @@ class TestExpose < Test::Unit::TestCase
     assert_equal "::ParentA::F", exposer.allMetaData.classes.keys[2]
     assert_equal "::ParentB::Z", exposer.allMetaData.fullClasses.keys[2] # Manually exposed
     assert_equal "::ParentB::Z", exposer.allMetaData.classes.keys[3] # Manually exposed
-    assert_equal "::ParentB::R", exposer.allMetaData.fullClasses.keys[3] # Manually exposed
-    assert_equal "::ParentB::R", exposer.allMetaData.classes.keys[4] # Manually exposed
+    assert_equal "::ParentB::Q", exposer.allMetaData.fullClasses.keys[3] # Manually exposed
+    assert_equal "::ParentB::Q", exposer.allMetaData.classes.keys[4] # Manually exposed
+    assert_equal "::ParentB::R", exposer.allMetaData.classes.keys[5]
     assert_equal "::ParentB::S", exposer.allMetaData.fullClasses.keys[4]
-    assert_equal "::ParentB::S", exposer.allMetaData.classes.keys[5]
-    assert_equal "::ParentB::U", exposer.allMetaData.classes.keys[6]
-    assert_equal "::ParentB::V", exposer.allMetaData.classes.keys[7]
-    assert_equal "::ParentB::X", exposer.allMetaData.classes.keys[8]
+    assert_equal "::ParentB::S", exposer.allMetaData.classes.keys[6]
+    assert_equal "::ParentB::U", exposer.allMetaData.classes.keys[7]
+    assert_equal "::ParentB::V", exposer.allMetaData.classes.keys[8]
+    assert_equal "::ParentB::X", exposer.allMetaData.classes.keys[9]
     assert_equal "::ParentB::Y", exposer.allMetaData.fullClasses.keys[5]
-    assert_equal "::ParentB::Y", exposer.allMetaData.classes.keys[9]
+    assert_equal "::ParentB::Y", exposer.allMetaData.classes.keys[10]
+
 
   end
 
@@ -132,8 +146,6 @@ class TestExpose < Test::Unit::TestCase
     return Exposer.new(visitor)
   end
 
-  # exposed classes
-  # classes from parent libraries being skipped
   # super classes
   # - partial classes
   # exposed functions

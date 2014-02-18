@@ -90,25 +90,12 @@ class ClassDataSet
 
   # Create a ClassDataSet from two arrays, of fully exposed
   # classes, and partially exposed classes
-  def self.fromClasses(fullClasses, partialClasses)
+  def self.fromClasses(fullClasses, partialClasses, parentClasses)
     classes = {}
 
     # Iterate, find a good parent class, and create the ClassData...
     partialClasses.each do |cls|
-
-      superClass = nil
-      cls.superClasses.each do |cls|
-        # Parent classes must be public
-        if(cls[:accessSpecifier] == :public)
-          clsPath = "::#{cls[:type].name}"
-
-          # Parent classes only need to be partially exposed...
-          if(partialClasses.any?{ |cls| cls.fullyQualifiedName == clsPath})
-            superClass = clsPath
-            break
-          end
-        end
-      end
+      superClass = parentClasses[cls.fullyQualifiedName()]
 
       classes[cls.fullyQualifiedName] = ClassData.new(cls.name, superClass, cls)
     end

@@ -13,17 +13,18 @@ class Exposer
 
     exposedClasses = []
     partiallyExposedClasses = []
+    parentClasses = {}
 
     visitor.classes.each do |cls|
-      if(canExposeClass(cls))
+      if(canExposeClass(cls, partiallyExposedClasses, parentClasses))
         exposedClasses << cls
         partiallyExposedClasses << cls
-      elsif(canPartiallyExposeClass(cls, partiallyExposedClasses))
+      elsif(canPartiallyExposeClass(cls, partiallyExposedClasses, parentClasses))
         partiallyExposedClasses << cls
       end
     end
 
-    @exposedMetaData = ClassDataSet.fromClasses(exposedClasses, partiallyExposedClasses)
+    @exposedMetaData = ClassDataSet.fromClasses(exposedClasses, partiallyExposedClasses, parentClasses)
     @exposedMetaData.export(visitor.library.autogenPath)
 
     @allMetaData.merge(@exposedMetaData)
@@ -120,8 +121,63 @@ private
     return false
   end
 
+  def findValidParentClasses(cls)
+    validSuperClasses = Set.new
+
+    # find valid super classes
+    cls.superClasses.each do |cls|
+      if(cls[:accessSpecifier] == :public)
+        clsPath = "::#{cls[:type].name}"
+        validSuperClasses << clsPath
+      end
+    end
+
+    return validSuperClasses
+  end
+
+  # find if any classes in array [clss] are contained in array [activeExposedTypes]
+  def findExposableClass(toExpose, clss, activeExposedTypes, parentClasses)
+
+    # otherwise, search for a super class in the current library.
+    if(!clss.empty?)
+      activeExposedTypes.each do |cls|
+        if(clss.include?(cls.fullyQualifiedName()))
+
+          if(canExposeClass(cls, activeExposedTypes, parentClasses) || 
+             canPartiallyExposeClass(cls, activeExposedTypes, parentClasses))
+
+            parentClasses[toExpose.fullyQualifiedName()] = cls.fullyQualifiedName()
+            return cls.fullyQualifiedName()
+          end
+        end
+      end
+    end
+
+    return nil
+  end
+
+  def findParentClass(cls, otherPartiallyExposedTypes, parentClasses)
+    cached = parentClasses[cls.fullyQualifiedName()]
+    if(cached)
+      return cached
+    end
+
+    validSuperClasses = findValidParentClasses(cls)
+
+    # find valid super classes
+    validSuperClasses.each do |clsPath|
+      # if a super class is exposed in a parent library, then can partially expose the class.
+      if(allMetaData.partiallyExposed?(clsPath))
+        parentClasses[cls.fullyQualifiedName()] = clsPath
+        return clsPath
+      end
+    end
+
+    return findExposableClass(cls, validSuperClasses, otherPartiallyExposedTypes, parentClasses)
+  end
+
   # find if a class can be partially exposed (ie, if one of its parent classes is exposed.)
-  def canPartiallyExposeClass(cls, otherPartiallyExposedTypes)
+  def canPartiallyExposeClass(cls, otherPartiallyExposedTypes, parentClasses)
     if(@allMetaData.partiallyExposed?(cls.fullyQualifiedName()))
       return false
     end
@@ -132,40 +188,11 @@ private
       return false
     end
 
-    validSuperClasses = Set.new
-
-    # find valid super classes
-    cls.superClasses.each do |cls|
-      if(cls[:accessSpecifier] == :public)
-        clsPath = "::#{cls[:type].name}"
-        validSuperClasses << clsPath
-
-        # if a super class is exposed in a parent library, then can partially expose the class.
-        if(allMetaData.partiallyExposed?(clsPath))
-          return true
-        end
-      end
-    end
-
-    return canPartiallyExposeAny(validSuperClasses, otherPartiallyExposedTypes)
-  end
-
-  # find if any classes in array [clss] are contained in array [activeExposedTypes]
-  def canPartiallyExposeAny(clss, activeExposedTypes)
-    # otherwise, search for a super class in the current library.
-    if(!clss.empty?)
-      activeExposedTypes.each do |cls|
-        if(clss.include?(cls.fullyQualifiedName))
-          return canExposeClass(cls) || canPartiallyExposeClass(cls, activeExposedTypes)
-        end
-      end
-    end
-
-    return false
+    return findParentClass(cls, otherPartiallyExposedTypes, parentClasses) != nil
   end
 
   # find if a class can be exposed
-  def canExposeClass(cls)
+  def canExposeClass(cls, otherPartiallyExposedTypes, parentClasses)
     if(cls.isExposed == nil)
       # exposed classes must opt in.
       hasExposeComment = cls.comment.hasCommand("expose")
@@ -181,6 +208,9 @@ private
       if(@allMetaData.partiallyExposed?(cls.fullyQualifiedName()))
         return false
       end
+
+      # check for parent classes (also updates parentClasses)
+      findParentClass(cls, otherPartiallyExposedTypes, parentClasses)
 
       verifyAbleToExposeClass(cls)
       cls.setExposed(true)
