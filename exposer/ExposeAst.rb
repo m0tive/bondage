@@ -122,28 +122,7 @@ class ArgumentItem
     @index = index
     @parent = parent
 
-    comment = @parent.comment.paramforArgIndex(index)
-    @input = true
-    @output = false
-
-    @brief = ""
-
-    if(comment)
-      @brief = comment.text
-
-      if(comment.explicitDirection)
-        if(comment.direction == :pass_direction_in)
-          @input = true
-          @output = false
-        elsif(comment.direction == :pass_direction_out)
-          @input = false
-          @output = true
-        elsif(comment.direction == :pass_direction_inout)
-          @input = true
-          @output = true
-        end
-      end
-    end
+    setComment(@parent.comment.paramforArgIndex(index))
   end
 
   attr_reader :index, :brief
@@ -166,6 +145,31 @@ class ArgumentItem
 
   def type
     @data[:type]
+  end
+
+private
+  def setComment(comment)
+    @input = true
+    @output = false
+
+    @brief = ""
+    if(comment)
+      @brief = comment.text
+
+      if(comment.explicitDirection)
+        case comment.direction
+        when :pass_direction_in
+          @input = true
+          @output = false
+        when :pass_direction_out
+          @input = false
+          @output = true
+        when :pass_direction_inout
+          @input = true
+          @output = true
+        end
+      end
+    end
   end
 end
 
