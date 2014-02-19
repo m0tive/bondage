@@ -5,8 +5,8 @@ require "json"
 # A serialisable class which is exposed in a library.
 # Allows querying data of classes from other libraries, not parsed in the current operation.
 #
-class ClassData
-  # Create a ClassData, given a short name and a parent, fully qualified path.
+class TypeData
+  # Create a TypeData, given a short name and a parent, fully qualified path.
   # [parsedClass] is optional, and should only be supplied if it was parsed in this library.
   def initialize(name, parent, parsedClass=nil)
     @name = name
@@ -30,7 +30,7 @@ class ClassData
     return @parentClass != nil
   end
 
-  # Serialise the ClassData to json, except the [@parsedClass].
+  # Serialise the TypeData to json, except the [@parsedClass].
   def to_json(opt)
     data = {
       :name => @name,
@@ -42,9 +42,9 @@ class ClassData
     return JSON.pretty_generate(data, opt)
   end
 
-  # Create a ClassData from json, with a nil [@parsedClass]
+  # Create a TypeData from json, with a nil [@parsedClass]
   def self.from_json(data)
-    cls = ClassData.new(data[:name], data[:parent])
+    cls = TypeData.new(data[:name], data[:parent])
     if(!data.include?("partial"))
       cls.setFullyExposed()
     end
@@ -52,10 +52,10 @@ class ClassData
   end
 end
 
-# ClassDataSet is a set of classes which are exposed in some library(s).
+# TypeDataSet is a set of classes which are exposed in some library(s).
 # The data sets can be restored from disk, and merged to represent multiple libraries classes.
-class ClassDataSet
-  # Create a class set from a hash of fully qualified path, to ClassData
+class TypeDataSet
+  # Create a class set from a hash of fully qualified path, to TypeData
   def initialize(classes = {})
     @classes = classes
     @fullClasses = @classes.select { |key, val| val.fullyExposed }
@@ -93,11 +93,11 @@ class ClassDataSet
   def self.fromClasses(fullClasses, partialClasses, parentClasses)
     classes = {}
 
-    # Iterate, find a good parent class, and create the ClassData...
+    # Iterate, find a good parent class, and create the TypeData...
     partialClasses.each do |cls|
       superClass = parentClasses[cls.fullyQualifiedName()]
 
-      classes[cls.fullyQualifiedName] = ClassData.new(cls.name, superClass, cls)
+      classes[cls.fullyQualifiedName] = TypeData.new(cls.name, superClass, cls)
     end
 
     # Now iterate and set any partial classes which are full to be full.
@@ -108,7 +108,7 @@ class ClassDataSet
       obj.setFullyExposed()
     end
 
-    return ClassDataSet.new(classes)
+    return TypeDataSet.new(classes)
   end
 
   # Save this set into [dir], in json form
@@ -124,9 +124,9 @@ class ClassDataSet
 
     outClasses = {}
     classes.each do |ary|
-      outClasses[ary[0]] = ClassData.from_json(ary[1])
+      outClasses[ary[0]] = TypeData.from_json(ary[1])
     end
 
-    return ClassDataSet.new(outClasses)
+    return TypeDataSet.new(outClasses)
   end
 end

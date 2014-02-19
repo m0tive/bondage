@@ -1,5 +1,5 @@
 require_relative "ExposeAst.rb"
-require_relative "ClassMetaData.rb"
+require_relative "TypeMetaData.rb"
 require "set"
 
 # Decides what classes and functions can be exposed, using data from the current parse, and dependency parses.
@@ -8,29 +8,57 @@ class Exposer
   def initialize(visitor, debug=false)
     @debugOutput = debug
 
-    @allMetaData = ClassDataSet.new()
+    @allMetaData = TypeDataSet.new()
     mergeDependencyClasses(@allMetaData, visitor.library)
 
     exposedClasses = []
     partiallyExposedClasses = []
     parentClasses = {}
 
+    enums = []
+
     visitor.classes.each do |cls|
       if(canExposeClass(cls, partiallyExposedClasses, parentClasses))
         exposedClasses << cls
         partiallyExposedClasses << cls
+        gatherEnums(cls, enums)
       elsif(canPartiallyExposeClass(cls, partiallyExposedClasses, parentClasses))
         partiallyExposedClasses << cls
       end
     end
 
-    @exposedMetaData = ClassDataSet.fromClasses(exposedClasses, partiallyExposedClasses, parentClasses)
+    # The visitor and library have a root namespace (normally the name of the library)
+    # We also try to expose enums from here.
+    rootNs = visitor.getExposedNamespace()
+    if(rootNs)
+      gatherEnums(rootNs, enums)
+    end
+
+    @exposedMetaData = TypeDataSet.fromClasses(
+      exposedClasses,
+      partiallyExposedClasses,
+      parentClasses)
+
     @exposedMetaData.export(visitor.library.autogenPath)
 
     @allMetaData.merge(@exposedMetaData)
   end
 
   attr_reader :exposedMetaData, :allMetaData
+
+  # Find all enums on the classable type [classable].
+  def gatherEnums(classable, enums)
+    classable.enums.each do |name, enum|
+      if(canExposeEnum(enum))
+        enums << enum
+      end
+    end
+  end
+
+  # Find if an enum can be exposed.
+  def canExposeEnum(enum)
+    return enum.comment.hasCommand("expose")
+  end
 
   # find if a method [fn], a FunctionItem class can be exposed in the current library.
   def canExposeMethod(fn)
@@ -81,7 +109,7 @@ private
     lib.dependencies.each do |dep|
       mergeDependencyClasses(dataToMerge, dep)
 
-      metaData = ClassDataSet.import(dep.autogenPath)
+      metaData = TypeDataSet.import(dep.autogenPath)
       dataToMerge.merge(metaData)
     end
   end

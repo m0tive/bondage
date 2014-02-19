@@ -54,14 +54,15 @@ end
 class ClassableItem < HierarchyItem
   def initialize(parent) super(parent)
     @classes = {}
+    @enums = {}
   end
 
-  attr_reader :classes
+  attr_reader :classes, :enums
 
   # Add a struct to the container, [data] is a hash of data from clang
   def addStruct(data)
     cls = ClassItem.build(self, data, true, false)
-    classes[data[:name]] = cls
+    @classes[data[:name]] = cls
     visitor().addDescendantClass(cls)
     return cls
   end
@@ -69,7 +70,7 @@ class ClassableItem < HierarchyItem
   # Add a class to the container, [data] is a hash of data from clang
   def addClass(data)
     cls = ClassItem.build(self, data, false, false)
-    classes[data[:name]] = cls
+    @classes[data[:name]] = cls
     visitor().addDescendantClass(cls)
     return cls
   end
@@ -77,7 +78,7 @@ class ClassableItem < HierarchyItem
   # Add a template class to the container, [data] is a hash of data from clang
   def addClassTemplate(data)
     cls = ClassItem.build(self, data, false, true)
-    classes[data[:name]] = cls
+    @classes[data[:name]] = cls
     visitor().addDescendantClass(cls)
     return cls
   end
@@ -86,15 +87,29 @@ class ClassableItem < HierarchyItem
   def addUnion(data)
   end
 
+  # add an enum to the class
+  def addEnum(data)
+    enu = EnumItem.build(self, data)
+    @enums[data[:name]] = enu
+    return enu
+  end
+
   def children
-    return classes
+    return @classes + @enums
   end
 end
 
 # An enum item
 class EnumItem < HierarchyItem
+  # create a class from a parent item, clang data, and bools for struct/template-iness
+  def initialize(parent, data) super(parent)
+    @comment = data[:comment]
+  end
+
+  attr_reader :comment
+
   def self.build(parent, data)
-    return EnumItem.new(parent)
+    return EnumItem.new(parent, data)
   end
 
   def addEnumMember(data)
@@ -259,11 +274,6 @@ class ClassItem < ClassableItem
   # add an access specifier to the class
   def addAccessSpecifier(data)
   end
-
-  # add an enum to the class
-  def addEnum(data)
-    return EnumItem.build(self, data)
-  end
 end
 
 # A namespace
@@ -280,7 +290,7 @@ class NamespaceItem < ClassableItem
     return NamespaceItem.new(parent, data[:name])
   end
 
-  def name()
+  def name
     return @name
   end
 
@@ -302,10 +312,6 @@ class NamespaceItem < ClassableItem
     end
 
     return ns
-  end
-
-  def children
-    return classes + super.children()
   end
 end
 
@@ -332,5 +338,10 @@ class ExposeAstVisitor < Visitor
 
   def addDescendantClass(cls)
     @classes << cls
+  end
+
+  def getExposedNamespace
+    ns = rootItem.namespaces[library.name]
+    return ns
   end
 end

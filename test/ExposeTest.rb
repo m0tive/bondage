@@ -26,12 +26,18 @@ class TestExpose < Test::Unit::TestCase
     @parentB.addDependency(@parentA)
     @parentB.addDependency(@parentBManual)
 
+    @enum = Library.new("Enum", "test/testData/Enum")
+    @enum.addIncludePath(".")
+    @enum.addFile("Enum.h")
+
+    setupLibrary(@enum)
     setupLibrary(@astTest)
     setupLibrary(@parentA)
     setupLibrary(@parentB)
   end
 
   def teardown
+    cleanLibrary(@enum)
     cleanLibrary(@astTest)
     cleanLibrary(@parentA)
     cleanLibrary(@parentB)
@@ -48,7 +54,7 @@ class TestExpose < Test::Unit::TestCase
     all = exposer.allMetaData
     exposed = exposer.exposedMetaData
 
-    loaded = ClassDataSet.import(@astTest.autogenPath)
+    loaded = TypeDataSet.import(@astTest.autogenPath)
 
     assert_equal 1, all.classes.length
     assert_equal 1, all.fullClasses.length
@@ -77,7 +83,7 @@ class TestExpose < Test::Unit::TestCase
 
   def test_parentingA
     # Generate parent A
-    exposer = expose(@parentA)
+    exposer, visitor = expose(@parentA)
 
     assert_equal 2, exposer.exposedMetaData.fullClasses.length
     assert_equal 3, exposer.exposedMetaData.classes.length
@@ -97,7 +103,7 @@ class TestExpose < Test::Unit::TestCase
     # Generate parent A
     expose(@parentA)
     # Generate parent B
-    exposer = expose(@parentB)
+    exposer, visitor = expose(@parentB)
 
     assert_equal 2, exposer.exposedMetaData.fullClasses.length
     assert_equal 6, exposer.exposedMetaData.classes.length
@@ -139,15 +145,23 @@ class TestExpose < Test::Unit::TestCase
 
   end
 
+  def test_enum
+    # Generate parent A
+    exposer, visitor = expose(@enum)
+
+
+  end
+
   def expose(lib)
     parser = Parser.new(lib)
     visitor = ExposeAstVisitor.new(lib)
     parser.parse(visitor)
-    return Exposer.new(visitor)
+    return Exposer.new(visitor), visitor
   end
 
   # super classes
   # - partial classes
+  # static functions
   # exposed functions
   # exposed constructors
   # class copyability
