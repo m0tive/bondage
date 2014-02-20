@@ -6,13 +6,11 @@
   "::Enum::ExposedClass::": {
     "name": "",
     "parent": null,
-    "type": "enum",
-    "partial": true
+    "type": "enum"
   },
   "::Enum::": {
     "name": "",
     "parent": null,
-    "type": "enum",
-    "partial": true
+    "type": "enum"
   }
 }

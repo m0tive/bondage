@@ -119,7 +119,9 @@ class TypeDataSet
     end
 
     enums.each do |enum|
-      types[enum.fullyQualifiedName] = TypeData.new(enum.name, nil, :enum, enum)
+      type = TypeData.new(enum.name, nil, :enum, enum)
+      type.setFullyExposed()
+      types[enum.fullyQualifiedName] = type
     end
 
     return TypeDataSet.new(types)

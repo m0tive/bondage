@@ -149,7 +149,10 @@ class TestExpose < Test::Unit::TestCase
     # Generate parent A
     exposer, visitor = expose(@enum)
 
-
+    assert_equal 3, exposer.allMetaData.fullTypes.length
+    assert_equal 3, exposer.exposedMetaData.fullTypes.length
+    assert_equal 3, exposer.allMetaData.types.length
+    assert_equal 3, exposer.exposedMetaData.types.length
   end
 
   def expose(lib)

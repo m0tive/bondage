@@ -16,9 +16,8 @@ class LuaGenerator
     @exposer.exposedMetaData.fullTypes.each do |path, cls|
       if(cls.type == :class)
         File.open(dir + "/#{cls.name}.lua", 'w') do |file|
-            writePreamble(file, "-- ")
+          writePreamble(file, "-- ")
           file.write(generateClassData(cls))
-          end
         end
       end
     end
