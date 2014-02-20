@@ -1,5 +1,7 @@
 require_relative "ExposeAst.rb"
 require_relative "TypeMetaData.rb"
+require_relative "TypeExposer.rb"
+require_relative "FunctionExposer.rb"
 require "set"
 
 # Decides what classes and functions can be exposed, using data from the current parse, and dependency parses.
@@ -43,54 +45,18 @@ class Exposer
     @exposedMetaData.export(visitor.library.autogenPath)
 
     @allMetaData.merge(@exposedMetaData)
+
+    @typeExposer = TypeExposer.new(@allMetaData)
+    @functionExposer = FunctionExposer.new(@typeExposer)
   end
 
   attr_reader :exposedMetaData, :allMetaData
-
-  # Find all enums on the classable type [classable].
-  def gatherEnums(classable, enums)
-    classable.enums.each do |name, enum|
-      if(canExposeEnum(enum))
-        enums << enum
-      end
-    end
-  end
-
-  # Find if an enum can be exposed.
-  def canExposeEnum(enum)
-    return enum.comment.hasCommand("expose")
-  end
-
-  # find if a method [fn], a FunctionItem class can be exposed in the current library.
-  def canExposeMethod(fn)
-    if(fn.isExposed == nil)
-      # methods must be public to expose
-      canExpose = fn.accessSpecifier == :public
-      # methods must have a partially exposed return type (it or a derived class)
-      canExpose = canExpose && (fn.returnType == nil || canExposeType(fn.returnType, true))
-      # methods arguments must all be exposed fully.
-      canExpose = canExpose && fn.arguments.all?{ |param| canExposeArgument(param) }
-
-      fn.setExposed(canExpose)
-    end
-
-    return fn.isExposed
-  end
-
-  # find if an argument [obj], an ArgumentItem can be exposed.
-  def canExposeArgument(obj)
-    if(obj == nil)
-      return true
-    end
-
-    return canExposeType(obj.type, false)
-  end
 
   def findExposedFunctions(cls)
     functions = {}
 
     # find all exposable functions as an array
-    exposableFunctions = cls.functions.select{ |fn| canExposeMethod(fn) }
+    exposableFunctions = cls.functions.select{ |fn| @functionExposer.canExposeMethod(fn) }
 
     # group these functions by overload
     exposableFunctions.each do |fn|
@@ -105,6 +71,20 @@ class Exposer
   end
 
 private
+  # Find if an enum can be exposed.
+  def canExposeEnum(enum)
+    return enum.comment.hasCommand("expose")
+  end
+
+  # Find all enums on the classable type [classable].
+  def gatherEnums(classable, enums)
+    classable.enums.each do |name, enum|
+      if(canExposeEnum(enum))
+        enums << enum
+      end
+    end
+  end
+
   # Merge dependencies from [lib] (and its dependents), into [dataToMerge].
   def mergeDependencyClasses(dataToMerge, lib)
     lib.dependencies.each do |dep|
@@ -113,39 +93,6 @@ private
       metaData = TypeDataSet.import(dep.autogenPath)
       dataToMerge.merge(metaData)
     end
-  end
-
-  # Find if [type], a Type class, can be exposed.
-  def canExposeType(type, partialOk)
-    # basic types can always be exposed
-    if(type.isVoid() ||
-       type.isBoolean() ||
-       type.isStringLiteral() ||
-       type.isInteger() ||
-       type.isFloatingPoint())
-      return true
-    end
-
-    # Pointer and reference types can be exposed if their pointed type can be exposed,
-    # and they arent pointers to pointers.
-    if(type.isPointer() || type.isLValueReference() || type.isRValueReference())
-      pointed = type.pointeeType()
-      if(pointed.isPointer())
-        return false
-      end
-
-      return canExposeType(pointed, partialOk)
-    end
-
-    # otherwise, find the fully qualified type name, and find out if its exposed.
-    fullName = type.fullyQualifiedName
-
-    if((partialOk && @allMetaData.partiallyExposed?(fullName)) ||
-      @allMetaData.fullyExposed?(fullName))
-      return true
-    end
-
-    return false
   end
 
   def findValidParentClasses(cls)
