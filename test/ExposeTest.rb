@@ -173,6 +173,9 @@ class TestExpose < Test::Unit::TestCase
     assert_equal 0, classEnum.members["X"]
     assert_equal 1, classEnum.members["Y"]
     assert_equal 2, classEnum.members["Z"]
+
+    cls = exposer.allMetaData.fullTypes["::Enum::ExposedClass"]
+    assert_equal 2, cls.functions.length
   end
 
   def expose(lib)
