@@ -1,4 +1,4 @@
-require_relative "ExposeAst.rb"
+require_relative "../Exposer/ExposeAst.rb"
 require_relative "GeneratorHelper.rb"
 
 # Generate lua exposing code for C++ classes

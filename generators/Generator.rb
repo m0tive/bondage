@@ -1,4 +1,4 @@
-require_relative "ExposeAst.rb"
+require_relative "../exposer/ExposeAst.rb"
 require_relative "GeneratorHelper.rb"
 
 # Generate exposure output in c++ for classes.

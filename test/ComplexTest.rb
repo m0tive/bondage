@@ -4,8 +4,8 @@ require_relative "../parser/Library.rb"
 require_relative "../parser/Parser.rb"
 require_relative "../exposer/Exposer.rb"
 require_relative "../exposer/ExposeAst.rb"
-require_relative "../exposer/Generator.rb"
-require_relative "../exposer/LuaGenerator.rb"
+require_relative "../generators/Generator.rb"
+require_relative "../generators/LuaGenerator.rb"
 
 require 'test/unit'
 
