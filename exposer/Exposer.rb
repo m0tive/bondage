@@ -37,7 +37,8 @@ class Exposer
     @exposedMetaData = TypeDataSet.fromClasses(
       exposedClasses,
       partiallyExposedClasses,
-      parentClasses)
+      parentClasses,
+      enums)
 
     @exposedMetaData.export(visitor.library.autogenPath)
 

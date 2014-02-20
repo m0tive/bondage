@@ -8,8 +8,9 @@ require "json"
 class TypeData
   # Create a TypeData, given a short name and a parent, fully qualified path.
   # [parsedClass] is optional, and should only be supplied if it was parsed in this library.
-  def initialize(name, parent, parsedClass=nil)
+  def initialize(name, parent, type, parsedClass=nil)
     @name = name
+    @type = type
     @fullyExposed = false
     @parsedClass = parsedClass
     @parentClass = parent
@@ -36,6 +37,11 @@ class TypeData
       :name => @name,
       :parent => @parentClass
     }
+    
+    if(@type != :class)
+      data[:type] = @type
+    end
+
     if(!@fullyExposed)
       data[:partial] = true
     end
@@ -44,7 +50,11 @@ class TypeData
 
   # Create a TypeData from json, with a nil [@parsedClass]
   def self.from_json(data)
-    cls = TypeData.new(data[:name], data[:parent])
+    type = :class
+    if (data.has_key?(:type))
+      type = data[:type]
+    end
+    cls = TypeData.new(data[:name], data[:parent], type)
     if(!data.include?("partial"))
       cls.setFullyExposed()
     end
@@ -88,16 +98,16 @@ class TypeDataSet
     return fullClasses.length
   end
 
-  # Create a ClassDataSet from two arrays, of fully exposed
+  # Create a TypeDataSet from two arrays, of fully exposed
   # classes, and partially exposed classes
-  def self.fromClasses(fullClasses, partialClasses, parentClasses)
+  def self.fromClasses(fullClasses, partialClasses, parentClasses, enums)
     classes = {}
 
     # Iterate, find a good parent class, and create the TypeData...
     partialClasses.each do |cls|
       superClass = parentClasses[cls.fullyQualifiedName()]
 
-      classes[cls.fullyQualifiedName] = TypeData.new(cls.name, superClass, cls)
+      classes[cls.fullyQualifiedName] = TypeData.new(cls.name, superClass, :class, cls)
     end
 
     # Now iterate and set any partial classes which are full to be full.
@@ -106,6 +116,10 @@ class TypeDataSet
       raise "Classes must also be partial classes #{cls.fullyQualifiedName}" unless obj
 
       obj.setFullyExposed()
+    end
+
+    enums.each do |enum|
+      classes[enum.fullyQualifiedName] = TypeData.new(enum.name, nil, :enum, enum)
     end
 
     return TypeDataSet.new(classes)

@@ -37,7 +37,7 @@ class TestExpose < Test::Unit::TestCase
   end
 
   def teardown
-    cleanLibrary(@enum)
+    #cleanLibrary(@enum)
     cleanLibrary(@astTest)
     cleanLibrary(@parentA)
     cleanLibrary(@parentB)
