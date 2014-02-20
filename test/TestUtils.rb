@@ -30,9 +30,18 @@ end
 
 $:.unshift File.dirname(__FILE__) + "/../parser/ffi-clang/lib"
 
+DEBUGGING = false
+
 def setupLibrary(library)
   path = library.autogenPath
   FileUtils.mkdir_p(path)
+end
+
+def exposeLibrary(lib)
+  parser = Parser.new(lib, DEBUGGING)
+  visitor = ExposeAstVisitor.new(lib)
+  parser.parse(visitor)
+  return Exposer.new(visitor, DEBUGGING), visitor
 end
 
 def cleanLibrary(library)

@@ -9,8 +9,6 @@ require_relative "../generators/LuaGenerator.rb"
 
 require 'test/unit'
 
-DEBUGGING = false
-
 class TestComplex < Test::Unit::TestCase
   def setup    
     @example_lib = Library.new("Example", "test/testData/Complex/example_lib")
@@ -44,12 +42,7 @@ class TestComplex < Test::Unit::TestCase
   def expose(library)
     path = library.autogenPath
 
-    parser = Parser.new(library, DEBUGGING)
-
-    visitor = ExposeAstVisitor.new(library)
-    parser.parse(visitor)
-
-    exposer = Exposer.new(visitor, DEBUGGING)
+    exposer, visitor = exposeLibrary(library)
 
     Generator.new(library, exposer).generate(path)
     LuaGenerator.new(library, exposer).generate(path)

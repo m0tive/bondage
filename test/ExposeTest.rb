@@ -72,18 +72,12 @@ class TestExpose < Test::Unit::TestCase
   end
 
   def test_exposer
-    parser = Parser.new(@astTest)
-
-    visitor = ExposeAstVisitor.new(@astTest)
-    parser.parse(visitor)
-
-    exposer = Exposer.new(visitor)
-
+    exposeLibrary(@astTest)
   end
 
   def test_parentingA
     # Generate parent A
-    exposer, visitor = expose(@parentA)
+    exposer, visitor = exposeLibrary(@parentA)
 
     assert_equal 2, exposer.exposedMetaData.fullTypes.length
     assert_equal 3, exposer.exposedMetaData.types.length
@@ -101,9 +95,9 @@ class TestExpose < Test::Unit::TestCase
 
   def test_parentingB
     # Generate parent A
-    expose(@parentA)
+    exposeLibrary(@parentA)
     # Generate parent B
-    exposer, visitor = expose(@parentB)
+    exposer, visitor = exposeLibrary(@parentB)
 
     assert_equal 2, exposer.exposedMetaData.fullTypes.length
     assert_equal 6, exposer.exposedMetaData.types.length
@@ -147,7 +141,7 @@ class TestExpose < Test::Unit::TestCase
 
   def test_enum
     # Generate parent A
-    exposer, visitor = expose(@enum)
+    exposer, visitor = exposeLibrary(@enum)
 
     assert_equal 3, exposer.allMetaData.fullTypes.length
     assert_equal 3, exposer.exposedMetaData.fullTypes.length
@@ -198,13 +192,6 @@ class TestExpose < Test::Unit::TestCase
 
     assert_equal "::Enum::ExposedEnumStatic", fn1.arguments[0].type.fullyQualifiedName
     assert_equal "::Enum::ExposedClass::ExposedEnum", fn2.arguments[0].type.fullyQualifiedName
-  end
-
-  def expose(lib)
-    parser = Parser.new(lib)
-    visitor = ExposeAstVisitor.new(lib)
-    parser.parse(visitor)
-    return Exposer.new(visitor), visitor
   end
 
   # super classes
