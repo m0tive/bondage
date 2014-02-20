@@ -17,6 +17,7 @@ enum Test2
 /// \expose
 class ExposedClass
 {
+public:
   /// \expose
   enum ExposedEnum
   {

@@ -175,7 +175,8 @@ class TestExpose < Test::Unit::TestCase
     assert_equal 2, classEnum.members["Z"]
 
     cls = exposer.allMetaData.fullTypes["::Enum::ExposedClass"].parsed
-    assert_equal 2, cls.functions.length
+    functions = exposer.findExposedFunctions(cls)
+    assert_equal 2, functions.length
   end
 
   def expose(lib)
