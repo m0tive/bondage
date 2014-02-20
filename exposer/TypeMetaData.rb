@@ -3,7 +3,7 @@ require_relative "ExposeAst.rb"
 require "json"
 
 # A serialisable class which is exposed in a library.
-# Allows querying data of classes from other libraries, not parsed in the current operation.
+# Allows querying data of types from other libraries, not parsed in the current operation.
 #
 class TypeData
   # Create a TypeData, given a short name and a parent, fully qualified path.
@@ -62,82 +62,82 @@ class TypeData
   end
 end
 
-# TypeDataSet is a set of classes which are exposed in some library(s).
-# The data sets can be restored from disk, and merged to represent multiple libraries classes.
+# TypeDataSet is a set of types which are exposed in some library(s).
+# The data sets can be restored from disk, and merged to represent multiple libraries types.
 class TypeDataSet
   # Create a class set from a hash of fully qualified path, to TypeData
-  def initialize(classes = {})
-    @classes = classes
-    @fullClasses = @classes.select { |key, val| val.fullyExposed }
+  def initialize(types = {})
+    @types = types
+    @fullTypes = @types.select { |key, val| val.fullyExposed }
   end
 
-  attr_reader :classes, :fullClasses
+  attr_reader :types, :fullTypes
 
   # Merge this set with another set.
   def merge(other)
-    @classes.merge!(other.classes)
-    @fullClasses.merge!(other.fullClasses)
+    @types.merge!(other.types)
+    @fullTypes.merge!(other.fullTypes)
   end
 
   # Find the class data for [clsPath] in this set, or nil.
   def findClass(clsPath)
-    return classes[clsPath]
+    return types[clsPath]
   end
 
   # Is the class path passed fully exposed?
   def fullyExposed?(cls)
-    return fullClasses.include?(cls)
+    return fullTypes.include?(cls)
   end
 
   # Is the class path passed partially exposed (ie contained at all in the set)?
   def partiallyExposed?(cls)
-    return classes.include?(cls)
+    return types.include?(cls)
   end
 
   def fullClassCount
-    return fullClasses.length
+    return fullTypes.length
   end
 
   # Create a TypeDataSet from two arrays, of fully exposed
-  # classes, and partially exposed classes
+  # types, and partially exposed types
   def self.fromClasses(fullClasses, partialClasses, parentClasses, enums)
-    classes = {}
+    types = {}
 
     # Iterate, find a good parent class, and create the TypeData...
     partialClasses.each do |cls|
       superClass = parentClasses[cls.fullyQualifiedName()]
 
-      classes[cls.fullyQualifiedName] = TypeData.new(cls.name, superClass, :class, cls)
+      types[cls.fullyQualifiedName] = TypeData.new(cls.name, superClass, :class, cls)
     end
 
-    # Now iterate and set any partial classes which are full to be full.
+    # Now iterate and set any partial types which are full to be full.
     fullClasses.each do |cls|
-      obj = classes[cls.fullyQualifiedName]
-      raise "Classes must also be partial classes #{cls.fullyQualifiedName}" unless obj
+      obj = types[cls.fullyQualifiedName]
+      raise "Classes must also be partial types #{cls.fullyQualifiedName}" unless obj
 
       obj.setFullyExposed()
     end
 
     enums.each do |enum|
-      classes[enum.fullyQualifiedName] = TypeData.new(enum.name, nil, :enum, enum)
+      types[enum.fullyQualifiedName] = TypeData.new(enum.name, nil, :enum, enum)
     end
 
-    return TypeDataSet.new(classes)
+    return TypeDataSet.new(types)
   end
 
   # Save this set into [dir], in json form
   def export(dir)
-    File.open(dir + "/classes.json", 'w') do |file|
-      file.write(JSON.pretty_generate(@classes))
+    File.open(dir + "/types.json", 'w') do |file|
+      file.write(JSON.pretty_generate(@types))
     end
   end
 
   # Load a set from [dir].
   def self.import(dir)
-    classes = JSON.parse(File.open("#{dir}/classes.json", "r").read())
+    types = JSON.parse(File.open("#{dir}/types.json", "r").read())
 
     outClasses = {}
-    classes.each do |ary|
+    types.each do |ary|
       outClasses[ary[0]] = TypeData.from_json(ary[1])
     end
 

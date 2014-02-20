@@ -18,7 +18,7 @@ class Generator
     File.open(dir + "/#{@library.name}.h", 'w') do |file|
       writePreamble(file)
 
-      toGenerate.fullClasses.each do |clsPath, cls|
+      toGenerate.fullTypes.each do |clsPath, cls|
         if(!cls.hasParentClass())
           file.write("COBRA_EXPOSED_CLASS(#{clsPath})\n")
         else
@@ -31,7 +31,7 @@ class Generator
     File.open(dir + "/#{@library.name}.cpp", 'w') do |file|
       writePreamble(file)
 
-      toGenerate.fullClasses.map{ |clsPath, cls| "#{generateClassData(cls)}\n" }.each { |data| file.write(data) }
+      toGenerate.fullTypes.map{ |clsPath, cls| "#{generateClassData(cls)}\n" }.each { |data| file.write(data) }
     end
   end
 
