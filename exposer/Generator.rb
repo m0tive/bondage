@@ -19,10 +19,12 @@ class Generator
       writePreamble(file)
 
       toGenerate.fullTypes.each do |clsPath, cls|
-        if(!cls.hasParentClass())
-          file.write("COBRA_EXPOSED_CLASS(#{clsPath})\n")
-        else
-          file.write("COBRA_EXPOSED_DERIVED_CLASS(#{clsPath}, #{cls.parentClass})\n")
+        if(cls.type == :class)
+          if(!cls.hasParentClass())
+            file.write("COBRA_EXPOSED_CLASS(#{clsPath})\n")
+          else
+            file.write("COBRA_EXPOSED_DERIVED_CLASS(#{clsPath}, #{cls.parentClass})\n")
+          end
         end
       end
     end

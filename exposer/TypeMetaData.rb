@@ -16,7 +16,7 @@ class TypeData
     @parentClass = parent
   end
 
-  attr_reader :name, :fullyExposed, :parsedClass, :parentClass
+  attr_reader :name, :type, :fullyExposed, :parsedClass, :parentClass
 
   # Set this class as fully exposed, a fully exposed
   # class can be used as both an input and output argument.
