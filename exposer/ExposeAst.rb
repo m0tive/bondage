@@ -103,10 +103,11 @@ end
 class EnumItem < HierarchyItem
   # create a class from a parent item, clang data, and bools for struct/template-iness
   def initialize(parent, data) super(parent)
+    @name = data[:name]
     @comment = data[:comment]
   end
 
-  attr_reader :comment
+  attr_reader :name, :comment
 
   def self.build(parent, data)
     return EnumItem.new(parent, data)
@@ -236,10 +237,6 @@ class ClassItem < ClassableItem
     return ClassItem.new(parent, data, struct, template)
   end
 
-  def name
-    return @name
-  end
-
   # Add a superclass for tis class
   def addSuperClass(data)
     @superClasses << data
@@ -288,14 +285,10 @@ class NamespaceItem < ClassableItem
     @name = name
   end
 
-  attr_reader :namespaces
+  attr_reader :name, :namespaces
 
   def self.build(parent, data)
     return NamespaceItem.new(parent, data[:name])
-  end
-
-  def name
-    return @name
   end
 
   # Add a function to the namespace

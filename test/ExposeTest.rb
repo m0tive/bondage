@@ -153,6 +153,10 @@ class TestExpose < Test::Unit::TestCase
     assert_equal 3, exposer.exposedMetaData.fullTypes.length
     assert_equal 3, exposer.allMetaData.types.length
     assert_equal 3, exposer.exposedMetaData.types.length
+
+    assert_equal "::Enum::ExposedClass", exposer.allMetaData.fullTypes.keys[0]
+    assert_equal "::Enum::ExposedClass::ExposedEnum", exposer.allMetaData.fullTypes.keys[1]
+    assert_equal "::Enum::ExposedEnumStatic", exposer.allMetaData.fullTypes.keys[2]
   end
 
   def expose(lib)

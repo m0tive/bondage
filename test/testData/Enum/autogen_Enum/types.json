@@ -3,13 +3,13 @@
     "name": "ExposedClass",
     "parent": null
   },
-  "::Enum::ExposedClass::": {
-    "name": "",
+  "::Enum::ExposedClass::ExposedEnum": {
+    "name": "ExposedEnum",
     "parent": null,
     "type": "enum"
   },
-  "::Enum::": {
-    "name": "",
+  "::Enum::ExposedEnumStatic": {
+    "name": "ExposedEnumStatic",
     "parent": null,
     "type": "enum"
   }
