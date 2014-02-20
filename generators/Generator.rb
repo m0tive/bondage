@@ -40,12 +40,12 @@ class Generator
 private
   # Generate binding data for a class
   def generateClassData(cls)
-    # parsedClass is the ExposeAst data for a class, which is not present in classes restored from JSON
-    parsedClass = cls.parsedClass
-    raise "Can't generate for restored class '#{cls.name}'" unless parsedClass
+    # parsed is the ExposeAst data for a class, which is not present in classes restored from JSON
+    parsed = cls.parsed
+    raise "Can't generate for restored class '#{cls.name}'" unless parsed
 
     # find a name that is a valid literal in c++ used for static definitions
-    fullyQualified = parsedClass.fullyQualifiedName()
+    fullyQualified = parsed.fullyQualifiedName()
     literalName = fullyQualified.sub("::", "").gsub("::", "_")
 
     methodsLiteral = literalName + "_methods";
@@ -69,7 +69,7 @@ private
     output =
 "// Exposing class #{fullyQualified}
 
-const cobra::function #{methodsLiteral}[] = #{generateMethodData(parsedClass)};
+const cobra::function #{methodsLiteral}[] = #{generateMethodData(parsed)};
 
 #{classInfo}
 

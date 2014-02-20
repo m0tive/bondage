@@ -7,16 +7,16 @@ require "json"
 #
 class TypeData
   # Create a TypeData, given a short name and a parent, fully qualified path.
-  # [parsedClass] is optional, and should only be supplied if it was parsed in this library.
-  def initialize(name, parent, type, parsedClass=nil)
+  # [parsed] is optional, and should only be supplied if it was parsed in this library.
+  def initialize(name, parent, type, parsed=nil)
     @name = name
     @type = type
     @fullyExposed = false
-    @parsedClass = parsedClass
+    @parsed = parsed
     @parentClass = parent
   end
 
-  attr_reader :name, :type, :fullyExposed, :parsedClass, :parentClass
+  attr_reader :name, :type, :fullyExposed, :parsed, :parentClass
 
   # Set this class as fully exposed, a fully exposed
   # class can be used as both an input and output argument.
@@ -31,7 +31,7 @@ class TypeData
     return @parentClass != nil
   end
 
-  # Serialise the TypeData to json, except the [@parsedClass].
+  # Serialise the TypeData to json, except the [@parsed].
   def to_json(opt)
     data = {
       :name => @name,
@@ -48,7 +48,7 @@ class TypeData
     return JSON.pretty_generate(data, opt)
   end
 
-  # Create a TypeData from json, with a nil [@parsedClass]
+  # Create a TypeData from json, with a nil [@parsed]
   def self.from_json(data)
     type = :class
     if (data.has_key?(:type))

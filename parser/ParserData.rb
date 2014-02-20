@@ -14,6 +14,7 @@ ACCESS_SPECIFIER_STATE =        ParserStateItem.new(:access_specifier,        ->
 FIELD_STATE =                   ParserStateItem.new(:field,                   ->(parent, data){ parent.addField(data) })
 ENUM_STATE =                    ParserStateItem.new(:enum,                    ->(parent, data){ parent.addEnum(data) })
 ENUM_MEMBER_STATE =             ParserStateItem.new(:enumMember,              ->(parent, data){ parent.addEnumMember(data) })
+ENUM_EXPR_STATE =               ParserStateItem.new(:enumExpr)
 FUNCTION_STATE =                ParserStateItem.new(:function,                ->(parent, data){ parent.addFunction(data) })
 FUNCTION_TEMPLATE_STATE =       ParserStateItem.new(:function_template,       ->(parent, data){ parent.addFunctionTemplate(data) })
 RETURN_TYPE_NAMESPACE_STATE =   ParserStateItem.new(:return_type)
@@ -59,7 +60,10 @@ TRANSITIONS = {
     :cursor_namespace_ref => SUPER_CLASS_TYPE_STATE,
   },
   :enum => {
-    :cursor_enum_constant_decl => ENUM_MEMBER_STATE
+    :cursor_enum_constant_decl => ENUM_MEMBER_STATE,
+  },
+  :enumMember => {
+    :cursor_unexposed_expr => ENUM_EXPR_STATE,
   },
   # inside a function declaration
   :function => {

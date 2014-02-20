@@ -157,6 +157,22 @@ class TestExpose < Test::Unit::TestCase
     assert_equal "::Enum::ExposedClass", exposer.allMetaData.fullTypes.keys[0]
     assert_equal "::Enum::ExposedClass::ExposedEnum", exposer.allMetaData.fullTypes.keys[1]
     assert_equal "::Enum::ExposedEnumStatic", exposer.allMetaData.fullTypes.keys[2]
+
+    nsEnum = exposer.allMetaData.fullTypes["::Enum::ExposedEnumStatic"].parsed
+    assert_not_nil nsEnum
+
+    assert_equal 3, nsEnum.members.length
+    assert_equal 5, nsEnum.members["A"]
+    assert_equal 10, nsEnum.members["B"]
+    assert_equal 1, nsEnum.members["C"]
+
+    classEnum = exposer.allMetaData.fullTypes["::Enum::ExposedClass::ExposedEnum"].parsed
+    assert_not_nil classEnum
+
+    assert_equal 3, classEnum.members.length
+    assert_equal 0, classEnum.members["X"]
+    assert_equal 1, classEnum.members["Y"]
+    assert_equal 2, classEnum.members["Z"]
   end
 
   def expose(lib)

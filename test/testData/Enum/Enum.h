@@ -4,9 +4,9 @@ namespace Enum
 /// \expose
 enum ExposedEnumStatic
 {
-  A,
-  B,
-  C
+  A = 5,
+  B = 10,
+  C = 1
 };
 
 enum Test2

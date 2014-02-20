@@ -120,8 +120,8 @@ class LuaGenerator
 
   # Generate the lua class data for [cls]
   def generateClassData(cls)
-    parsedClass = cls.parsedClass
-    functions = @exposer.findExposedFunctions(parsedClass)
+    parsed = cls.parsed
+    functions = @exposer.findExposedFunctions(parsed)
 
     # if [cls] has a parent class, find its data and require path.
     parentInsert, parentPreamble = generateClassParentData(cls)
@@ -132,7 +132,7 @@ class LuaGenerator
     end
 
     # find a brief comment for [cls]
-    brief = parsedClass.comment.strippedCommand("brief")
+    brief = parsed.comment.strippedCommand("brief")
 
     # generate class output.
     output = "#{parentPreamble}

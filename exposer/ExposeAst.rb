@@ -105,15 +105,17 @@ class EnumItem < HierarchyItem
   def initialize(parent, data) super(parent)
     @name = data[:name]
     @comment = data[:comment]
+    @members = {}
   end
 
-  attr_reader :name, :comment
+  attr_reader :name, :comment, :members
 
   def self.build(parent, data)
     return EnumItem.new(parent, data)
   end
 
   def addEnumMember(data)
+    @members[data[:name]] = data[:cursor].enum_value
   end
 end
 
