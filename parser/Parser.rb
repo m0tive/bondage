@@ -1,4 +1,4 @@
-require_relative "ffi/clang.rb"
+require "ffi/clang.rb"
 
 require_relative "Library.rb"
 require_relative "Visitor.rb"

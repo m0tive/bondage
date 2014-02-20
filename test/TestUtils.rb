@@ -28,7 +28,7 @@ case os
     ENV["PATH"] = ENV["PATH"] + ";" + "..\\llvm-build\\Release+Asserts\\bin"
 end
 
-$:.unshift File.dirname(__FILE__) + "/../ffi-clang/lib"
+$:.unshift File.dirname(__FILE__) + "/../parser/ffi-clang/lib"
 
 def setupLibrary(library)
   path = library.autogenPath
