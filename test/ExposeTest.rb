@@ -177,6 +177,13 @@ class TestExpose < Test::Unit::TestCase
     cls = exposer.allMetaData.fullTypes["::Enum::ExposedClass"].parsed
     functions = exposer.findExposedFunctions(cls)
     assert_equal 2, functions.length
+
+    fns1 = functions["fn1"]
+    fns2 = functions["fn3"]
+
+    assert_not_nil fns1
+    assert_not_nil fns2
+
   end
 
   def expose(lib)
