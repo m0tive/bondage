@@ -184,6 +184,20 @@ class TestExpose < Test::Unit::TestCase
     assert_not_nil fns1
     assert_not_nil fns2
 
+    fn1 = fns1[0]
+    fn2 = fns2[0]
+
+    assert_not_nil fn1
+    assert_not_nil fn2
+
+    assert_equal nil, fn1.returnType
+    assert_equal nil, fn2.returnType
+
+    assert_equal 1, fn1.arguments.length
+    assert_equal 1, fn2.arguments.length
+
+    assert_equal "::Enum::ExposedEnumStatic", fn1.arguments[0].type.fullyQualifiedName
+    assert_equal "::Enum::ExposedClass::ExposedEnum", fn2.arguments[0].type.fullyQualifiedName
   end
 
   def expose(lib)

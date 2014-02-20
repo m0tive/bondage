@@ -128,6 +128,10 @@ class Type
     return Type.stripTemplates(n)
   end
 
+  def fullyQualifiedName
+    return "::#{name}"
+  end
+
   # find the clang :kind for the type.
   def kind
     return @canonical.kind

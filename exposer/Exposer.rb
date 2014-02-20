@@ -138,9 +138,7 @@ private
     end
 
     # otherwise, find the fully qualified type name, and find out if its exposed.
-    name = type.name
-
-    fullName = "::#{name}"
+    fullName = type.fullyQualifiedName
 
     if((partialOk && @allMetaData.partiallyExposed?(fullName)) ||
       @allMetaData.fullyExposed?(fullName))
@@ -156,7 +154,7 @@ private
     # find valid super classes
     cls.superClasses.each do |cls|
       if(cls[:accessSpecifier] == :public)
-        clsPath = "::#{cls[:type].name}"
+        clsPath = cls[:type].fullyQualifiedName
         validSuperClasses << clsPath
       end
     end
