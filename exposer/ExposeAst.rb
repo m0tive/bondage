@@ -55,9 +55,10 @@ class ClassableItem < HierarchyItem
   def initialize(parent) super(parent)
     @classes = {}
     @enums = {}
+    @functions = []
   end
 
-  attr_reader :classes, :enums
+  attr_reader :classes, :enums, :functions
 
   # Add a struct to the container, [data] is a hash of data from clang
   def addStruct(data)
@@ -85,6 +86,17 @@ class ClassableItem < HierarchyItem
 
   # Add a union to the container, [data] is a hash of data from clang
   def addUnion(data)
+  end
+
+  # add a function for this class
+  def addFunction(data)
+    fn = FunctionItem.build(self, data, false)
+    functions << fn
+    return fn
+  end
+
+  # add a function template to this class
+  def addFunctionTemplate(data)
   end
 
   # add an enum to the class
@@ -223,7 +235,6 @@ class ClassItem < ClassableItem
     @isTemplated = template
     @comment = data[:comment]
     @accessSpecifier = data[:cursor].access_specifier
-    @functions = []
     @superClasses = []
   end
 
@@ -231,7 +242,6 @@ class ClassItem < ClassableItem
     :isStruct,
     :isTemplated,
     :comment,
-    :functions,
     :superClasses,
     :accessSpecifier
 
@@ -259,17 +269,6 @@ class ClassItem < ClassableItem
   def addDestructor(data)
   end
 
-  # add a function for this class
-  def addFunction(data)
-    fn = FunctionItem.build(self, data, false)
-    functions << fn
-    return fn
-  end
-
-  # add a function template to this class
-  def addFunctionTemplate(data)
-  end
-
   # add a member to the class
   def addField(data)
   end
@@ -291,15 +290,6 @@ class NamespaceItem < ClassableItem
 
   def self.build(parent, data)
     return NamespaceItem.new(parent, data[:name])
-  end
-
-  # Add a function to the namespace
-  def addFunction(data)
-    return FunctionItem.build(self, data, false)
-  end
-
-  # Add a function template to the namespace
-  def addFunctionTemplate(data)
   end
 
   # add a namespace to the namespace

@@ -1,0 +1,10 @@
+{
+  "::Functions::TestA": {
+    "name": "TestA",
+    "parent": null
+  },
+  "::Functions::SomeClass": {
+    "name": "SomeClass",
+    "parent": null
+  }
+}

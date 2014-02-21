@@ -30,6 +30,11 @@ class TestExpose < Test::Unit::TestCase
     @enum.addIncludePath(".")
     @enum.addFile("Enum.h")
 
+    @functions = Library.new("Functions", "test/testData/Functions")
+    @functions.addIncludePath(".")
+    @functions.addFile("Functions.h")
+
+    setupLibrary(@functions)
     setupLibrary(@enum)
     setupLibrary(@astTest)
     setupLibrary(@parentA)
@@ -37,19 +42,15 @@ class TestExpose < Test::Unit::TestCase
   end
 
   def teardown
-    #cleanLibrary(@enum)
+    #cleanLibrary(@functions)
+    cleanLibrary(@enum)
     cleanLibrary(@astTest)
     cleanLibrary(@parentA)
     cleanLibrary(@parentB)
   end
 
   def test_metaData
-    parser = Parser.new(@astTest)
-
-    visitor = ExposeAstVisitor.new(@astTest)
-    parser.parse(visitor)
-
-    exposer = Exposer.new(visitor)
+    exposer, visitor = exposeLibrary(@astTest)
 
     all = exposer.allMetaData
     exposed = exposer.exposedMetaData
@@ -140,7 +141,7 @@ class TestExpose < Test::Unit::TestCase
   end
 
   def test_enum
-    # Generate parent A
+    # Generate Enum
     exposer, visitor = exposeLibrary(@enum)
 
     assert_equal 3, exposer.allMetaData.fullTypes.length
@@ -192,6 +193,83 @@ class TestExpose < Test::Unit::TestCase
 
     assert_equal "::Enum::ExposedEnumStatic", fn1.arguments[0].type.fullyQualifiedName
     assert_equal "::Enum::ExposedClass::ExposedEnum", fn2.arguments[0].type.fullyQualifiedName
+  end
+
+  def test_functions
+    # Generate Functions
+    exposer, visitor = exposeLibrary(@functions)
+
+    rootNs = visitor.getExposedNamespace()
+    assert_not_nil rootNs
+
+    assert_equal 3, rootNs.functions.length
+
+    fns = exposer.findExposedFunctions(rootNs)
+    assert_equal 2, fns.length
+
+    expose1 = fns["testExpose1"]
+    assert_equal 1, expose1.length
+    assert_equal true, expose1[0].returnType.isLValueReference
+    assert_equal true, expose1[0].returnType.pointeeType.isConstQualified
+    assert_equal "::Functions::TestA", expose1[0].returnType.pointeeType.fullyQualifiedName
+
+    assert_equal 2, expose1[0].arguments.length
+    assert_equal "", expose1[0].arguments[0].name
+    assert_equal true, expose1[0].arguments[0].type.isFloatingPoint()
+    assert_equal "pork", expose1[0].arguments[1].name
+    assert_equal true, expose1[0].arguments[1].type.isBoolean()
+
+    assert_equal true, expose1[0].returnType.isLValueReference
+    assert_equal true, expose1[0].returnType.pointeeType.isConstQualified
+    assert_equal "::Functions::TestA", expose1[0].returnType.pointeeType.fullyQualifiedName
+
+    expose2 = fns["testExpose2"]
+    assert_equal 1, expose2.length
+
+    expose2_1 = expose2[0]
+    assert_equal true, expose2_1.returnType.isLValueReference
+    assert_equal false, expose2_1.returnType.pointeeType.isConstQualified
+    assert_equal "::Functions::TestA", expose1[0].returnType.pointeeType.fullyQualifiedName
+
+    assert_equal 1, expose2_1.arguments.length
+    assert_equal "a", expose2_1.arguments[0].name
+    assert_equal true, expose2_1.arguments[0].type.isPointer()
+    assert_equal "::Functions::TestA", expose2_1.arguments[0].type.pointeeType().fullyQualifiedName
+
+    assert_equal 2, exposer.exposedMetaData.fullTypes.length
+
+    exposeHelper = exposer.exposedMetaData.fullTypes["::Functions::TestA"].parsed
+    assert_not_nil exposeHelper
+
+    exposedClass = exposer.exposedMetaData.fullTypes["::Functions::SomeClass"].parsed
+    assert_not_nil exposedClass
+
+    assert_equal 4, exposedClass.functions.length
+
+    fns = exposer.findExposedFunctions(exposedClass)
+    assert_equal 1, fns.length
+
+    overloaded = fns["overloaded"]
+    assert_equal 3, overloaded.length
+
+    overloaded.each do |fn|
+      assert_equal nil, fn.returnType
+    end
+
+    assert_equal 1, overloaded[0].arguments.length
+    assert_equal 3, overloaded[1].arguments.length
+    assert_equal 1, overloaded[2].arguments.length
+
+    assert_equal true, overloaded[0].arguments[0].type.isLValueReference
+    assert_equal "::Functions::TestA", overloaded[0].arguments[0].type.pointeeType.fullyQualifiedName
+    
+    assert_equal true, overloaded[1].arguments[0].type.isLValueReference
+    assert_equal "::Functions::TestA", overloaded[0].arguments[0].type.pointeeType.fullyQualifiedName
+    assert_equal true, overloaded[1].arguments[1].type.isSignedInteger
+    assert_equal true, overloaded[1].arguments[2].type.isFloatingPoint
+    
+    assert_equal true, overloaded[2].arguments[0].type.isPointer
+    assert_equal "::Functions::TestA", overloaded[2].arguments[0].type.pointeeType.fullyQualifiedName
   end
 
   # super classes
