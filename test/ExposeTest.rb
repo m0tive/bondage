@@ -260,14 +260,17 @@ class TestExpose < Test::Unit::TestCase
     assert_equal 3, overloaded[1].arguments.length
     assert_equal 1, overloaded[2].arguments.length
 
+    assert_equal false, overloaded[0].static
     assert_equal true, overloaded[0].arguments[0].type.isLValueReference
     assert_equal "::Functions::TestA", overloaded[0].arguments[0].type.pointeeType.fullyQualifiedName
     
+    assert_equal false, overloaded[1].static
     assert_equal true, overloaded[1].arguments[0].type.isLValueReference
     assert_equal "::Functions::TestA", overloaded[0].arguments[0].type.pointeeType.fullyQualifiedName
     assert_equal true, overloaded[1].arguments[1].type.isSignedInteger
     assert_equal true, overloaded[1].arguments[2].type.isFloatingPoint
     
+    assert_equal true, overloaded[2].static
     assert_equal true, overloaded[2].arguments[0].type.isPointer
     assert_equal "::Functions::TestA", overloaded[2].arguments[0].type.pointeeType.fullyQualifiedName
   end

@@ -21,7 +21,7 @@ public:
   void overloaded(TestA &t);
   void overloaded(TestB &t);
   void overloaded(TestA &t, int, float);
-  void overloaded(TestA *t);
+  static void overloaded(TestA *t);
 };
 
 }
