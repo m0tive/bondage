@@ -7,7 +7,7 @@ namespace pork
 /// \expose
 struct test
 {
-  void test() const;
+  void test0() const;
   int test1();
   long test2(float, double);
   const long& test3();

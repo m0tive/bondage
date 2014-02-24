@@ -278,11 +278,11 @@ class TestExpose < Test::Unit::TestCase
   # super classes
   # - partial classes
   # static functions
-  # exposed functions
   # exposed constructors
   # class copyability
   # pushing - push style?
-  # diagnostic information? - clang_getDiagnostic - http://llvm.org/devmtg/2010-11/Gregor-libclang.pdf
-
+  # indexes in methods
+  # default values in arguments (changing exposureness?)
+  
 
 end

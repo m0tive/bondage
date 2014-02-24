@@ -42,6 +42,13 @@ class Parser
     raise "Incomplete source" unless (stateStack.size == 1 && stateStack[0] == :namespace)
   end
 
+  def displayDiagnostics
+    diags = @translator.diagnostics
+    diags.each do |diag|
+      puts "#{diag.format}"
+    end
+  end
+
 private
   def shouldIgnoreCursor(cursor)
     toFind = cursor.location.file

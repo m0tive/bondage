@@ -11,20 +11,55 @@ class FunctionExposer
   end
 
   # find if a method [fn], a FunctionItem class can be exposed in the current library.
-  def canExposeMethod(fn)
+  def canExposeMethod(owner, fn)
     if(fn.isExposed == nil)
-      puts ": #{fn.name}" if @debug
-      # methods must be public to expose
-      canExpose = fn.accessSpecifier == :public || fn.accessSpecifier == :invalid
-      puts " - #{canExpose}\taccessible" if @debug
-      # methods must have a partially exposed return type (it or a derived class)
-      canExpose = canExpose && (fn.returnType == nil || @typeExposer.canExposeType(fn.returnType, true))
-      puts " - #{canExpose}\taccessible && return type" if @debug
-      # methods arguments must all be exposed fully.
-      canExpose = canExpose && fn.arguments.all?{ |param| canExposeArgument(param) }
-      puts " - #{canExpose}\taccessible && return type && arg types" if @debug
+      mustExpose = fn.comment.hasCommand("expose")
+      cantExpose = fn.comment.hasCommand("noexpose")
 
-      puts " - #{canExpose}" if @debug
+      if (mustExpose && cantExpose)
+        raise "Cannot require and refuse exposure for a single type #{owner.fullyQualifiedName}::#{fn.name}"
+      end
+
+      fn.setExposed(false)
+      if (cantExpose)
+        return
+      end
+
+      access = false
+      returnType = false
+      arguments = false
+
+      # methods must be public to expose
+      access = fn.accessSpecifier == :public || fn.accessSpecifier == :invalid
+      if (!access && !mustExpose)
+        return false
+      end
+
+      # methods must have a partially exposed return type (it or a derived class)
+      returnType = (fn.returnType == nil || @typeExposer.canExposeType(fn.returnType, true))
+      if (!returnType && !mustExpose)
+        return false
+      end
+      
+      # methods arguments must all be exposed fully.
+      arguments = fn.arguments.all?{ |param| canExposeArgument(param) }
+      if (!arguments && !mustExpose)
+        return false
+      end
+
+      canExpose = access && returnType && arguments
+
+      if(@debug or (!canExpose && mustExpose))
+        puts "- #{owner.fullyQualifiedName}::#{fn.name}"
+        puts " - accessible: #{canExpose}"
+        puts " - return type: #{canExpose}"
+        puts " - arg types: #{canExpose}"
+        puts " - #{canExpose}"
+
+        if (mustExpose)
+          raise "Unable to expose required method #{owner.fullyQualifiedName}::#{fn.name}" 
+        end
+      end
 
       fn.setExposed(canExpose)
     end
