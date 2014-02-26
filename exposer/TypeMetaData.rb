@@ -94,37 +94,26 @@ class TypeDataSet
     return types.include?(cls)
   end
 
+  def canDeriveFrom?(cls)
+    type = types[cls]
+    if (!type)
+      return false
+    end
+
+    return true
+  end
+
+  # Find the class count for all complete types in the set.
   def fullClassCount
     return fullTypes.length
   end
 
-  # Create a TypeDataSet from two arrays, of fully exposed
-  # types, and partially exposed types
-  def self.fromClasses(fullClasses, partialClasses, parentClasses, enums)
-    types = {}
-
-    # Iterate, find a good parent class, and create the TypeData...
-    partialClasses.each do |cls|
-      superClass = parentClasses[cls.fullyQualifiedName()]
-
-      types[cls.fullyQualifiedName] = TypeData.new(cls.name, superClass, :class, cls)
+  # Add a type to the meta data container
+  def addType(full, type)
+    types[full] = type
+    if (type.fullyExposed)
+      fullTypes[full] = type
     end
-
-    # Now iterate and set any partial types which are full to be full.
-    fullClasses.each do |cls|
-      obj = types[cls.fullyQualifiedName]
-      raise "Classes must also be partial types #{cls.fullyQualifiedName}" unless obj
-
-      obj.setFullyExposed()
-    end
-
-    enums.each do |enum|
-      type = TypeData.new(enum.name, nil, :enum, enum)
-      type.setFullyExposed()
-      types[enum.fullyQualifiedName] = type
-    end
-
-    return TypeDataSet.new(types)
   end
 
   # Save this set into [dir], in json form

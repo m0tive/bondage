@@ -275,11 +275,9 @@ class TestExpose < Test::Unit::TestCase
     assert_equal "::Functions::TestA", overloaded[2].arguments[0].type.pointeeType.fullyQualifiedName
   end
 
-  # super classes
-  # - partial classes
-  # static functions
   # exposed constructors
   # class copyability
+  # constructors...
   # pushing - push style?
   # indexes in methods
   # default values in arguments (changing exposureness?)
