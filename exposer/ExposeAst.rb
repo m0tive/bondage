@@ -224,6 +224,23 @@ class FunctionItem < HierarchyItem
   def addParam(data)
     @arguments << ArgumentItem.new(data, @arguments.length, self)
   end
+
+  def isCopyConstructor
+    if (!isConstructor)
+      return false
+    end
+
+    if (arguments.length != 1)
+      return false
+    end
+
+
+    type = arguments[0].type
+
+    return type.isLValueReference() &&
+           type.pointeeType.isConstQualified() &&
+           type.pointeeType.shortName() == name()
+  end
 end
 
 # A class item is an optionally templated class or struct.

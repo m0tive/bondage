@@ -309,17 +309,21 @@ class TestExpose < Test::Unit::TestCase
     ctor = fns["Ctor"]
     assert_not_nil ctor
 
-    assert_equal 4, ctor.length
+    assert_equal 6, ctor.length
 
     assert_equal true, ctor[0].isConstructor
     assert_equal true, ctor[1].isConstructor
     assert_equal true, ctor[2].isConstructor
     assert_equal true, ctor[3].isConstructor
+    assert_equal true, ctor[4].isConstructor
+    assert_equal true, ctor[5].isConstructor
 
     assert_equal nil, ctor[0].returnType
     assert_equal nil, ctor[1].returnType
     assert_equal nil, ctor[2].returnType
     assert_equal nil, ctor[3].returnType
+    assert_equal nil, ctor[4].returnType
+    assert_equal nil, ctor[5].returnType
 
     assert_equal 0, ctor[0].arguments.length
     assert_equal 1, ctor[1].arguments.length
@@ -329,6 +333,18 @@ class TestExpose < Test::Unit::TestCase
     assert_equal 2, ctor[3].arguments.length
     assert_equal "double", ctor[3].arguments[0].type.name
     assert_equal "double", ctor[3].arguments[1].type.name
+
+    assert_equal 1, ctor[4].arguments.length
+    assert_equal true, ctor[4].arguments[0].type.isLValueReference
+    assert_equal true, ctor[4].arguments[0].type.pointeeType.isConstQualified
+    assert_equal "::Constructors::Ctor", ctor[4].arguments[0].type.pointeeType.fullyQualifiedName
+    assert_equal true, ctor[4].isCopyConstructor
+
+    assert_equal 1, ctor[5].arguments.length
+    assert_equal false, ctor[5].arguments[0].type.isPointer
+    assert_equal false, ctor[5].arguments[0].type.pointeeType.isConstQualified
+    assert_equal "::Constructors::Ctor", ctor[5].arguments[0].type.pointeeType.fullyQualifiedName
+    assert_equal false, ctor[5].isCopyConstructor
   end
 
   # exposed constructors

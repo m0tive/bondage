@@ -118,7 +118,7 @@ class Type
     return @canonical.const_qualified?
   end
 
-  # find a short name, without decoration or templating for the type.
+  # find a name, without decoration or templating for the type, but includeing namespacesss
   def name
     n = @canonical.spelling
     if(isConstQualified)
@@ -126,6 +126,14 @@ class Type
     end
 
     return Type.stripTemplates(n)
+  end
+
+  # find a short name, without decoration or templating for the type.
+  def shortName
+    n = name
+    idx = n.rindex("::")
+
+    return n[(idx+2)..n.length]
   end
 
   def fullyQualifiedName
