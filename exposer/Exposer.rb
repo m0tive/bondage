@@ -22,13 +22,23 @@ class Exposer
         data = TypeData.new(cls.name, superClass, :class, cls)
         data.setFullyExposed()
 
+        if (canDeriveFrom(cls, superClass))
+          data.setDerivable()
+        end
+
         @exposedMetaData.addType(cls.fullyQualifiedName, data)
         @allMetaData.addType(cls.fullyQualifiedName, data)
+
+        gatherEnums(cls)
       else
         canExpose, superClass = canPartiallyExposeClass(cls)
         if (canExpose)
 
           data = TypeData.new(cls.name, superClass, :class, cls)
+
+          if (canDeriveFrom(cls, superClass))
+            data.setDerivable()
+          end
 
           @exposedMetaData.addType(cls.fullyQualifiedName, data)
           @allMetaData.addType(cls.fullyQualifiedName, data)
@@ -40,15 +50,7 @@ class Exposer
     # We also try to expose enums from here.
     rootNs = visitor.getExposedNamespace()
     if(rootNs)
-      enums = []
-      gatherEnums(rootNs, enums)
-      enums.each do |enum|
-        data = TypeData.new(enum.name, nil, :enum, enum)
-        data.setFullyExposed()
-
-        @exposedMetaData.addType(enum.fullyQualifiedName, data)
-        @allMetaData.addType(enum.fullyQualifiedName, data)
-      end
+      gatherEnums(rootNs)
     end
 
     @exposedMetaData.export(visitor.library.autogenPath)
@@ -84,11 +86,20 @@ private
   end
 
   # Find all enums on the classable type [classable].
-  def gatherEnums(classable, enums)
+  def gatherEnums(classable)
+    enums = []
     classable.enums.each do |name, enum|
       if(canExposeEnum(enum))
         enums << enum
       end
+    end
+
+    enums.each do |enum|
+      data = TypeData.new(enum.name, nil, :enum, enum)
+      data.setFullyExposed()
+
+      @exposedMetaData.addType(enum.fullyQualifiedName, data)
+      @allMetaData.addType(enum.fullyQualifiedName, data)
     end
   end
 
@@ -113,38 +124,23 @@ private
       end
     end
 
+    
     return validSuperClasses
   end
 
-  # find if any classes in array [clss] are contained in array [activeExposedTypes]
-  def findExposableParentClass(toExpose, clss, activeExposedTypes, parentClasses)
-
-    # otherwise, search for a super class in the current library.
-    if(!clss.empty?)
-      activeExposedTypes.each do |cls|
-        if (canDeriveFrom(cls))
-          if(clss.include?(cls.fullyQualifiedName()))
-
-            if(canExposeClass(cls, activeExposedTypes, parentClasses) || 
-               canPartiallyExposeClass(cls, activeExposedTypes, parentClasses))
-
-              parentClasses[toExpose.fullyQualifiedName()] = cls.fullyQualifiedName()
-              return cls.fullyQualifiedName()
-            end
-          end
-        end
-      end
+  def canDeriveFrom(cls, parent)
+    # if the parent is derivable, this must be!
+    if (parent != nil)
+      return true
     end
 
-    return nil
-  end
-
-  def canDeriveFrom(cls)
-    return true
+    hasFlag = cls.comment.hasCommand("derivable")
+    return hasFlag 
   end
 
   def findParentClass(cls)
     validSuperClasses = findValidParentClasses(cls)
+
 
     # find valid super classes
     validSuperClasses.each do |clsPath|
@@ -210,10 +206,6 @@ private
       !cls.isTemplated &&
       !cls.name.empty? &&
       (cls.accessSpecifier == :public || cls.accessSpecifier == :invalid)
-
-    if(!willExpose || @debugOutput)
-      puts "\tExposeRequested: #{hasExposeComment}\tTemplate: #{cls.isTemplated}"
-    end
 
     raise "Unable to expose requested class #{cls.name}" if not willExpose
     return willExpose

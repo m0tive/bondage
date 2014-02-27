@@ -12,16 +12,22 @@ class TypeData
     @name = name
     @type = type
     @fullyExposed = false
+    @isDerivable = false
     @parsed = parsed
     @parentClass = parent
   end
 
-  attr_reader :name, :type, :fullyExposed, :parsed, :parentClass
+  attr_reader :name, :type, :fullyExposed, :parsed, :parentClass, :isDerivable
 
   # Set this class as fully exposed, a fully exposed
   # class can be used as both an input and output argument.
   def setFullyExposed()
     @fullyExposed = true
+  end
+
+  # Set this class as deriable, ie can have child classes.
+  def setDerivable()
+    @isDerivable = true
   end
 
   # The parent class is supplied on construction, and worked out when creating all
@@ -45,19 +51,28 @@ class TypeData
     if(!@fullyExposed)
       data[:partial] = true
     end
+
+    if(@isDerivable)
+      data[:derivable] = true
+    end
     return JSON.pretty_generate(data, opt)
   end
 
   # Create a TypeData from json, with a nil [@parsed]
   def self.from_json(data)
     type = :class
-    if (data.has_key?(:type))
-      type = data[:type]
+    if (data.has_key?("type"))
+      type = data["type"]
     end
-    cls = TypeData.new(data[:name], data[:parent], type)
+    cls = TypeData.new(data["name"], data["parent"], type)
     if(!data.include?("partial"))
       cls.setFullyExposed()
     end
+
+    if(data.include?("derivable"))
+      cls.setDerivable()
+    end
+
     return cls
   end
 end
@@ -100,7 +115,7 @@ class TypeDataSet
       return false
     end
 
-    return true
+    return type.isDerivable
   end
 
   # Find the class count for all complete types in the set.

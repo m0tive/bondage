@@ -5,6 +5,7 @@
   },
   "::ParentB::Q": {
     "name": "Q",
-    "parent": null  
+    "parent": null,
+    "derivable": true
   }
 }

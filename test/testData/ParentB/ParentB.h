@@ -4,6 +4,7 @@ namespace ParentB
 {
 
 /// \expose
+/// \derivable
 class Q
 {
 

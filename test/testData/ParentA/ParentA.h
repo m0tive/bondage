@@ -5,7 +5,8 @@ class A
 {
 };
 
-/// \expose
+/// \expose 
+/// \derivable
 class B : public A
 {
 
@@ -26,7 +27,8 @@ class E : public B
 
 };
 
-/// \expose
+/// \expose 
+/// \derivable
 class F : public E
 {
 
