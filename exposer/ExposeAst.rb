@@ -213,9 +213,9 @@ class FunctionItem < HierarchyItem
   end
 
   def returnBrief
-    brief = comment.command("return")
+    brief = comment.commandText("return")
     if(!brief)
-      brief = comment.command("returns")
+      brief = comment.commandText("returns")
     end
     return brief ? brief : ""
   end

@@ -134,7 +134,13 @@ private
       return true
     end
 
-    hasFlag = cls.comment.hasCommand("derivable")
+    # with no parent and no expose, it cannot be derived from!
+    cmd = cls.comment.command("expose")
+    if (!cmd)
+      return false
+    end
+
+    hasFlag = cmd.hasArg("derivable")
     return hasFlag 
   end
 

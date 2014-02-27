@@ -5,8 +5,7 @@ class A
 {
 };
 
-/// \expose 
-/// \derivable
+/// \expose derivable
 class B : public A
 {
 };
@@ -23,8 +22,8 @@ class E : public B
 {
 };
 
-/// \expose 
-/// \derivable
+/// \expose derivable
+/// test pork
 class F : public E
 {
 };

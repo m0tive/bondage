@@ -3,8 +3,7 @@
 namespace ParentB
 {
 
-/// \expose
-/// \derivable
+/// \expose derivable
 class Q
 {
 };
