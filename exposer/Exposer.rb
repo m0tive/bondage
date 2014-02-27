@@ -155,17 +155,37 @@ private
 
   # find if a class can be partially exposed (ie, if one of its parent classes is exposed.)
   def canPartiallyExposeClass(cls)
+    hasNoExposeComment = cls.comment.hasCommand("noexpose")
+    if (hasNoExposeComment)
+      if(@debugOutput)
+        puts "N\t#{cls.name} (requested not to)"
+      end
+      
+      return false
+    end
+
     if(@allMetaData.partiallyExposed?(cls.fullyQualifiedName()))
+      if(@debugOutput)
+        puts "N\t#{cls.name} (already exposed)"
+      end
+
       return false
     end
     
     # classes without super classes cannot be pushed at all.
     if(cls.superClasses.empty? or
       (cls.accessSpecifier != :invalid && cls.accessSpecifier != :public))
+      if(@debugOutput)
+        puts "N\t#{cls.name} (not public)"
+      end
+
       return false
     end
 
     parent = findParentClass(cls)
+    if(@debugOutput)
+      puts "#{parent != nil ? "Y" : "N"}\t#{cls.name} (no parent)"
+    end
     return parent != nil, parent
   end
 
@@ -174,19 +194,35 @@ private
     if(cls.isExposed == nil)
       # exposed classes must opt in.
       hasExposeComment = cls.comment.hasCommand("expose")
-      if(@debugOutput)
-        puts "#{hasExposeComment ? "Y" : "N"}\t#{cls.name}"
+      hasNoExposeComment = cls.comment.hasCommand("noexpose")
+      if (hasNoExposeComment)
+        if(@debugOutput)
+          puts "N\t#{cls.name} (requested not to)"
+        end
+
+        raise "Exposed and not exposed class #{cls.fullyQualifiedName}" if hasExposeComment
+        return false
       end
 
-      if(!hasExposeComment)
+      if (!hasExposeComment)
         cls.setExposed(false)
+        if(@debugOutput)
+          puts "N\t#{cls.name} (not requested)"
+        end
+
         return false
       end
 
       if(@allMetaData.partiallyExposed?(cls.fullyQualifiedName()))
+        if(@debugOutput)
+          puts "N\t#{cls.name} (already exposed)"
+        end
         return false
       end
 
+      if(@debugOutput)
+        puts "#{hasExposeComment ? "Y" : "N"}\t#{cls.name}"
+      end
       verifyAbleToExposeClass(cls)
       cls.setExposed(true)
     end

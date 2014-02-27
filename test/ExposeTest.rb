@@ -114,7 +114,7 @@ class TestExpose < Test::Unit::TestCase
     exposer, visitor = exposeLibrary(@parentB)
 
     assert_equal 2, exposer.exposedMetaData.fullTypes.length
-    #assert_equal 6, exposer.exposedMetaData.types.length
+    assert_equal 6, exposer.exposedMetaData.types.length
 
     assert_equal "::ParentB::R", exposer.exposedMetaData.types.keys[0]
     assert_equal "::ParentB::S", exposer.exposedMetaData.fullTypes.keys[0]
@@ -151,8 +151,6 @@ class TestExpose < Test::Unit::TestCase
     assert_equal "::ParentB::X", exposer.allMetaData.types.keys[10]
     assert_equal "::ParentB::Y", exposer.allMetaData.fullTypes.keys[6]
     assert_equal "::ParentB::Y", exposer.allMetaData.types.keys[11]
-
-
   end
 
   def test_enum
