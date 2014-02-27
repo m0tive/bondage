@@ -34,4 +34,14 @@ class F : public E
 
 };
 
+/// \expose
+class G
+{
+
+};
+
+class H : public G
+{
+};
+
 }

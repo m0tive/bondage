@@ -80,16 +80,29 @@ class TestExpose < Test::Unit::TestCase
     # Generate parent A
     exposer, visitor = exposeLibrary(@parentA)
 
-    assert_equal 2, exposer.exposedMetaData.fullTypes.length
-    assert_equal 3, exposer.exposedMetaData.types.length
+    assert_equal 3, exposer.exposedMetaData.fullTypes.length
+    assert_equal 4, exposer.exposedMetaData.types.length
 
     assert_equal "::ParentA::B", exposer.exposedMetaData.fullTypes.keys[0]
     assert_equal "::ParentA::B", exposer.exposedMetaData.types.keys[0]
     assert_equal "::ParentA::E", exposer.exposedMetaData.types.keys[1]
     assert_equal "::ParentA::F", exposer.exposedMetaData.fullTypes.keys[1]
     assert_equal "::ParentA::F", exposer.exposedMetaData.types.keys[2]
+    assert_equal "::ParentA::G", exposer.exposedMetaData.fullTypes.keys[2]
+    assert_equal "::ParentA::G", exposer.exposedMetaData.types.keys[3]
+
+    assert_equal "B", exposer.exposedMetaData.findClass("::ParentA::B").name
+    assert_equal "E", exposer.exposedMetaData.findClass("::ParentA::E").name
+    assert_equal "F", exposer.exposedMetaData.findClass("::ParentA::F").name
+    assert_equal "G", exposer.exposedMetaData.findClass("::ParentA::G").name
+
+    assert_equal true, exposer.exposedMetaData.findClass("::ParentA::B").isDerivable
+    assert_equal true, exposer.exposedMetaData.findClass("::ParentA::E").isDerivable
+    assert_equal true, exposer.exposedMetaData.findClass("::ParentA::F").isDerivable
+    assert_equal false, exposer.exposedMetaData.findClass("::ParentA::G").isDerivable
 
     assert_equal nil, exposer.exposedMetaData.findClass("::ParentA::B").parentClass
+    assert_equal nil, exposer.exposedMetaData.findClass("::ParentA::G").parentClass
     assert_equal "::ParentA::B", exposer.exposedMetaData.findClass("::ParentA::E").parentClass
     assert_equal "::ParentA::E", exposer.exposedMetaData.findClass("::ParentA::F").parentClass
   end
@@ -124,18 +137,20 @@ class TestExpose < Test::Unit::TestCase
     assert_equal "::ParentA::E", exposer.allMetaData.types.keys[1]
     assert_equal "::ParentA::F", exposer.allMetaData.fullTypes.keys[1]
     assert_equal "::ParentA::F", exposer.allMetaData.types.keys[2]
-    assert_equal "::ParentB::Z", exposer.allMetaData.fullTypes.keys[2] # Manually exposed
-    assert_equal "::ParentB::Z", exposer.allMetaData.types.keys[3] # Manually exposed
-    assert_equal "::ParentB::Q", exposer.allMetaData.fullTypes.keys[3] # Manually exposed
-    assert_equal "::ParentB::Q", exposer.allMetaData.types.keys[4] # Manually exposed
-    assert_equal "::ParentB::R", exposer.allMetaData.types.keys[5]
-    assert_equal "::ParentB::S", exposer.allMetaData.fullTypes.keys[4]
-    assert_equal "::ParentB::S", exposer.allMetaData.types.keys[6]
-    assert_equal "::ParentB::U", exposer.allMetaData.types.keys[7]
-    assert_equal "::ParentB::V", exposer.allMetaData.types.keys[8]
-    assert_equal "::ParentB::X", exposer.allMetaData.types.keys[9]
-    assert_equal "::ParentB::Y", exposer.allMetaData.fullTypes.keys[5]
-    assert_equal "::ParentB::Y", exposer.allMetaData.types.keys[10]
+    assert_equal "::ParentA::G", exposer.allMetaData.fullTypes.keys[2]
+    assert_equal "::ParentA::G", exposer.allMetaData.types.keys[3]
+    assert_equal "::ParentB::Z", exposer.allMetaData.fullTypes.keys[3] # Manually exposed
+    assert_equal "::ParentB::Z", exposer.allMetaData.types.keys[4] # Manually exposed
+    assert_equal "::ParentB::Q", exposer.allMetaData.fullTypes.keys[4] # Manually exposed
+    assert_equal "::ParentB::Q", exposer.allMetaData.types.keys[5] # Manually exposed
+    assert_equal "::ParentB::R", exposer.allMetaData.types.keys[6]
+    assert_equal "::ParentB::S", exposer.allMetaData.fullTypes.keys[5]
+    assert_equal "::ParentB::S", exposer.allMetaData.types.keys[7]
+    assert_equal "::ParentB::U", exposer.allMetaData.types.keys[8]
+    assert_equal "::ParentB::V", exposer.allMetaData.types.keys[9]
+    assert_equal "::ParentB::X", exposer.allMetaData.types.keys[10]
+    assert_equal "::ParentB::Y", exposer.allMetaData.fullTypes.keys[6]
+    assert_equal "::ParentB::Y", exposer.allMetaData.types.keys[11]
 
 
   end
