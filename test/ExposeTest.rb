@@ -34,6 +34,11 @@ class TestExpose < Test::Unit::TestCase
     @functions.addIncludePath(".")
     @functions.addFile("Functions.h")
 
+    @ctors = Library.new("Constructors", "test/testData/Constructors")
+    @ctors.addIncludePath(".")
+    @ctors.addFile("Constructors.h")
+
+    setupLibrary(@ctors)
     setupLibrary(@functions)
     setupLibrary(@enum)
     setupLibrary(@astTest)
@@ -42,6 +47,7 @@ class TestExpose < Test::Unit::TestCase
   end
 
   def teardown
+    cleanLibrary(@ctors)
     cleanLibrary(@functions)
     cleanLibrary(@enum)
     cleanLibrary(@astTest)
@@ -286,6 +292,43 @@ class TestExpose < Test::Unit::TestCase
     assert_equal true, overloaded[2].static
     assert_equal true, overloaded[2].arguments[0].type.isPointer
     assert_equal "::Functions::TestA", overloaded[2].arguments[0].type.pointeeType.fullyQualifiedName
+  end
+
+  def test_constructors
+    # Generate Constuctors
+    exposer, visitor = exposeLibrary(@ctors)
+
+    assert_equal 1, exposer.exposedMetaData.fullTypes.length
+
+    ctor = exposer.exposedMetaData.findClass("::Constructors::Ctor").parsed
+    assert_not_nil ctor
+
+    fns = exposer.findExposedFunctions(ctor)
+    assert_equal 1, fns.length
+
+    ctor = fns["Ctor"]
+    assert_not_nil ctor
+
+    assert_equal 4, ctor.length
+
+    assert_equal true, ctor[0].isConstructor
+    assert_equal true, ctor[1].isConstructor
+    assert_equal true, ctor[2].isConstructor
+    assert_equal true, ctor[3].isConstructor
+
+    assert_equal nil, ctor[0].returnType
+    assert_equal nil, ctor[1].returnType
+    assert_equal nil, ctor[2].returnType
+    assert_equal nil, ctor[3].returnType
+
+    assert_equal 0, ctor[0].arguments.length
+    assert_equal 1, ctor[1].arguments.length
+    assert_equal "int", ctor[1].arguments[0].type.name
+    assert_equal 1, ctor[2].arguments.length
+    assert_equal "float", ctor[2].arguments[0].type.name
+    assert_equal 2, ctor[3].arguments.length
+    assert_equal "double", ctor[3].arguments[0].type.name
+    assert_equal "double", ctor[3].arguments[1].type.name
   end
 
   # exposed constructors

@@ -22,6 +22,8 @@ class FunctionExposer
 
       fn.setExposed(false)
       if (cantExpose)
+        puts "- #{owner.fullyQualifiedName}::#{fn.name}"
+        puts " - requested not to."
         return
       end
 
@@ -31,25 +33,25 @@ class FunctionExposer
 
       # methods must be public to expose
       access = fn.accessSpecifier == :public || fn.accessSpecifier == :invalid
-      if (!access && !mustExpose)
+      if (!@debug && (!access && !mustExpose))
         return false
       end
 
       # methods must have a partially exposed return type (it or a derived class)
       returnType = (fn.returnType == nil || @typeExposer.canExposeType(fn.returnType, true))
-      if (!returnType && !mustExpose)
+      if (!@debug && (!returnType && !mustExpose))
         return false
       end
       
       # methods arguments must all be exposed fully.
       arguments = fn.arguments.all?{ |param| canExposeArgument(param) }
-      if (!arguments && !mustExpose)
+      if (!@debug && (!arguments && !mustExpose))
         return false
       end
 
       canExpose = access && returnType && arguments
 
-      if(@debug or (!canExpose && mustExpose))
+      if(@debug || (!canExpose && mustExpose))
         puts "- #{owner.fullyQualifiedName}::#{fn.name}"
         puts " - accessible: #{canExpose}"
         puts " - return type: #{canExpose}"
