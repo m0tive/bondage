@@ -88,6 +88,9 @@ TRANSITIONS = {
     :cursor_type_ref => PARAM_TYPE_STATE,
     :cursor_unexposed_expr => PARAM_DEFAULT_EXPR_STATE,
     :cursor_call_expr => PARAM_DEFAULT_EXPR_CALL_STATE,
+    :cursor_floating_literal => PARAM_DEFAULT_VALUE_STATE,
+    :cursor_cxx_bool_literal_expr => PARAM_DEFAULT_VALUE_STATE,
+    :cursor_decl_ref_expr => PARAM_DEFAULT_VALUE_STATE,
   },
   :param_default_expr_call => {
     :cursor_unexposed_expr => PARAM_DEFAULT_EXPR_STATE,

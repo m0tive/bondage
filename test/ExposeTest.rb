@@ -228,6 +228,7 @@ class TestExpose < Test::Unit::TestCase
 
     expose1 = fns["testExpose1"]
     assert_equal 1, expose1.length
+    assert_equal true, expose1[0].static
     assert_equal true, expose1[0].returnType.isLValueReference
     assert_equal true, expose1[0].returnType.pointeeType.isConstQualified
     assert_equal "::Functions::TestA", expose1[0].returnType.pointeeType.fullyQualifiedName
@@ -246,6 +247,7 @@ class TestExpose < Test::Unit::TestCase
     assert_equal 1, expose2.length
 
     expose2_1 = expose2[0]
+    assert_equal true, expose2_1.static
     assert_equal true, expose2_1.returnType.isLValueReference
     assert_equal false, expose2_1.returnType.pointeeType.isConstQualified
     assert_equal "::Functions::TestA", expose1[0].returnType.pointeeType.fullyQualifiedName
@@ -348,6 +350,7 @@ class TestExpose < Test::Unit::TestCase
   end
 
   # exposed constructors
+  # clang_getOverriddenCursors - dont expose overridden methods (Cursor::overriddens).
   # class copyability
   # constructors...
   # pushing - push style?

@@ -1,6 +1,172 @@
 require_relative "../exposer/ExposeAst.rb"
 require_relative "GeneratorHelper.rb"
 
+class FunctionGenerator
+  def initialize(lineStart)
+    @lineStart = lineStart
+    reset()
+  end
+
+  attr_reader :bind, :extraFunctions
+
+  def reset()
+    @bind = ""
+    @extraFunctions = []
+    @extraFunctionDecls = nil
+  end
+
+  def needsSpecialBinding(function)
+    function.arguments.each do |arg|
+      if (arg.hasDefault())
+        return true
+      end
+    end
+    return false
+  end
+
+  def generate(owner, functions)
+    reset()
+
+    if (functions.length == 1)
+      function = functions[0]
+      needsSpecial = needsSpecialBinding(function)
+
+      if (!needsSpecial)
+        return generateSimple(owner, function)
+      else
+        return generateArgumentOverloads(owner, function)
+      end
+    else
+      return generateFunctionOverloads(owner, functions)
+    end
+  end
+
+private
+  def generateSimple(owner, fn)
+    sig = generateFunctionPointerSignature(owner, fn)
+    @bind = "cobra::function_builder::build<#{sig}, &#{fn.fullyQualifiedName()}>(\"#{fn.name}\")"
+  end
+
+  def generateBuildCall(name, sig)
+    return "cobra::function_builder::build_call<#{sig}, &#{name}>"
+  end
+
+  def generateFunctionOverloads(owner, fns)
+    functionDefs = []
+    name = nil
+    fns.each_index do |i|
+      fn = fns[i]
+      functionDefs = functionDefs + expandArgumentOverloads(owner, fn, i)
+      name = fn.name
+    end
+
+    return generateOverloads(owner, functionDefs, name)
+  end
+
+  def expandArgumentOverloads(owner, fn, fnId=nil)
+    fullyQualified = fn.fullyQualifiedName()
+    literalName = fullyQualified.sub("::", "").gsub("::", "_")
+    if (fnId)
+      literalName += "_#{fnId}"
+    end
+
+    functionDefs = []
+    fn.arguments.each_index do |i|
+      arg = fn.arguments[i]
+      if (arg.hasDefault)
+        name, sig = generateArgumentOverload(owner, fn, literalName, i)
+        functionDefs << generateBuildCall(name, sig)
+      end
+    end
+
+    functionDefs << generateBuildCall(fn.fullyQualifiedName, generateFunctionPointerSignature(owner, fn))
+  end
+
+  def generateArgumentOverloads(owner, fn)
+    return generateOverloads(owner, expandArgumentOverloads(owner, fn), fn.name)
+  end
+
+  def generateOverloads(owner, functionDefs, name)
+    olLs = @lineStart + "  "
+
+    functions = functionDefs.join(",\n#{olLs}")
+
+    @bind = 
+"cobra::function_builder::build_overloaded<
+#{olLs}#{functions}
+#{olLs}>(\"#{name}\")"
+  end
+
+  def generateFunctionPointerSignature(owner, fn, argCountMax=nil, forceStatic=false)
+    argTypes = ""
+
+    argCount = argCountMax ? argCountMax : fn.arguments.length
+    
+    argCount.times do |n|
+      arg = fn.arguments[n]
+      if (n != 0)
+        argTypes << ", "
+      end
+
+      argTypes << arg.type.name
+    end
+
+    returnType = "void"
+    if (fn.returnType)
+      returnType = fn.returnType.name
+    end
+
+    ptrType = "(*)"
+    if (!fn.static && !forceStatic)
+      ptrType = "(#{owner.fullyQualifiedName}::*)"
+    end
+
+    return "#{returnType}#{ptrType}(#{argTypes})"
+  end
+
+  def generateArgumentOverload(owner, fn, fnIdentifier, argCount)
+    args = ""
+    argPassThrough = ""
+    
+    argCount.times do |n|
+      arg = fn.arguments[n]
+      if (n != 0)
+        args << ", "
+        argPassThrough << ", "
+      end
+
+      argName = "arg#{n}"
+      argPassThrough << arg.type.name << " #{argName}"
+      args << "std::forward<#{arg.type.name}>(#{argName})"
+    end
+
+    ls = @lineStart
+    fnLs = @lineStart + "  "
+
+    returnType = "void"
+    name = "#{fnIdentifier}_overload#{argCount}"
+    call = "#{fn.fullyQualifiedName}(#{args})"
+    if (fn.returnType)
+      returnType = fn.returnType.name
+      body = 
+"auto &&result = #{call};
+#{fnLs}return result;"
+
+    else
+      body = "#{call};"
+    end
+
+    fnDef = 
+"#{ls}#{returnType} #{name}(#{argPassThrough})
+#{ls}{
+#{fnLs}#{body}
+}"
+
+    @extraFunctions << fnDef
+    return name, generateFunctionPointerSignature(owner, fn, argCount)
+  end
+end
+
 # Generate exposure output in c++ for classes.
 class Generator
   # Create a generator for a [library], with a given [exposer]

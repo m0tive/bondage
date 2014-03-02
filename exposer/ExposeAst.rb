@@ -136,11 +136,12 @@ class ArgumentItem
     @data = data
     @index = index
     @parent = parent
+    @hasDefault = false
 
     setComment(@parent.comment.paramforArgIndex(index))
   end
 
-  attr_reader :index, :brief
+  attr_reader :index, :brief, :hasDefault
 
   def name
     @data[:name]
@@ -160,6 +161,10 @@ class ArgumentItem
 
   def type
     @data[:type]
+  end
+
+  def addParamDefault(data)
+    @hasDefault = true
   end
 
 private
@@ -197,7 +202,7 @@ class FunctionItem < HierarchyItem
     @isConstructor = constructor
     @comment = data[:comment]
     @accessSpecifier = data[:cursor].access_specifier
-    @static = data[:cursor].static?
+    @static = parent.kind_of?(NamespaceItem) || data[:cursor].static?
     @arguments = []
     @returnType = data[:type].resultType
   end
@@ -222,7 +227,9 @@ class FunctionItem < HierarchyItem
 
   # Add a function parameter.
   def addParam(data)
-    @arguments << ArgumentItem.new(data, @arguments.length, self)
+    param = ArgumentItem.new(data, @arguments.length, self)
+    @arguments << param
+    return param
   end
 
   def isCopyConstructor
