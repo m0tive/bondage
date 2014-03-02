@@ -26,13 +26,16 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen = FunctionGenerator.new("")
 
-    assert_equal 1, exposer.exposedMetaData.fullTypes.length
+    assert_equal 2, exposer.exposedMetaData.fullTypes.length
 
     rootNs = lib.getExposedNamespace()
     assert_not_nil rootNs
 
     cls = exposer.exposedMetaData.findClass("::Gen::Gen").parsed
     assert_not_nil cls
+
+    multiReturnCls = exposer.exposedMetaData.findClass("::Gen::MultipleReturnGen").parsed
+    assert_not_nil multiReturnCls
 
     assert_equal 4, cls.functions.length
     assert_equal 2, rootNs.functions.length
@@ -118,6 +121,16 @@ class TestGenerator < Test::Unit::TestCase
   cobra::function_builder::build_call<int(*)(bool, bool, float), &::Gen::test5>
   >(\"test5\")", fnGen.bind
     assert_equal ["int Gen_test5_overload2(bool arg0, bool arg1)\n{\n  auto &&result = ::Gen::test5(std::forward<bool>(arg0), std::forward<bool>(arg1));\n  return result;\n}"], fnGen.extraFunctions
+  end
 
+  def test_functionGenerator
+    exposer, lib = exposeLibrary(@gen)
+
+    fnGen = FunctionGenerator.new("")
+
+    assert_equal 2, exposer.exposedMetaData.fullTypes.length
+
+    multiReturnCls = exposer.exposedMetaData.findClass("::Gen::MultipleReturnGen").parsed
+    assert_not_nil multiReturnCls
   end
 end
