@@ -43,8 +43,10 @@ class FunctionGenerator
 
 private
   def generateSimple(owner, fn)
+    name, sig = generateArgumentOverload(owner, fn, fn.name, fn.arguments.length)
+    
     sig = generateFunctionPointerSignature(owner, fn)
-    @bind = "cobra::function_builder::build<#{sig}, &#{fn.fullyQualifiedName()}>(\"#{fn.name}\")"
+    @bind = "cobra::function_builder::build<#{sig}, &#{name}>(\"#{fn.name}\")"
   end
 
   def generateBuildCall(name, sig)
@@ -60,7 +62,7 @@ private
       name = fn.name
     end
 
-    return generateOverloads(owner, functionDefs, name)
+    return generateOverloadCalls(owner, functionDefs, name)
   end
 
   def expandArgumentOverloads(owner, fn, fnId=nil)
@@ -79,14 +81,15 @@ private
       end
     end
 
-    functionDefs << generateBuildCall(fn.fullyQualifiedName, generateFunctionPointerSignature(owner, fn))
+    name, sig = generateArgumentOverload(owner, fn, literalName, fn.arguments.length)
+    functionDefs << generateBuildCall(name, sig)
   end
 
   def generateArgumentOverloads(owner, fn)
-    return generateOverloads(owner, expandArgumentOverloads(owner, fn), fn.name)
+    return generateOverloadCalls(owner, expandArgumentOverloads(owner, fn), fn.name)
   end
 
-  def generateOverloads(owner, functionDefs, name)
+  def generateOverloadCalls(owner, functionDefs, name)
     olLs = @lineStart + "  "
 
     functions = functionDefs.join(",\n#{olLs}")
@@ -125,44 +128,47 @@ private
   end
 
   def generateArgumentOverload(owner, fn, fnIdentifier, argCount)
-    args = ""
-    argPassThrough = ""
-    
-    argCount.times do |n|
-      arg = fn.arguments[n]
-      if (n != 0)
-        args << ", "
-        argPassThrough << ", "
+    name = fn.fullyQualifiedName
+    if (argCount != fn.arguments.length)
+      args = ""
+      argPassThrough = ""
+      
+      argCount.times do |n|
+        arg = fn.arguments[n]
+        if (n != 0)
+          args << ", "
+          argPassThrough << ", "
+        end
+
+        argName = "arg#{n}"
+        argPassThrough << arg.type.name << " #{argName}"
+        args << "std::forward<#{arg.type.name}>(#{argName})"
       end
 
-      argName = "arg#{n}"
-      argPassThrough << arg.type.name << " #{argName}"
-      args << "std::forward<#{arg.type.name}>(#{argName})"
-    end
+      ls = @lineStart
+      fnLs = @lineStart + "  "
 
-    ls = @lineStart
-    fnLs = @lineStart + "  "
-
-    returnType = "void"
-    name = "#{fnIdentifier}_overload#{argCount}"
-    call = "#{fn.fullyQualifiedName}(#{args})"
-    if (fn.returnType)
-      returnType = fn.returnType.name
-      body = 
+      returnType = "void"
+      name = "#{fnIdentifier}_overload#{argCount}"
+      call = "#{fn.fullyQualifiedName}(#{args})"
+      if (fn.returnType)
+        returnType = fn.returnType.name
+        body = 
 "auto &&result = #{call};
 #{fnLs}return result;"
 
-    else
-      body = "#{call};"
-    end
+      else
+        body = "#{call};"
+      end
 
-    fnDef = 
+      fnDef = 
 "#{ls}#{returnType} #{name}(#{argPassThrough})
 #{ls}{
 #{fnLs}#{body}
 }"
 
-    @extraFunctions << fnDef
+      @extraFunctions << fnDef
+    end
     return name, generateFunctionPointerSignature(owner, fn, argCount)
   end
 end

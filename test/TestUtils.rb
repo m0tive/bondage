@@ -20,8 +20,6 @@ def os
   )
 end
 
-PLATFORM_INCLUDES = []
-
 # preamble helps us set up libclang, and ffi-clang. 
 case os
   when :macosx
@@ -29,6 +27,7 @@ case os
     PLATFORM_INCLUDES = [ "/usr/include/c++/4.2.1/" ]
   when :windows
     ENV["PATH"] = ENV["PATH"] + ";" + "..\\llvm-build\\Release+Asserts\\bin"
+    PLATFORM_INCLUDES = []
     raise "what includes??"
   when :linux
     PLATFORM_INCLUDES = [ "/usr/include/c++/4.6/", "/usr/include/c++/4.6/x86_64-linux-gnu/32/" ]
