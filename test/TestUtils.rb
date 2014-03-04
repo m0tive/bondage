@@ -20,12 +20,18 @@ def os
   )
 end
 
+PLATFORM_INCLUDES = []
+
 # preamble helps us set up libclang, and ffi-clang. 
 case os
   when :macosx
     ENV['LLVM_CONFIG'] = "../llvm-build/Release+Asserts/bin/llvm-config"
+    PLATFORM_INCLUDES = [ "/usr/include/c++/4.2.1/" ]
   when :windows
     ENV["PATH"] = ENV["PATH"] + ";" + "..\\llvm-build\\Release+Asserts\\bin"
+    raise "what includes??"
+  when :linux
+    PLATFORM_INCLUDES = [ "/usr/include/c++/4.6/", "/usr/include/c++/4.6/x86_64-linux-gnu/32/" ]
 end
 
 $:.unshift File.dirname(__FILE__) + "/../parser/ffi-clang/lib"
