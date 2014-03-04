@@ -88,6 +88,10 @@ class ClassableItem < HierarchyItem
   def addUnion(data)
   end
 
+  # Add a typedef to the container, [data] is a hash of data from clang
+  def addTypedef(data)
+  end
+
   # add a function for this class
   def addFunction(data)
     fn = FunctionItem.build(self, data, false)

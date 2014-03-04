@@ -354,6 +354,7 @@ class TestExpose < Test::Unit::TestCase
   # class copyability
   # constructors...
   # pushing - push style?
+  
   # indexes in methods
   # default values in arguments (changing exposureness?)
   

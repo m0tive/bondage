@@ -1,3 +1,5 @@
+#include <cstddef>
+
 namespace Gen
 {
 
@@ -22,7 +24,7 @@ public:
   /// \brief test
   /// \param[out] a test param
   /// \param[inout] b test param
-  void test(int &a, float *b);
+  void test(int *a = nullptr, float *b = nullptr);
   /// \brief test again
   /// \param[in] a test
   /// \param[inout] b test2

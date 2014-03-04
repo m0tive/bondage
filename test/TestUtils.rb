@@ -38,7 +38,8 @@ def setupLibrary(library)
 end
 
 def exposeLibrary(lib)
-  parser = Parser.new(lib, DEBUGGING)
+  coreIncludes = [ "/usr/include/c++/4.2.1/" ]
+  parser = Parser.new(lib, coreIncludes, DEBUGGING)
   visitor = ExposeAstVisitor.new(lib)
   parser.parse(visitor)
   return Exposer.new(visitor, DEBUGGING), visitor

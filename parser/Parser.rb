@@ -7,14 +7,14 @@ require_relative "Type.rb"
 require_relative "ParserData.rb"
 
 class Parser
-  def initialize(library, dbg=false)
-    @debug = dbg
+  def initialize(library, coreIncludes=[], dbg=false)
+    @debug = false
     @index = FFI::Clang::Index.new
     @library = library
 
     sourceName = "DATA.cpp"
 
-    args = [ "-fparse-all-comments", "/TC", sourceName ]
+    args = [ "-fparse-all-comments", "-std=c++11", "/TC", sourceName ].concat(coreIncludes.map { |i| "-I#{i}" })
 
     library.includePaths.each do |path|
       args << "-I#{path}"

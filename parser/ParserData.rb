@@ -21,10 +21,12 @@ RETURN_TYPE_NAMESPACE_STATE =   ParserStateItem.new(:return_type)
 RETURN_TYPE_STATE =             ParserStateItem.new(:return_type)
 PARAM_STATE =                   ParserStateItem.new(:param,                   ->(parent, data){ parent.addParam(data) })
 PARAM_TYPE_STATE =              ParserStateItem.new(:param_type)
-PARAM_DEFAULT_EXPR_STATE =      ParserStateItem.new(:param_default_expr)
+PARAM_DEFAULT_EXPR_STATE =      ParserStateItem.new(:param_default_expr,      ->(parent, data){ parent.addParamDefault(data) })
 PARAM_DEFAULT_EXPR_CALL_STATE = ParserStateItem.new(:param_default_expr_call)
 PARAM_DEFAULT_VALUE_STATE =     ParserStateItem.new(:param_default_value,     ->(parent, data){ parent.addParamDefault(data) })
 FUNCTION_BODY_STATE =           ParserStateItem.new(:function_body)
+TYPEDEF_STATE =                 ParserStateItem.new(:typedef,                 ->(parent, data){ parent.addTypedef(data) })
+UNEXPOSED_STATE =               ParserStateItem.new(:unexposed)
 
 TRANSITIONS = {
   # inside a namespace
@@ -33,9 +35,16 @@ TRANSITIONS = {
     :cursor_struct => STRUCT_STATE,
     :cursor_class_decl => CLASS_STATE,
     :cursor_function => FUNCTION_STATE,
+    :cursor_union => UNION_STATE,
+    :cursor_typedef_decl => TYPEDEF_STATE,
     :cursor_class_template => CLASS_TEMPLATE_STATE,
     :cursor_enum_decl => ENUM_STATE,
+    :cursor_unexposed_decl => UNEXPOSED_STATE,
     :cursor_function_template => FUNCTION_TEMPLATE_STATE,
+  },
+  # a typedef
+  :typedef => {
+
   },
   # inside a class def
   :class => {
@@ -47,6 +56,7 @@ TRANSITIONS = {
     :cursor_struct => STRUCT_STATE,
     :cursor_class_decl => CLASS_STATE,
     :cursor_union => UNION_STATE,
+    :cursor_typedef_decl => TYPEDEF_STATE,
     :cursor_class_template => CLASS_TEMPLATE_STATE,
     :cursor_cxx_method => FUNCTION_STATE,
     :cursor_function_template => FUNCTION_TEMPLATE_STATE,
@@ -99,8 +109,9 @@ TRANSITIONS = {
     :cursor_type_ref => PARAM_DEFAULT_EXPR_CALL_STATE,
   },
   :param_default_expr => {
-    :cursor_floating_literal => PARAM_DEFAULT_VALUE_STATE,
+    :cursor_floating_literal => PARAM_DEFAULT_EXPR_CALL_STATE,
     :cursor_decl_ref_expr => PARAM_DEFAULT_VALUE_STATE,
     :cursor_unexposed_expr => PARAM_DEFAULT_EXPR_CALL_STATE,
+    :cursor_cxx_null_ptr_literal_expr => PARAM_DEFAULT_EXPR_CALL_STATE,
   }
 }

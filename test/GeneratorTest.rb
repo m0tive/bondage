@@ -123,7 +123,7 @@ class TestGenerator < Test::Unit::TestCase
     assert_equal ["int Gen_test5_overload2(bool arg0, bool arg1)\n{\n  auto &&result = ::Gen::test5(std::forward<bool>(arg0), std::forward<bool>(arg1));\n  return result;\n}"], fnGen.extraFunctions
   end
 
-  def test_functionGenerator
+  def test_functionGeneratorParamDirection
     exposer, lib = exposeLibrary(@gen)
 
     fnGen = FunctionGenerator.new("")
@@ -132,5 +132,26 @@ class TestGenerator < Test::Unit::TestCase
 
     multiReturnCls = exposer.exposedMetaData.findClass("::Gen::MultipleReturnGen").parsed
     assert_not_nil multiReturnCls
+
+    fn1 = multiReturnCls.functions[0]
+    assert_not_nil(fn1)
+    assert_equal "test", fn1.name
+
+    fn2 = multiReturnCls.functions[1]
+    assert_not_nil(fn2)
+    assert_equal "test", fn2.name
+
+    fnGen.generate(multiReturnCls, [ fn1, fn2 ])
+    assert_equal "cobra::function_builder::build_overloaded<
+  cobra::function_builder::build_call<void(::Gen::MultipleReturnGen::*)(), &Gen_MultipleReturnGen_test_0_overload0>,
+  cobra::function_builder::build_call<void(::Gen::MultipleReturnGen::*)(int *), &Gen_MultipleReturnGen_test_0_overload1>,
+  cobra::function_builder::build_call<void(::Gen::MultipleReturnGen::*)(int *, float *), &::Gen::MultipleReturnGen::test>,
+  cobra::function_builder::build_call<double(::Gen::MultipleReturnGen::*)(int &, int *, int &), &::Gen::MultipleReturnGen::test>
+  >(\"test\")", fnGen.bind
+    assert_equal [
+      "void Gen_MultipleReturnGen_test_0_overload0()\n{\n  ::Gen::MultipleReturnGen::test();\n}",
+      "void Gen_MultipleReturnGen_test_0_overload1(int * arg0)\n{\n  ::Gen::MultipleReturnGen::test(std::forward<int *>(arg0));\n}"], 
+      fnGen.extraFunctions
+
   end
 end
