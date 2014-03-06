@@ -64,17 +64,10 @@ class TestGenerator < Test::Unit::TestCase
     assert_not_nil(fn6)
     assert_equal "test5", fn6.name
 
-    assert_equal false, fnGen.needsSpecialBinding(fn1)
-    assert_equal true, fnGen.needsSpecialBinding(fn2)
-
-    assert_equal false, fnGen.needsSpecialBinding(fn3)
-    assert_equal true, fnGen.needsSpecialBinding(fn4)
-
-    assert_equal false, fnGen.needsSpecialBinding(fn5)
-    assert_equal true, fnGen.needsSpecialBinding(fn6)
-
     fnGen.generate(cls, [ fn1 ])
-    assert_equal "cobra::function_builder::build<void(::Gen::Gen::*)(int, float, double), &::Gen::Gen::test1>(\"test1\")", fnGen.bind
+    assert_equal "cobra::function_builder::build<
+  cobra::function_builder::build_call<void(::Gen::Gen::*)(int, float, double), &::Gen::Gen::test1>
+  >(\"test1\")", fnGen.bind
     assert_equal [], fnGen.extraFunctions
 
 
@@ -89,7 +82,9 @@ class TestGenerator < Test::Unit::TestCase
 
 
     fnGen.generate(cls, [ fn3 ])
-    assert_equal "cobra::function_builder::build<void(*)(bool), &::Gen::Gen::test3>(\"test3\")", fnGen.bind
+    assert_equal "cobra::function_builder::build<
+  cobra::function_builder::build_call<void(*)(bool), &::Gen::Gen::test3>
+  >(\"test3\")", fnGen.bind
     assert_equal [], fnGen.extraFunctions
 
 
@@ -111,7 +106,9 @@ class TestGenerator < Test::Unit::TestCase
 
 
     fnGen.generate(cls, [ fn5 ])
-    assert_equal "cobra::function_builder::build<int(*)(bool, bool), &::Gen::test4>(\"test4\")", fnGen.bind
+    assert_equal "cobra::function_builder::build<
+  cobra::function_builder::build_call<int(*)(bool, bool), &::Gen::test4>
+  >(\"test4\")", fnGen.bind
     assert_equal [], fnGen.extraFunctions
 
 

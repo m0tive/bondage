@@ -15,40 +15,18 @@ class FunctionGenerator
     @extraFunctionDecls = nil
   end
 
-  def needsSpecialBinding(function)
-    function.arguments.each do |arg|
-      if (arg.hasDefault())
-        return true
-      end
-    end
-    return false
-  end
-
   def generate(owner, functions)
     reset()
 
     if (functions.length == 1)
       function = functions[0]
-      needsSpecial = needsSpecialBinding(function)
-
-      if (!needsSpecial)
-        return generateSimple(owner, function)
-      else
-        return generateArgumentOverloads(owner, function)
-      end
+      return generateArgumentOverloads(owner, function)
     else
       return generateFunctionOverloads(owner, functions)
     end
   end
 
 private
-  def generateSimple(owner, fn)
-    name, sig = generateArgumentOverload(owner, fn, fn.name, fn.arguments.length)
-    
-    sig = generateFunctionPointerSignature(owner, fn)
-    @bind = "cobra::function_builder::build<#{sig}, &#{name}>(\"#{fn.name}\")"
-  end
-
   def generateBuildCall(name, sig)
     return "cobra::function_builder::build_call<#{sig}, &#{name}>"
   end
@@ -89,7 +67,18 @@ private
     return generateOverloadCalls(owner, expandArgumentOverloads(owner, fn), fn.name)
   end
 
+  def generateSimpleCall(owner, fnDef, name)
+    olLs = @lineStart + "  "
+    @bind = "cobra::function_builder::build<
+#{olLs}#{fnDef}
+#{olLs}>(\"#{name}\")"
+  end
+
   def generateOverloadCalls(owner, functionDefs, name)
+    if (functionDefs.length == 1)
+      return generateSimpleCall(owner, functionDefs[0], name)
+    end
+
     olLs = @lineStart + "  "
 
     functions = functionDefs.join(",\n#{olLs}")
