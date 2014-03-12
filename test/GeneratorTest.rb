@@ -73,12 +73,12 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen.generate(cls, [ fn2 ])
     assert_equal "cobra::function_builder::build_overloaded<
-  cobra::function_builder::build_call<void(::Gen::Gen::*)(int), &Gen_Gen_test2_overload1>,
-  cobra::function_builder::build_call<void(::Gen::Gen::*)(int, float), &Gen_Gen_test2_overload2>,
+  cobra::function_builder::build_member_standin_call<void(*)(::Gen::Gen &, int), &Gen_Gen_test2_overload0>,
+  cobra::function_builder::build_member_standin_call<void(*)(::Gen::Gen &, int, float), &Gen_Gen_test2_overload1>,
   cobra::function_builder::build_call<void(::Gen::Gen::*)(int, float, double), &::Gen::Gen::test2>
   >(\"test2\")", fnGen.bind
-    assert_equal ["void Gen_Gen_test2_overload1(int arg0)\n{\n  ::Gen::Gen::test2(std::forward<int>(arg0));\n}",
-                  "void Gen_Gen_test2_overload2(int arg0, float arg1)\n{\n  ::Gen::Gen::test2(std::forward<int>(arg0), std::forward<float>(arg1));\n}"], fnGen.extraFunctions
+    assert_equal ["void Gen_Gen_test2_overload0(::Gen::Gen & inputArg0, int inputArg1)\n{\n  inputArg0.test2(std::forward<int>(inputArg1));\n}",
+ "void Gen_Gen_test2_overload1(::Gen::Gen & inputArg0, int inputArg1, float inputArg2)\n{\n  inputArg0.test2(std::forward<int>(inputArg1), std::forward<float>(inputArg2));\n}"], fnGen.extraFunctions
 
 
     fnGen.generate(cls, [ fn3 ])
@@ -90,19 +90,19 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen.generate(cls, [ fn4 ])
     assert_equal "cobra::function_builder::build_overloaded<
-  cobra::function_builder::build_call<int(*)(bool, int), &Gen_Gen_test3_overload2>,
+  cobra::function_builder::build_call<int(*)(bool, int), &Gen_Gen_test3_overload0>,
   cobra::function_builder::build_call<int(*)(bool, int, bool), &::Gen::Gen::test3>
   >(\"test3\")", fnGen.bind
-    assert_equal ["int Gen_Gen_test3_overload2(bool arg0, int arg1)\n{\n  auto &&result = ::Gen::Gen::test3(std::forward<bool>(arg0), std::forward<int>(arg1));\n  return result;\n}"], fnGen.extraFunctions
+    assert_equal ["int Gen_Gen_test3_overload0(bool inputArg0, int inputArg1)\n{\n  auto &&result = ::Gen::Gen::test3(std::forward<bool>(inputArg0), std::forward<int>(inputArg1));\n  return result;\n}"], fnGen.extraFunctions
 
 
     fnGen.generate(cls, [ fn3, fn4 ])
     assert_equal "cobra::function_builder::build_overloaded<
   cobra::function_builder::build_call<void(*)(bool), &::Gen::Gen::test3>,
-  cobra::function_builder::build_call<int(*)(bool, int), &Gen_Gen_test3_1_overload2>,
+  cobra::function_builder::build_call<int(*)(bool, int), &Gen_Gen_test3_overload1>,
   cobra::function_builder::build_call<int(*)(bool, int, bool), &::Gen::Gen::test3>
   >(\"test3\")", fnGen.bind
-    assert_equal ["int Gen_Gen_test3_1_overload2(bool arg0, int arg1)\n{\n  auto &&result = ::Gen::Gen::test3(std::forward<bool>(arg0), std::forward<int>(arg1));\n  return result;\n}"], fnGen.extraFunctions
+    assert_equal ["int Gen_Gen_test3_overload1(bool inputArg0, int inputArg1)\n{\n  auto &&result = ::Gen::Gen::test3(std::forward<bool>(inputArg0), std::forward<int>(inputArg1));\n  return result;\n}"], fnGen.extraFunctions
 
 
     fnGen.generate(cls, [ fn5 ])
@@ -114,10 +114,10 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen.generate(cls, [ fn6 ])
     assert_equal "cobra::function_builder::build_overloaded<
-  cobra::function_builder::build_call<int(*)(bool, bool), &Gen_test5_overload2>,
+  cobra::function_builder::build_call<int(*)(bool, bool), &Gen_test5_overload0>,
   cobra::function_builder::build_call<int(*)(bool, bool, float), &::Gen::test5>
   >(\"test5\")", fnGen.bind
-    assert_equal ["int Gen_test5_overload2(bool arg0, bool arg1)\n{\n  auto &&result = ::Gen::test5(std::forward<bool>(arg0), std::forward<bool>(arg1));\n  return result;\n}"], fnGen.extraFunctions
+    assert_equal ["int Gen_test5_overload0(bool inputArg0, bool inputArg1)\n{\n  auto &&result = ::Gen::test5(std::forward<bool>(inputArg0), std::forward<bool>(inputArg1));\n  return result;\n}"], fnGen.extraFunctions
   end
 
   def test_functionGeneratorParamDirection
@@ -140,14 +140,14 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen.generate(multiReturnCls, [ fn1, fn2 ])
     assert_equal "cobra::function_builder::build_overloaded<
-  cobra::function_builder::build_call<void(::Gen::MultipleReturnGen::*)(), &Gen_MultipleReturnGen_test_0_overload0>,
-  cobra::function_builder::build_call<void(::Gen::MultipleReturnGen::*)(int *), &Gen_MultipleReturnGen_test_0_overload1>,
-  cobra::function_builder::build_call<void(::Gen::MultipleReturnGen::*)(int *, float *), &::Gen::MultipleReturnGen::test>,
-  cobra::function_builder::build_call<double(::Gen::MultipleReturnGen::*)(int &, int *, int &), &::Gen::MultipleReturnGen::test>
+  cobra::function_builder::build_member_standin_call<int(*)(::Gen::MultipleReturnGen &), &Gen_MultipleReturnGen_test_overload0>,
+  cobra::function_builder::build_member_standin_call<std::tuple<int, float>(*)(::Gen::MultipleReturnGen &, float *), &Gen_MultipleReturnGen_test_overload1>,
+  cobra::function_builder::build_member_standin_call<std::tuple<double, int, int>(*)(::Gen::MultipleReturnGen &, int &, int *), &Gen_MultipleReturnGen_test_overload2>
   >(\"test\")", fnGen.bind
     assert_equal [
-      "void Gen_MultipleReturnGen_test_0_overload0()\n{\n  ::Gen::MultipleReturnGen::test();\n}",
-      "void Gen_MultipleReturnGen_test_0_overload1(int * arg0)\n{\n  ::Gen::MultipleReturnGen::test(std::forward<int *>(arg0));\n}"], 
+      "int Gen_MultipleReturnGen_test_overload0(::Gen::MultipleReturnGen & inputArg0)\n{\n  int result;\n\ninputArg0.test(&result);\n  return result;\n}",
+      "std::tuple<int, float> Gen_MultipleReturnGen_test_overload1(::Gen::MultipleReturnGen & inputArg0, float * inputArg1)\n{\n  std::tuple<int, float> result;\nstd::tuple::get<1>(result) = * std::forward<float *>(inputArg1);\n\ninputArg0.test(&std::tuple::get<0>(result), &std::tuple::get<1>(result));\n  return result;\n}",
+      "std::tuple<double, int, int> Gen_MultipleReturnGen_test_overload2(::Gen::MultipleReturnGen & inputArg0, int & inputArg1, int * inputArg2)\n{\n  std::tuple<double, int, int> result;\nstd::tuple::get<1>(result) = * std::forward<int *>(inputArg2);\n\nstd::tuple::get<0>(result) = inputArg0.test(std::forward<int &>(inputArg1), &std::tuple::get<1>(result), std::tuple::get<2>(result));\n  return result;\n}"], 
       fnGen.extraFunctions
 
   end

@@ -59,7 +59,7 @@ class Exposer
     @functionExposer = FunctionExposer.new(@typeExposer)
   end
 
-  attr_reader :exposedMetaData, :allMetaData
+  attr_reader :exposedMetaData, :allMetaData, :functionExposer
 
   def findExposedFunctions(cls)
     functions = {}

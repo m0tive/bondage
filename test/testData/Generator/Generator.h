@@ -23,11 +23,11 @@ class MultipleReturnGen
 public:
   /// \brief test
   /// \param[out] a test param
-  /// \param[inout] b test param
+  /// \param[in,out] b test param
   void test(int *a = nullptr, float *b = nullptr);
   /// \brief test again
   /// \param[in] a test
-  /// \param[inout] b test2
+  /// \param[in,out] b test2
   /// \param[out] c test3
   double test(int &a, int *b, int &c);
 };

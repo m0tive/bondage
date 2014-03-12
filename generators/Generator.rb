@@ -1,34 +1,15 @@
 require_relative "../exposer/ExposeAst.rb"
 require_relative "GeneratorHelper.rb"
+require_relative "../exposer/FunctionVisitor.rb"
 
-class FunctionGenerator
-  def initialize(lineStart)
-    @lineStart = lineStart
-    reset()
-  end
+=begin
 
-  attr_reader :bind, :extraFunctions
-
-  def reset()
-    @bind = ""
-    @extraFunctions = []
-    @extraFunctionDecls = nil
-  end
-
-  def generate(owner, functions)
-    reset()
-
-    if (functions.length == 1)
-      function = functions[0]
-      return generateArgumentOverloads(owner, function)
+  def generateBuildCall(name, sig, memberStandin)
+    if (memberStandin)
+      return "cobra::function_builder::build_member_standin_call<#{sig}, &#{name}>"
     else
-      return generateFunctionOverloads(owner, functions)
+      return "cobra::function_builder::build_call<#{sig}, &#{name}>"
     end
-  end
-
-private
-  def generateBuildCall(name, sig)
-    return "cobra::function_builder::build_call<#{sig}, &#{name}>"
   end
 
   def generateFunctionOverloads(owner, fns)
@@ -53,25 +34,19 @@ private
     functionDefs = []
     fn.arguments.each_index do |i|
       arg = fn.arguments[i]
-      if (arg.hasDefault)
+      if (arg.hasDefault && arg.input?)
+        # generate an overload that takes [i] arguments (one less than this argument.)
         name, sig = generateArgumentOverload(owner, fn, literalName, i)
-        functionDefs << generateBuildCall(name, sig)
+        functionDefs << generateBuildCall(name, sig, true)
       end
     end
 
     name, sig = generateArgumentOverload(owner, fn, literalName, fn.arguments.length)
-    functionDefs << generateBuildCall(name, sig)
+    functionDefs << generateBuildCall(name, sig, false)
   end
 
   def generateArgumentOverloads(owner, fn)
     return generateOverloadCalls(owner, expandArgumentOverloads(owner, fn), fn.name)
-  end
-
-  def generateSimpleCall(owner, fnDef, name)
-    olLs = @lineStart + "  "
-    @bind = "cobra::function_builder::build<
-#{olLs}#{fnDef}
-#{olLs}>(\"#{name}\")"
   end
 
   def generateOverloadCalls(owner, functionDefs, name)
@@ -89,76 +64,412 @@ private
 #{olLs}>(\"#{name}\")"
   end
 
-  def generateFunctionPointerSignature(owner, fn, argCountMax=nil, forceStatic=false)
-    argTypes = ""
-
-    argCount = argCountMax ? argCountMax : fn.arguments.length
-    
-    argCount.times do |n|
-      arg = fn.arguments[n]
-      if (n != 0)
-        argTypes << ", "
-      end
-
-      argTypes << arg.type.name
-    end
-
-    returnType = "void"
-    if (fn.returnType)
-      returnType = fn.returnType.name
-    end
-
-    ptrType = "(*)"
-    if (!fn.static && !forceStatic)
-      ptrType = "(#{owner.fullyQualifiedName}::*)"
-    end
-
-    return "#{returnType}#{ptrType}(#{argTypes})"
-  end
-
   def generateArgumentOverload(owner, fn, fnIdentifier, argCount)
     name = fn.fullyQualifiedName
-    if (argCount != fn.arguments.length)
+
+    forceSpecialBinding = false
+    argCount.times do |n|
+      arg = fn.arguments[n]
+
+      forceSpecialBinding = arg.output? || !arg.input?
+
+      if (forceSpecialBinding)
+        break
+      end
+    end
+
+    if (forceSpecialBinding || argCount != fn.arguments.length)
       args = ""
       argPassThrough = ""
+      callSig = fn.fullyQualifiedName
+      if (!fn.static)
+        args = "ths"
+        argPassThrough = "#{owner.fullyQualifiedName} *ths"
+        callSig = "ths->#{fn.name}"
+      end
+
+      tupleName = "returnArgs"
+      initReturnArgs = ""
+      extraReturnArgs = []
       
       argCount.times do |n|
         arg = fn.arguments[n]
-        if (n != 0)
-          args << ", "
-          argPassThrough << ", "
+
+        argName = ""
+        passArg = ""
+        if (arg.input?)
+          if (!args.empty?)
+            argPassThrough << ", "
+          end
+          argName = "arg#{n}"
+          argPassThrough << arg.type.name << " #{argName}"
+          passArg = "std::forward<#{arg.type.name}>(#{argName})"
         end
 
-        argName = "arg#{n}"
-        argPassThrough << arg.type.name << " #{argName}"
-        args << "std::forward<#{arg.type.name}>(#{argName})"
+        if (arg.output?)
+          if (!extraReturnArgs.empty?)
+            extraReturnArgs << ", "
+          end
+          returnIndex = extraReturnArgs.length
+          extraReturnArgs << arg.type.name
+
+          if (arg.input?)
+            initReturnArgs << "std::get<returnIndex>(#{tupleName}) = #{passArg};\n"
+          end
+          passArg = "std::get<returnIndex>(#{tupleName})"
+        end
+
+        if (!args.empty?)
+          args << ", "
+        end
+        args << passArg
       end
 
       ls = @lineStart
       fnLs = @lineStart + "  "
 
+
+      resultContainer = "auto &&result"
+      resultName = "result"
+      if (extraReturnArgs.length)
+        resultContainer = "std::get<0>(#{tupleName})"
+        resultName = tupleName
+      end
+
       returnType = "void"
       name = "#{fnIdentifier}_overload#{argCount}"
-      call = "#{fn.fullyQualifiedName}(#{args})"
+      call = "#{callSig}(#{args})"
       if (fn.returnType)
+        extraReturnArgs.insert(0, fn.returnType.name)
         returnType = fn.returnType.name
         body = 
-"auto &&result = #{call};
-#{fnLs}return result;"
+"#{resultContainer} = #{call};"
 
       else
         body = "#{call};"
       end
 
+      if (extraReturnArgs.length)
+        body << "#{fnLs}return #{resultName};"
+      end
+
+      if (extraReturnArgs.length >= 2)
+        returnType = "std::tuple<#{extraReturnArgs.join(', ')}>"
+      end
+
+      if (initReturnArgs.length)
+        initReturnArgs = fnLs + initReturnArgs + '\n\n'
+      end
+
       fnDef = 
 "#{ls}#{returnType} #{name}(#{argPassThrough})
 #{ls}{
+#{initReturnArgs}
 #{fnLs}#{body}
 }"
 
       @extraFunctions << fnDef
     end
+
     return name, generateFunctionPointerSignature(owner, fn, argCount)
+  end
+=end
+
+class FunctionWrapperGenerator
+  class WrapperArg
+    def initialize(type, source, inoutExtra=nil, accessor="")
+      @source = source
+      @type = type
+      @inoutSource = inoutExtra
+      @inputType = accessor
+    end
+
+    attr_reader :type, :source, :inoutSource
+
+    def callAccessor
+      if (@inputType == :pointer)
+        return "&"
+      end
+      return ""
+    end
+
+    def dataAccessor
+      if (@inputType == :pointer)
+        return "*"
+      end
+      return ""
+    end
+  end
+
+  def reset(ls, owner, function, functionIndex, argCount)
+    @lineStart = ls
+    @needsWrapper = argCount != function.arguments.length
+    @functionWrapper = nil
+    @callArgs = []
+    @owner = owner
+    @function = function
+    @functionIndex = functionIndex
+    @name = function.name
+    @inputArguments = []
+    @outputArguments = []
+    @returnType = nil
+
+    if (!function.static)
+      @inputArguments << "#{owner.fullyQualifiedName} &"
+    end
+
+    if (function.returnType)
+      @outputArguments << function.returnType.name
+    end
+  end
+
+  def generateCall(calls, extraFunctions)
+    if (@needsWrapper)
+      accessor = functionAccessor()
+      ret = returnType()
+      extraFnName = literalName()
+      resVar = resultName()
+
+      inArgs = @inputArguments.each_with_index.map{ |arg, i| "#{arg} #{inputArgName(i)}" }.join(', ')
+
+      initArgs = []
+      if (@outputArguments.length > 1 || (@outputArguments.length > 0 && !@function.returnType))
+        initArgs << "#{ret} #{resVar};"
+      end
+
+      ls = @lineStart
+      olLs = @lineStart + "  "
+
+      call = @callArgs.map do |arg|
+        if (arg.type == :input)
+          next arg.callAccessor + inputArgPassThrough(arg.source)
+        elsif (arg.type == :output)
+          next arg.callAccessor + outputArgReference(arg.source)
+        elsif (arg.type == :inout)
+          input = inputArgPassThrough(arg.inoutSource)
+          output = outputArgReference(arg.source)
+          initArgs << "#{output} = #{arg.dataAccessor} #{input};"
+          next arg.callAccessor + output
+        else
+          raise "invalid arg type #{arg.type}"
+        end
+      end
+
+      call = "#{accessor}(#{call.join(', ')});"
+      returnExtra = ""
+      if (@function.returnType)
+        if (@outputArguments.length > 1)
+          call = "#{outputArgReference(0)} = #{call}"
+        else
+          call = "auto &&#{resVar} = #{call}"
+        end
+      end
+
+      if (@outputArguments.length > 0)
+        returnExtra = "\n#{olLs}return #{resVar};"
+      end
+
+      sig = signature()
+      callType = @function.static ? "build_call" : "build_member_standin_call"
+      calls << "cobra::function_builder::#{callType}<#{sig}, &#{extraFnName}>"
+
+      extra = ""
+      if (initArgs.length != 0)
+        extra = initArgs.join("\n") + "\n\n"
+      end
+
+      extraFunctions << 
+"#{ls}#{ret} #{extraFnName}(#{inArgs})
+#{ls}{
+#{olLs}#{extra}#{call}#{returnExtra}
+#{ls}}"
+
+    else
+      sig = signature()
+      calls << "cobra::function_builder::build_call<#{sig}, &#{@function.fullyQualifiedName}>"
+
+    end
+  end
+
+  def visitFunctionComplete(function, argCount)
+  end
+
+  def addInputOutputArgument(arg)
+    outIdx, access = addOutputArgumentHelper(arg)
+
+    inIdx = @inputArguments.length
+    @inputArguments << arg.type.name
+    @callArgs << WrapperArg.new(:inout, outIdx, inIdx, access)
+    @needsWrapper = true
+  end
+  
+  def addInputArgument(arg)
+    inIdx = @inputArguments.length
+    @inputArguments << arg.type.name
+    @callArgs << WrapperArg.new(:input, inIdx)
+  end
+
+  def addOutputArgument(arg)
+    outIdx, access = addOutputArgumentHelper(arg)
+
+    @callArgs << WrapperArg.new(:output, outIdx, nil, access)
+    @needsWrapper = true
+  end
+
+private
+  def addOutputArgumentHelper(arg)
+    outIdx = @outputArguments.length
+    name = arg.type.name
+    accessor = ""
+
+    if (arg.type.isPointer)
+      accessor = :pointer
+      name = arg.type.pointeeType().name
+    elsif (arg.type.isLValueReference)
+      name = arg.type.pointeeType().name
+    elsif (arg.type.isRValueReference)
+      raise "R value reference as an output? this needs some thought."
+    end
+    @outputArguments << name
+
+    return outIdx, accessor
+  end
+
+  def signature()
+
+    result = returnType()
+
+    ptrType = "(*)"
+    types = nil
+    if (@needsWrapper)
+      types = @inputArguments.join(", ")
+    else
+      types = @function.arguments.map{ |arg| arg.type.name }.join(", ")
+      if (!@function.static)
+        ptrType = "(#{@owner.fullyQualifiedName}::*)"
+      end
+    end
+
+    return "#{result}#{ptrType}(#{types})"
+  end
+
+  def inputArgName(i)
+    return "inputArg#{i}"
+  end
+
+  def inputArgPassThrough(i)
+    type = @inputArguments[i]
+    return "std::forward<#{type}>(#{inputArgName(i)})"
+  end
+
+  def outputArgReference(i)
+    if (@outputArguments.length > 1)
+      return "std::tuple::get<#{i}>(#{resultName()})"
+    end
+
+    return resultName()
+  end
+
+  def resultName
+    return "result"
+  end
+
+  def functionAccessor
+    if (!@function.static)
+      return "#{inputArgName(0)}.#{@function.name}"
+    end
+
+    return @function.fullyQualifiedName
+  end
+  def returnType
+    if (@outputArguments.length == 0)
+      return "void"
+    elsif (@outputArguments.length == 1)
+      return @outputArguments[0]
+    end
+
+    return "std::tuple<#{@outputArguments.join(', ')}>"
+  end
+
+  def literalName
+    fullyQualified = @function.fullyQualifiedName()
+    literalName = fullyQualified.sub("::", "").gsub("::", "_")
+    if (@functionIndex)
+      literalName += "_overload#{@functionIndex}"
+    end
+    return literalName
+  end
+end
+
+class FunctionGenerator
+  def initialize(lineStart)
+    @lineStart = lineStart
+    reset()
+    @wrapperGenerator = FunctionWrapperGenerator.new
+  end
+
+  attr_reader :bind, :extraFunctions
+
+  def generateSimpleCall(sig, name)
+    fnDef = generateBuildCall(name, sig, false)
+    olLs = @lineStart + "  "
+    @bind = "cobra::function_builder::build<
+#{olLs}#{fnDef}
+#{olLs}>"
+  end
+
+  def reset()
+    @bind = ""
+    @calls = []
+    @extraFunctions = []
+    @extraFunctionDecls = nil
+  end
+
+  def generate(owner, functions)
+    reset()
+
+    FunctionVisitor.visit(owner, functions, self)
+
+    name = functions[0].name
+
+    caller = "build"
+    list = nil
+
+    olLs = @lineStart + "  "
+
+    if (@calls.length == 1)
+      caller = "build"
+      list = @calls[0]
+    elsif(@calls.length > 1)
+      caller = "build_overloaded"
+      list = @calls.join(",\n#{olLs}")
+    end
+
+
+    @bind = 
+"cobra::function_builder::#{caller}<
+#{olLs}#{list}
+#{olLs}>(\"#{name}\")"
+  end
+
+  def visitFunction(owner, function, functionIndex, argCount)
+    @wrapperGenerator.reset(@lineStart, owner, function, functionIndex, argCount)
+  end
+
+  def visitFunctionComplete(function, argCount)
+    @wrapperGenerator.generateCall(@calls, @extraFunctions)
+  end
+
+  def visitInputOutputArgument(fn, idx, cnt, arg)
+    @wrapperGenerator.addInputOutputArgument(arg)
+  end
+  
+  def visitInputArgument(fn, idx, cnt, arg)
+    @wrapperGenerator.addInputArgument(arg)
+  end
+
+  def visitOutputArgument(fn, idx, cnt, arg)
+    @wrapperGenerator.addOutputArgument(arg)
   end
 end
 

@@ -177,10 +177,10 @@ private
     @output = false
 
     @brief = ""
-    if(comment)
+    if (comment)
       @brief = comment.text
 
-      if(comment.explicitDirection)
+      if (comment.explicitDirection)
         case comment.direction
         when :pass_direction_in
           @input = true
