@@ -147,7 +147,6 @@ private
   def findParentClass(cls)
     validSuperClasses = findValidParentClasses(cls)
 
-
     # find valid super classes
     validSuperClasses.each do |clsPath|
       # if a super class is exposed in a parent library, then can partially expose the class.
@@ -170,7 +169,7 @@ private
       return false
     end
 
-    if(@allMetaData.partiallyExposed?(cls.fullyQualifiedName()))
+    if (@allMetaData.partiallyExposed?(cls.fullyQualifiedName()))
       if(@debugOutput)
         puts "N\t#{cls.name} (already exposed)"
       end
@@ -179,8 +178,7 @@ private
     end
     
     # classes without super classes cannot be pushed at all.
-    if(cls.superClasses.empty? or
-      (cls.accessSpecifier != :invalid && cls.accessSpecifier != :public))
+    if (cls.accessSpecifier != :invalid && cls.accessSpecifier != :public)
       if(@debugOutput)
         puts "N\t#{cls.name} (not public)"
       end
@@ -188,9 +186,16 @@ private
       return false
     end
 
+    if (cls.superClasses.empty?)
+      if (@debugOutput)
+        puts "N\t#{cls.name} (no parent classes)"
+      end
+      return false
+    end
+
     parent = findParentClass(cls)
     if(@debugOutput)
-      puts "#{parent != nil ? "Y" : "N"}\t#{cls.name} (no parent)"
+      puts "#{parent != nil ? "Y" : "N"}\t#{cls.name} (no derivable parent)"
     end
     return parent != nil, parent
   end

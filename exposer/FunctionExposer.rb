@@ -44,7 +44,13 @@ class FunctionExposer
       end
       
       # methods arguments must all be exposed fully.
-      arguments = fn.arguments.all?{ |param| canExposeArgument(param) }
+      arguments = true
+      fn.arguments.each do |arg|
+        if (!arg.hasDefault && !canExposeArgument(arg))
+          arguments = false
+          break
+        end
+      end
       if (!@debug && (!arguments && !mustExpose))
         return false
       end
@@ -53,9 +59,9 @@ class FunctionExposer
 
       if(@debug || (!canExpose && mustExpose))
         puts "- #{owner.fullyQualifiedName}::#{fn.name}"
-        puts " - accessible: #{canExpose}"
-        puts " - return type: #{canExpose}"
-        puts " - arg types: #{canExpose}"
+        puts " - accessible: #{access}"
+        puts " - return type: #{returnType}"
+        puts " - arg types: #{arguments}"
         puts " - #{canExpose}"
 
         if (mustExpose)
@@ -75,7 +81,9 @@ class FunctionExposer
       return true
     end
 
-    return @typeExposer.canExposeType(obj.type, false)
+    partial = !obj.input? && obj.output?
+
+    return @typeExposer.canExposeType(obj.type, partial)
   end
 
 end

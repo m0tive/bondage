@@ -258,6 +258,7 @@ class TestExpose < Test::Unit::TestCase
     assert_equal "::Functions::TestA", expose2_1.arguments[0].type.pointeeType().fullyQualifiedName
 
     assert_equal 2, exposer.exposedMetaData.fullTypes.length
+    assert_equal 3, exposer.exposedMetaData.types.length
 
     exposeHelper = exposer.exposedMetaData.fullTypes["::Functions::TestA"].parsed
     assert_not_nil exposeHelper
@@ -265,10 +266,10 @@ class TestExpose < Test::Unit::TestCase
     exposedClass = exposer.exposedMetaData.fullTypes["::Functions::SomeClass"].parsed
     assert_not_nil exposedClass
 
-    assert_equal 4, exposedClass.functions.length
+    assert_equal 6, exposedClass.functions.length
 
     fns = exposer.findExposedFunctions(exposedClass)
-    assert_equal 1, fns.length
+    assert_equal 2, fns.length
 
     overloaded = fns["overloaded"]
     assert_equal 3, overloaded.length
@@ -355,7 +356,7 @@ class TestExpose < Test::Unit::TestCase
   # constructors...
   # pushing - push style?
   # indexes in methods
-  
+
   # default values in arguments (changing exposureness?)
   # check int * not exposed...
   # output args - check for partial only!
