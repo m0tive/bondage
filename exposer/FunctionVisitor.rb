@@ -15,19 +15,19 @@ class FunctionVisitor
       end
 
       if (arg.hasDefault && arg.input?)
-        FunctionVisitor.visitOverload(owner, fn, functionIndex, i, visitor)
+        visitor.visitFunction(owner, fn, functionIndex, i)
         functionIndex += 1
       end
     end
 
-    FunctionVisitor.visitOverload(owner, fn, functionIndex, fn.arguments.length, visitor)
+    visitor.visitFunction(owner, fn, functionIndex, fn.arguments.length)
     functionIndex += 1
     return functionIndex
   end
+end
 
-  def self.visitOverload(owner, fn, functionIndex, argCount, visitor)
-    visitor.visitFunction(owner, fn, functionIndex, argCount)
-
+class ArgumentVisitor
+  def self.visitFunction(owner, fn, functionIndex, argCount, visitor)
     argCount.times do |n|
       arg = fn.arguments[n]
       if (arg.input? && arg.output?)
@@ -40,7 +40,5 @@ class FunctionVisitor
         raise "Invalid Input output combination?"
       end
     end
-
-    visitor.visitFunctionComplete(fn, argCount)
   end
 end

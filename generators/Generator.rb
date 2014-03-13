@@ -2,179 +2,6 @@ require_relative "../exposer/ExposeAst.rb"
 require_relative "GeneratorHelper.rb"
 require_relative "../exposer/FunctionVisitor.rb"
 
-=begin
-
-  def generateBuildCall(name, sig, memberStandin)
-    if (memberStandin)
-      return "cobra::function_builder::build_member_standin_call<#{sig}, &#{name}>"
-    else
-      return "cobra::function_builder::build_call<#{sig}, &#{name}>"
-    end
-  end
-
-  def generateFunctionOverloads(owner, fns)
-    functionDefs = []
-    name = nil
-    fns.each_index do |i|
-      fn = fns[i]
-      functionDefs = functionDefs + expandArgumentOverloads(owner, fn, i)
-      name = fn.name
-    end
-
-    return generateOverloadCalls(owner, functionDefs, name)
-  end
-
-  def expandArgumentOverloads(owner, fn, fnId=nil)
-    fullyQualified = fn.fullyQualifiedName()
-    literalName = fullyQualified.sub("::", "").gsub("::", "_")
-    if (fnId)
-      literalName += "_#{fnId}"
-    end
-
-    functionDefs = []
-    fn.arguments.each_index do |i|
-      arg = fn.arguments[i]
-      if (arg.hasDefault && arg.input?)
-        # generate an overload that takes [i] arguments (one less than this argument.)
-        name, sig = generateArgumentOverload(owner, fn, literalName, i)
-        functionDefs << generateBuildCall(name, sig, true)
-      end
-    end
-
-    name, sig = generateArgumentOverload(owner, fn, literalName, fn.arguments.length)
-    functionDefs << generateBuildCall(name, sig, false)
-  end
-
-  def generateArgumentOverloads(owner, fn)
-    return generateOverloadCalls(owner, expandArgumentOverloads(owner, fn), fn.name)
-  end
-
-  def generateOverloadCalls(owner, functionDefs, name)
-    if (functionDefs.length == 1)
-      return generateSimpleCall(owner, functionDefs[0], name)
-    end
-
-    olLs = @lineStart + "  "
-
-    functions = functionDefs.join(",\n#{olLs}")
-
-    @bind = 
-"cobra::function_builder::build_overloaded<
-#{olLs}#{functions}
-#{olLs}>(\"#{name}\")"
-  end
-
-  def generateArgumentOverload(owner, fn, fnIdentifier, argCount)
-    name = fn.fullyQualifiedName
-
-    forceSpecialBinding = false
-    argCount.times do |n|
-      arg = fn.arguments[n]
-
-      forceSpecialBinding = arg.output? || !arg.input?
-
-      if (forceSpecialBinding)
-        break
-      end
-    end
-
-    if (forceSpecialBinding || argCount != fn.arguments.length)
-      args = ""
-      argPassThrough = ""
-      callSig = fn.fullyQualifiedName
-      if (!fn.static)
-        args = "ths"
-        argPassThrough = "#{owner.fullyQualifiedName} *ths"
-        callSig = "ths->#{fn.name}"
-      end
-
-      tupleName = "returnArgs"
-      initReturnArgs = ""
-      extraReturnArgs = []
-      
-      argCount.times do |n|
-        arg = fn.arguments[n]
-
-        argName = ""
-        passArg = ""
-        if (arg.input?)
-          if (!args.empty?)
-            argPassThrough << ", "
-          end
-          argName = "arg#{n}"
-          argPassThrough << arg.type.name << " #{argName}"
-          passArg = "std::forward<#{arg.type.name}>(#{argName})"
-        end
-
-        if (arg.output?)
-          if (!extraReturnArgs.empty?)
-            extraReturnArgs << ", "
-          end
-          returnIndex = extraReturnArgs.length
-          extraReturnArgs << arg.type.name
-
-          if (arg.input?)
-            initReturnArgs << "std::get<returnIndex>(#{tupleName}) = #{passArg};\n"
-          end
-          passArg = "std::get<returnIndex>(#{tupleName})"
-        end
-
-        if (!args.empty?)
-          args << ", "
-        end
-        args << passArg
-      end
-
-      ls = @lineStart
-      fnLs = @lineStart + "  "
-
-
-      resultContainer = "auto &&result"
-      resultName = "result"
-      if (extraReturnArgs.length)
-        resultContainer = "std::get<0>(#{tupleName})"
-        resultName = tupleName
-      end
-
-      returnType = "void"
-      name = "#{fnIdentifier}_overload#{argCount}"
-      call = "#{callSig}(#{args})"
-      if (fn.returnType)
-        extraReturnArgs.insert(0, fn.returnType.name)
-        returnType = fn.returnType.name
-        body = 
-"#{resultContainer} = #{call};"
-
-      else
-        body = "#{call};"
-      end
-
-      if (extraReturnArgs.length)
-        body << "#{fnLs}return #{resultName};"
-      end
-
-      if (extraReturnArgs.length >= 2)
-        returnType = "std::tuple<#{extraReturnArgs.join(', ')}>"
-      end
-
-      if (initReturnArgs.length)
-        initReturnArgs = fnLs + initReturnArgs + '\n\n'
-      end
-
-      fnDef = 
-"#{ls}#{returnType} #{name}(#{argPassThrough})
-#{ls}{
-#{initReturnArgs}
-#{fnLs}#{body}
-}"
-
-      @extraFunctions << fnDef
-    end
-
-    return name, generateFunctionPointerSignature(owner, fn, argCount)
-  end
-=end
-
 class FunctionWrapperGenerator
   class WrapperArg
     def initialize(type, source, inoutExtra=nil, accessor="")
@@ -201,7 +28,7 @@ class FunctionWrapperGenerator
     end
   end
 
-  def reset(ls, owner, function, functionIndex, argCount)
+  def generateCall(ls, owner, function, functionIndex, argCount, calls, extraFunctions)
     @lineStart = ls
     @needsWrapper = argCount != function.arguments.length
     @functionWrapper = nil
@@ -221,9 +48,10 @@ class FunctionWrapperGenerator
     if (function.returnType)
       @outputArguments << function.returnType.name
     end
-  end
 
-  def generateCall(calls, extraFunctions)
+    # visit arguments of function.
+    ArgumentVisitor.visitFunction(owner, function, functionIndex, argCount, self)
+
     if (@needsWrapper)
       accessor = functionAccessor()
       ret = returnType()
@@ -291,10 +119,7 @@ class FunctionWrapperGenerator
     end
   end
 
-  def visitFunctionComplete(function, argCount)
-  end
-
-  def addInputOutputArgument(arg)
+  def visitInputOutputArgument(fn, idx, cnt, arg)
     outIdx, access = addOutputArgumentHelper(arg)
 
     inIdx = @inputArguments.length
@@ -303,13 +128,13 @@ class FunctionWrapperGenerator
     @needsWrapper = true
   end
   
-  def addInputArgument(arg)
+  def visitInputArgument(fn, idx, cnt, arg)
     inIdx = @inputArguments.length
     @inputArguments << arg.type.name
     @callArgs << WrapperArg.new(:input, inIdx)
   end
 
-  def addOutputArgument(arg)
+  def visitOutputArgument(fn, idx, cnt, arg)
     outIdx, access = addOutputArgumentHelper(arg)
 
     @callArgs << WrapperArg.new(:output, outIdx, nil, access)
@@ -453,23 +278,14 @@ class FunctionGenerator
   end
 
   def visitFunction(owner, function, functionIndex, argCount)
-    @wrapperGenerator.reset(@lineStart, owner, function, functionIndex, argCount)
-  end
-
-  def visitFunctionComplete(function, argCount)
-    @wrapperGenerator.generateCall(@calls, @extraFunctions)
-  end
-
-  def visitInputOutputArgument(fn, idx, cnt, arg)
-    @wrapperGenerator.addInputOutputArgument(arg)
-  end
-  
-  def visitInputArgument(fn, idx, cnt, arg)
-    @wrapperGenerator.addInputArgument(arg)
-  end
-
-  def visitOutputArgument(fn, idx, cnt, arg)
-    @wrapperGenerator.addOutputArgument(arg)
+    @wrapperGenerator.generateCall(
+      @lineStart,
+      owner,
+      function,
+      functionIndex,
+      argCount,
+      @calls,
+      @extraFunctions)
   end
 end
 

@@ -354,13 +354,13 @@ class TestExpose < Test::Unit::TestCase
   # class copyability
   # constructors...
   # pushing - push style?
+  # indexes in methods
+  
+  # default values in arguments (changing exposureness?)
+  # check int * not exposed...
   # output args - check for partial only!
   # output args - accept pointer to pointers etc.
-  # check int * not exposed...
   # expose functions with arguments which arent exposed but have defaults.
-  
-  # indexes in methods
-  # default values in arguments (changing exposureness?)
   
 
 end
