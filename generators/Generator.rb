@@ -53,70 +53,72 @@ class FunctionWrapperGenerator
     ArgumentVisitor.visitFunction(owner, function, functionIndex, argCount, self)
 
     if (@needsWrapper)
-      accessor = functionAccessor()
-      ret = returnType()
-      extraFnName = literalName()
-      resVar = resultName()
-
-      inArgs = @inputArguments.each_with_index.map{ |arg, i| "#{arg} #{inputArgName(i)}" }.join(', ')
-
-      initArgs = []
-      if (@outputArguments.length > 1 || (@outputArguments.length > 0 && !@function.returnType))
-        initArgs << "#{ret} #{resVar};"
-      end
-
-      ls = @lineStart
-      olLs = @lineStart + "  "
-
-      call = @callArgs.map do |arg|
-        if (arg.type == :input)
-          next arg.callAccessor + inputArgPassThrough(arg.source)
-        elsif (arg.type == :output)
-          next arg.callAccessor + outputArgReference(arg.source)
-        elsif (arg.type == :inout)
-          input = inputArgPassThrough(arg.inoutSource)
-          output = outputArgReference(arg.source)
-          initArgs << "#{output} = #{arg.dataAccessor} #{input};"
-          next arg.callAccessor + output
-        else
-          raise "invalid arg type #{arg.type}"
-        end
-      end
-
-      call = "#{accessor}(#{call.join(', ')});"
-      returnExtra = ""
-      if (@function.returnType)
-        if (@outputArguments.length > 1)
-          call = "#{outputArgReference(0)} = #{call}"
-        else
-          call = "auto &&#{resVar} = #{call}"
-        end
-      end
-
-      if (@outputArguments.length > 0)
-        returnExtra = "\n#{olLs}return #{resVar};"
-      end
-
+      generateWrapper(calls, extraFunctions)
+    else
       sig = signature()
-      callType = @function.static ? "build_call" : "build_member_standin_call"
-      calls << "cobra::function_builder::#{callType}<#{sig}, &#{extraFnName}>"
+      calls << "cobra::function_builder::build_call<#{sig}, &#{@function.fullyQualifiedName}>"
+    end
+  end
 
-      extra = ""
-      if (initArgs.length != 0)
-        extra = initArgs.join("\n") + "\n\n"
+  def generateWrapper(calls, extraFunctions)
+    accessor = functionAccessor()
+    ret = returnType()
+    extraFnName = literalName()
+    resVar = resultName()
+
+    inArgs = @inputArguments.each_with_index.map{ |arg, i| "#{arg} #{inputArgName(i)}" }.join(', ')
+
+    initArgs = []
+    if (@outputArguments.length > 1 || (@outputArguments.length > 0 && !@function.returnType))
+      initArgs << "#{ret} #{resVar};"
+    end
+
+    ls = @lineStart
+    olLs = @lineStart + "  "
+
+    call = @callArgs.map do |arg|
+      if (arg.type == :input)
+        next arg.callAccessor + inputArgPassThrough(arg.source)
+      elsif (arg.type == :output)
+        next arg.callAccessor + outputArgReference(arg.source)
+      elsif (arg.type == :inout)
+        input = inputArgPassThrough(arg.inoutSource)
+        output = outputArgReference(arg.source)
+        initArgs << "#{output} = #{arg.dataAccessor} #{input};"
+        next arg.callAccessor + output
+      else
+        raise "invalid arg type #{arg.type}"
       end
+    end
 
-      extraFunctions << 
+    call = "#{accessor}(#{call.join(', ')});"
+    returnExtra = ""
+    if (@function.returnType)
+      if (@outputArguments.length > 1)
+        call = "#{outputArgReference(0)} = #{call}"
+      else
+        call = "auto &&#{resVar} = #{call}"
+      end
+    end
+
+    if (@outputArguments.length > 0)
+      returnExtra = "\n#{olLs}return #{resVar};"
+    end
+
+    sig = signature()
+    callType = @function.static ? "build_call" : "build_member_standin_call"
+    calls << "cobra::function_builder::#{callType}<#{sig}, &#{extraFnName}>"
+
+    extra = ""
+    if (initArgs.length != 0)
+      extra = initArgs.join("\n") + "\n\n"
+    end
+
+    extraFunctions << 
 "#{ls}#{ret} #{extraFnName}(#{inArgs})
 #{ls}{
 #{olLs}#{extra}#{call}#{returnExtra}
 #{ls}}"
-
-    else
-      sig = signature()
-      calls << "cobra::function_builder::build_call<#{sig}, &#{@function.fullyQualifiedName}>"
-
-    end
   end
 
   def visitInputOutputArgument(fn, idx, cnt, arg)
