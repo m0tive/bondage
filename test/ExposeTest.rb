@@ -388,8 +388,6 @@ class TestExpose < Test::Unit::TestCase
     assert_nil bFns["pork"]
   end
 
-  # exposed constructors
-  # constructors...
   # class copyability
   # pushing - push style?
   # indexes in methods  

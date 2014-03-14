@@ -32,4 +32,13 @@ public:
   double test(int &a, int *b, int &c);
 };
 
+/// \expose
+class CtorGen
+{
+public:
+  CtorGen();
+  /// \param[out] i an Output
+  CtorGen(int *i);
+};
+
 }

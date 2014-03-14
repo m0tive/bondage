@@ -2,6 +2,8 @@ require_relative "../exposer/ExposeAst.rb"
 require_relative "GeneratorHelper.rb"
 require_relative "../exposer/FunctionVisitor.rb"
 
+TYPE_NAMESPACE = "Cobra"
+
 class FunctionWrapperGenerator
   class WrapperArg
     def initialize(type, source, inoutExtra=nil, accessor="")
@@ -30,7 +32,9 @@ class FunctionWrapperGenerator
 
   def generateCall(ls, owner, function, functionIndex, argCount, calls, extraFunctions)
     @lineStart = ls
-    @needsWrapper = argCount != function.arguments.length
+    @constructor = function.isConstructor
+    @static = function.static || @constructor
+    @needsWrapper = argCount != function.arguments.length || @constructor
     @functionWrapper = nil
     @callArgs = []
     @owner = owner
@@ -39,13 +43,14 @@ class FunctionWrapperGenerator
     @name = function.name
     @inputArguments = []
     @outputArguments = []
-    @returnType = nil
 
-    if (!function.static)
+    if (!@static)
       @inputArguments << "#{owner.fullyQualifiedName} &"
     end
 
-    if (function.returnType)
+    if (@constructor)
+      @outputArguments << "#{owner.fullyQualifiedName} *"
+    elsif (function.returnType)
       @outputArguments << function.returnType.name
     end
 
@@ -61,15 +66,16 @@ class FunctionWrapperGenerator
   end
 
   def generateWrapper(calls, extraFunctions)
-    accessor = functionAccessor()
     ret = returnType()
     extraFnName = literalName()
     resVar = resultName()
 
     inArgs = @inputArguments.each_with_index.map{ |arg, i| "#{arg} #{inputArgName(i)}" }.join(', ')
 
+    hasReturnType = @constructor || @function.returnType
+
     initArgs = []
-    if (@outputArguments.length > 1 || (@outputArguments.length > 0 && !@function.returnType))
+    if (@outputArguments.length > 1 || (@outputArguments.length > 0 && !hasReturnType))
       initArgs << "#{ret} #{resVar};"
     end
 
@@ -91,9 +97,16 @@ class FunctionWrapperGenerator
       end
     end
 
-    call = "#{accessor}(#{call.join(', ')});"
-    returnExtra = ""
-    if (@function.returnType)
+    args = call.join(', ')
+    call = ""
+    if (@constructor)
+      call = "#{TYPE_NAMESPACE}::Type<#{@owner.fullyQualifiedName}>::create(#{args})"
+    else
+      accessor = functionAccessor()
+      call = "#{accessor}(#{args});"
+    end
+
+    if (hasReturnType)
       if (@outputArguments.length > 1)
         call = "#{outputArgReference(0)} = #{call}"
       else
@@ -101,12 +114,13 @@ class FunctionWrapperGenerator
       end
     end
 
+    returnExtra = ""
     if (@outputArguments.length > 0)
       returnExtra = "\n#{olLs}return #{resVar};"
     end
 
     sig = signature()
-    callType = @function.static ? "build_call" : "build_member_standin_call"
+    callType = @static ? "build_call" : "build_member_standin_call"
     calls << "cobra::function_builder::#{callType}<#{sig}, &#{extraFnName}>"
 
     extra = ""
@@ -163,7 +177,6 @@ private
   end
 
   def signature()
-
     result = returnType()
 
     ptrType = "(*)"
@@ -172,7 +185,7 @@ private
       types = @inputArguments.join(", ")
     else
       types = @function.arguments.map{ |arg| arg.type.name }.join(", ")
-      if (!@function.static)
+      if (!@static)
         ptrType = "(#{@owner.fullyQualifiedName}::*)"
       end
     end
@@ -202,6 +215,10 @@ private
   end
 
   def functionAccessor
+    if (@constructor)
+      return "#{@owner.fullyQualifiedName}"
+    end
+
     if (!@function.static)
       return "#{inputArgName(0)}.#{@function.name}"
     end
