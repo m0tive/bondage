@@ -204,6 +204,7 @@ class FunctionItem < HierarchyItem
   def initialize(parent, data, constructor) super(parent)
     @name = data[:name]
     @isConstructor = constructor
+    @isOverride = data[:cursor].overriddens.length != 0
     @comment = data[:comment]
     @accessSpecifier = data[:cursor].access_specifier
     @static = parent.kind_of?(NamespaceItem) || data[:cursor].static?
@@ -211,7 +212,7 @@ class FunctionItem < HierarchyItem
     @returnType = data[:type].resultType
   end
 
-  attr_reader :returnType, :arguments, :isConstructor, :comment, :accessSpecifier, :static
+  attr_reader :returnType, :arguments, :isConstructor, :comment, :accessSpecifier, :static, :isOverride
 
   def self.build(parent, data, isCtor)
     return FunctionItem.new(parent, data, isCtor)

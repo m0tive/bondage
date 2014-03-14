@@ -38,7 +38,12 @@ class TestExpose < Test::Unit::TestCase
     @ctors.addIncludePath(".")
     @ctors.addFile("Constructors.h")
 
+    @vfun = Library.new("VirtualFunctions", "test/testData/VirtualFunctions")
+    @vfun.addIncludePath(".")
+    @vfun.addFile("VirtualFunctions.h")
+
     setupLibrary(@ctors)
+    setupLibrary(@vfun)
     setupLibrary(@functions)
     setupLibrary(@enum)
     setupLibrary(@astTest)
@@ -48,6 +53,7 @@ class TestExpose < Test::Unit::TestCase
 
   def teardown
     cleanLibrary(@ctors)
+    cleanLibrary(@vfun)
     cleanLibrary(@functions)
     cleanLibrary(@enum)
     cleanLibrary(@astTest)
@@ -359,16 +365,33 @@ class TestExpose < Test::Unit::TestCase
     assert_equal false, ctor[5].isCopyConstructor
   end
 
-  # exposed constructors
-  # clang_getOverriddenCursors - dont expose overridden methods (Cursor::overriddens).
-  # class copyability
-  # constructors...
-  # pushing - push style?
-  # indexes in methods
+  def test_virtualFunctions
+    # Generate Virtual Functions
+    exposer, visitor = exposeLibrary(@vfun)
 
-  # check int * not exposed...
-  # output args - accept pointer to pointers etc.
-  # expose functions with arguments which arent exposed but have defaults.
-  
+
+    assert_equal 2, exposer.exposedMetaData.fullTypes.length
+
+    a = exposer.exposedMetaData.findClass("::VirtualFunctions::A").parsed
+    assert_not_nil a
+
+    b = exposer.exposedMetaData.findClass("::VirtualFunctions::B").parsed
+    assert_not_nil b
+
+    aFns = exposer.findExposedFunctions(a)
+    assert_equal 1, aFns.length
+    assert_not_nil aFns["pork"]
+    assert_equal 1, aFns["pork"].length
+
+    bFns = exposer.findExposedFunctions(b)
+    assert_equal 0, bFns.length
+    assert_nil bFns["pork"]
+  end
+
+  # exposed constructors
+  # constructors...
+  # class copyability
+  # pushing - push style?
+  # indexes in methods  
 
 end

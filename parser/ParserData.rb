@@ -25,6 +25,7 @@ PARAM_DEFAULT_EXPR_STATE =      ParserStateItem.new(:param_default_expr,      ->
 PARAM_DEFAULT_EXPR_CALL_STATE = ParserStateItem.new(:param_default_expr_call)
 PARAM_DEFAULT_VALUE_STATE =     ParserStateItem.new(:param_default_value,     ->(parent, data){ parent.addParamDefault(data) })
 FUNCTION_BODY_STATE =           ParserStateItem.new(:function_body)
+FUNCTION_DECORATOR_STATE =      ParserStateItem.new(:function_body)
 TYPEDEF_STATE =                 ParserStateItem.new(:typedef,                 ->(parent, data){ parent.addTypedef(data) })
 UNEXPOSED_STATE =               ParserStateItem.new(:unexposed)
 
@@ -82,6 +83,7 @@ TRANSITIONS = {
     :cursor_namespace_ref => RETURN_TYPE_NAMESPACE_STATE,
     :cursor_template_ref => RETURN_TYPE_STATE,
     :cursor_compound_stmt => FUNCTION_BODY_STATE,
+    :cursor_cxx_override_attr => FUNCTION_DECORATOR_STATE
   },
   :function_template => {
     :cursor_template_type_param => TEMPLATE_PARAM_STATE,
@@ -91,6 +93,7 @@ TRANSITIONS = {
     :cursor_template_ref => RETURN_TYPE_STATE,
     :cursor_param_decl => PARAM_STATE,
     :cursor_compound_stmt => FUNCTION_BODY_STATE,
+    :cursor_cxx_override_attr => FUNCTION_DECORATOR_STATE
   },
   # inside a function parameter declaration
   :param => {

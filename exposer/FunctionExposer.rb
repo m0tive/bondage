@@ -37,6 +37,11 @@ class FunctionExposer
         return false
       end
 
+      notOverride = !fn.isOverride
+      if (!@debug && (!notOverride && !mustExpose))
+        return false
+      end
+
       # methods must have a partially exposed return type (it or a derived class)
       returnType = (fn.returnType == nil || @typeExposer.canExposeType(fn.returnType, true))
       if (!@debug && (!returnType && !mustExpose))
@@ -55,11 +60,12 @@ class FunctionExposer
         return false
       end
 
-      canExpose = access && returnType && arguments
+      canExpose = access && notOverride && returnType && arguments
 
       if(@debug || (!canExpose && mustExpose))
         puts "- #{owner.fullyQualifiedName}::#{fn.name}"
         puts " - accessible: #{access}"
+        puts " - not override: #{notOverride}"
         puts " - return type: #{returnType}"
         puts " - arg types: #{arguments}"
         puts " - #{canExpose}"
