@@ -81,9 +81,28 @@ class FunctionExposer
       return true
     end
 
-    partial = !obj.input? && obj.output?
+    type = obj.type
 
-    return @typeExposer.canExposeType(obj.type, partial)
+    if obj.input? then
+      if (!@typeExposer.canExposeType(type, false))
+        return false
+      end
+    end
+
+    if obj.output? then
+      outputType = obj.type
+      if (outputType.isLValueReference() || outputType.isPointer())
+        outputType = outputType.pointeeType()
+      else
+        raise "Invalid output type - expected pointer or reference."
+      end
+
+      if (!@typeExposer.canExposeType(outputType, true))
+        return false
+      end
+    end
+
+    return true
   end
 
 end

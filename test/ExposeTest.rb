@@ -266,13 +266,22 @@ class TestExpose < Test::Unit::TestCase
     exposedClass = exposer.exposedMetaData.fullTypes["::Functions::SomeClass"].parsed
     assert_not_nil exposedClass
 
-    assert_equal 6, exposedClass.functions.length
+    assert_equal 12, exposedClass.functions.length
 
     fns = exposer.findExposedFunctions(exposedClass)
-    assert_equal 2, fns.length
+    assert_equal 5, fns.length
 
     overloaded = fns["overloaded"]
     assert_equal 3, overloaded.length
+
+    assert_not_nil fns["complex1"]
+    assert_nil fns["complex2"]
+    assert_not_nil fns["complex3"]
+    assert_not_nil fns["complex4"]
+    assert_nil fns["complex5"]
+    assert_nil fns["complex6"]
+    assert_nil fns["complex7"]
+    assert_not_nil fns["complex8"]
 
     overloaded.each do |fn|
       assert_equal nil, fn.returnType
@@ -357,9 +366,7 @@ class TestExpose < Test::Unit::TestCase
   # pushing - push style?
   # indexes in methods
 
-  # default values in arguments (changing exposureness?)
   # check int * not exposed...
-  # output args - check for partial only!
   # output args - accept pointer to pointers etc.
   # expose functions with arguments which arent exposed but have defaults.
   
