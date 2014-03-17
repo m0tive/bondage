@@ -37,13 +37,14 @@ private
     end
   end
 
+  CLASS_MODES = [ :copyable, :managed, :unmanaged ]
+
   def classMode
     cmd = @cls.comment.command("expose")
 
     mode = :default
     defaultMode = :copyable
-    modes = [ :copyable, :managed, :unmanaged ]
-    modes.each do |possMode|
+    CLASS_MODES.each do |possMode|
       str = possMode.to_s
       if (cmd.hasArg(str))
         raise "'Multiple class management modes specified #{mode.to_s} and '#{str}'." if mode != :default
