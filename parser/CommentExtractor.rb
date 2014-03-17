@@ -1,6 +1,9 @@
 EXTRA_COMMAND_TYPES = {
   "expose" => Set.new([
-    "derivable"
+    "derivable",
+    "copyable",
+    "managed",
+    "unmanaged"
   ])
 }
 

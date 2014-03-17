@@ -3,7 +3,7 @@
 namespace Gen
 {
 
-/// \expose
+/// \expose derivable managed
 class Gen
 {
 public:
@@ -16,6 +16,15 @@ public:
 
 int test4(bool a, bool b);
 int test5(bool a, bool b, float = 4.3f);
+
+/// \expose
+class InheritTest : public Gen
+{
+public:
+  void pork();
+  int pork2();
+};
+
 
 /// \expose
 class MultipleReturnGen

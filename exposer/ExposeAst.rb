@@ -7,8 +7,9 @@ require_relative "../parser/Visitor.rb"
 class HierarchyItem
 
   # Create a hierarchy item from a parent HierarchyItem (must have a .visitor function)
-  def initialize(parent)
+  def initialize(parent, data)
     @isExposed = nil
+    @cursor = data[:cursor]
     @parent = parent
     @visitor = parent.visitor()
     @fullyQualified = nil
@@ -48,11 +49,15 @@ class HierarchyItem
   def children
     return []
   end
+
+  def locationString
+    return sourceError(@cursor)
+  end
 end
 
 # A classable item can contain classes, structs and unions.
 class ClassableItem < HierarchyItem
-  def initialize(parent) super(parent)
+  def initialize(parent, data) super(parent, data)
     @classes = {}
     @enums = {}
     @functions = []
@@ -118,7 +123,7 @@ end
 # An enum item
 class EnumItem < HierarchyItem
   # create a class from a parent item, clang data, and bools for struct/template-iness
-  def initialize(parent, data) super(parent)
+  def initialize(parent, data) super(parent, data)
     @name = data[:name]
     @comment = data[:comment]
     @members = {}
@@ -201,7 +206,7 @@ end
 class FunctionItem < HierarchyItem
 
   # Create a function from a parent item, data from clang, and a bool is this is a constructor
-  def initialize(parent, data, constructor) super(parent)
+  def initialize(parent, data, constructor) super(parent, data)
     @name = data[:name]
     @isConstructor = constructor
     @isOverride = data[:cursor].overriddens.length != 0
@@ -258,7 +263,7 @@ end
 # A class item is an optionally templated class or struct.
 class ClassItem < ClassableItem
   # create a class from a parent item, clang data, and bools for struct/template-iness
-  def initialize(parent, data, struct, template) super(parent)
+  def initialize(parent, data, struct, template) super(parent, data)
     @name = data[:name]
     @isStruct = struct
     @isTemplated = template
@@ -310,15 +315,15 @@ end
 # A namespace
 class NamespaceItem < ClassableItem
   # create a namespace from a library and clang data
-  def initialize(parent, name) super(parent)
+  def initialize(parent, data) super(parent, data)
     @namespaces = {}
-    @name = name
+    @name = data[:name]
   end
 
   attr_reader :name, :namespaces
 
   def self.build(parent, data)
-    return NamespaceItem.new(parent, data[:name])
+    return NamespaceItem.new(parent, data)
   end
 
   # add a namespace to the namespace
@@ -339,7 +344,7 @@ class ExposeAstVisitor < Visitor
   # Create a visitor from a library
   def initialize(library)
     @library = library
-    @rootItem = NamespaceItem.new(self, "")
+    @rootItem = NamespaceItem.new(self, { :name => "" })
     @classes = []
   end
 

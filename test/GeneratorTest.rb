@@ -26,7 +26,7 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen = FunctionGenerator.new("")
 
-    assert_equal 3, exposer.exposedMetaData.fullTypes.length
+    assert_equal 4, exposer.exposedMetaData.fullTypes.length
 
     rootNs = lib.getExposedNamespace()
     assert_not_nil rootNs
@@ -125,7 +125,7 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen = FunctionGenerator.new("")
 
-    assert_equal 3, exposer.exposedMetaData.fullTypes.length
+    assert_equal 4, exposer.exposedMetaData.fullTypes.length
 
     multiReturnCls = exposer.exposedMetaData.findClass("::Gen::MultipleReturnGen").parsed
     assert_not_nil multiReturnCls
@@ -151,12 +151,12 @@ class TestGenerator < Test::Unit::TestCase
       fnGen.extraFunctions
   end
 
-  def test_functionGenerator
+  def test_functionGeneratorConstructors
     exposer, lib = exposeLibrary(@gen)
 
     fnGen = FunctionGenerator.new("")
 
-    assert_equal 3, exposer.exposedMetaData.fullTypes.length
+    assert_equal 4, exposer.exposedMetaData.fullTypes.length
 
     rootNs = lib.getExposedNamespace()
     assert_not_nil rootNs
@@ -183,6 +183,27 @@ class TestGenerator < Test::Unit::TestCase
     assert_equal [
       "::Gen::CtorGen * Gen_CtorGen_CtorGen_overload0()\n{\n  auto &&result = Cobra::Type<::Gen::CtorGen>::create()\n  return result;\n}",
       "std::tuple<::Gen::CtorGen *, int> Gen_CtorGen_CtorGen_overload1()\n{\n  std::tuple<::Gen::CtorGen *, int> result;\n\nstd::tuple::get<0>(result) = Cobra::Type<::Gen::CtorGen>::create(&std::tuple::get<1>(result))\n  return result;\n}"], fnGen.extraFunctions
+  end
+
+  def test_classGenerator
+    exposer, lib = exposeLibrary(@gen)
+
+    gen = ClassGenerator.new()
+
+    cls = exposer.exposedMetaData.findClass("::Gen::Gen").parsed
+    assert_not_nil cls
+
+    gen.generate(exposer, cls)
+    assert_equal "COBRA_EXPOSED_CLASS_MANAGED(::Gen::Gen)", gen.interface
+
+    derived = exposer.exposedMetaData.findClass("::Gen::InheritTest");
+    cls = derived.parsed
+    assert_not_nil derived.parentClass
+    assert_not_nil cls
+
+    gen.generate(exposer, cls)
+    assert_equal "COBRA_EXPOSED_DERIVED_CLASS(::Gen::InheritTest, ::Gen::Gen, ::Gen::Gen)", gen.interface
+
 
   end
 end

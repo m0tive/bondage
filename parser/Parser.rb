@@ -6,6 +6,18 @@ require_relative "Comment.rb"
 require_relative "Type.rb"
 require_relative "ParserData.rb"
 
+
+def sourceError(cursor)
+  loc = cursor.location
+  return "Error, File: #{loc.file}, line: #{loc.line}, column: #{loc.column}: #{cursor.display_name}"
+end
+
+def sourceErrorDesc(cursor, desc)
+  loc = cursor.location
+  return "#{sourceError(cursor)}\n  #{desc}"
+end
+
+
 class Parser
   def initialize(library, coreIncludes=[], dbg=false)
     @debug = false
@@ -60,10 +72,10 @@ private
 
   def findNextState(oldType, cursor)
     typeTransitions = TRANSITIONS[oldType]
-    source_error(cursor, "Unexpected child for #{oldType}, with child type #{cursor.kind}") unless typeTransitions
+    raise formatParseError(cursor, "Unexpected child for #{oldType}, with child type #{cursor.kind}") unless typeTransitions
 
     newState = typeTransitions[cursor.kind]
-    source_error(cursor, "Unexpected transition #{oldType} -> #{cursor.kind}") unless newState
+    raise formatParseError(cursor, "Unexpected transition #{oldType} -> #{cursor.kind}") unless newState
     return newState
   end
 
@@ -90,11 +102,8 @@ private
       next :continue
     end
 
+    def formatParseError(cursor, desc)
+      return "\n\n" + sourceErrorDesc(cursor, desc)
+    end
   end
-
-  def source_error(cursor, desc)
-    loc = cursor.location
-    raise "\n\nError, File: #{loc.file}, line: #{loc.line}, column: #{loc.column}: #{cursor.display_name}\n  #{desc}"
-  end
-
 end
