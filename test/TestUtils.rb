@@ -27,8 +27,7 @@ case os
     PLATFORM_INCLUDES = [ "/usr/include/c++/4.2.1/" ]
   when :windows
     ENV["PATH"] = ENV["PATH"] + ";" + "..\\llvm-build\\Release+Asserts\\bin"
-    PLATFORM_INCLUDES = []
-    raise "what includes??"
+    PLATFORM_INCLUDES = [ "..\\libc++\\include" ]
   when :linux
     PLATFORM_INCLUDES = [ "/usr/include/c++/4.6/", "/usr/include/c++/4.6/x86_64-linux-gnu/32/" ]
 end
