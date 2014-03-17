@@ -75,6 +75,7 @@ TRANSITIONS = {
   },
   :enumMember => {
     :cursor_unexposed_expr => ENUM_EXPR_STATE,
+    :cursor_integer_literal => ENUM_EXPR_STATE,
   },
   # inside a function declaration
   :function => {
