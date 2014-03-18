@@ -4,7 +4,7 @@ require_relative "../parser/Library.rb"
 require_relative "../parser/Parser.rb"
 require_relative "../exposer/Exposer.rb"
 require_relative "../exposer/ExposeAst.rb"
-require_relative "../generators/Generator.rb"
+require_relative "../generators/CPP/LibraryGenerator.rb"
 require_relative "../generators/LuaGenerator.rb"
 
 require 'test/unit'
@@ -44,7 +44,7 @@ class TestComplex < Test::Unit::TestCase
 
     exposer, visitor = exposeLibrary(library)
 
-    Generator.new(library, exposer).generate(path)
+    CPP::Generator.new(library, exposer).generate(path)
     LuaGenerator.new(library, exposer).generate(path)
   end
 end

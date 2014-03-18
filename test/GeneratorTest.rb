@@ -3,7 +3,7 @@ require_relative 'TestUtils.rb'
 require_relative "../parser/Library.rb"
 require_relative "../parser/Parser.rb"
 require_relative "../exposer/ExposeAst.rb"
-require_relative "../generators/Generator.rb"
+require_relative "../generators/CPP/LibraryGenerator.rb"
 
 require 'test/unit'
 
@@ -24,7 +24,7 @@ class TestGenerator < Test::Unit::TestCase
   def test_functionGenerator
     exposer, lib = exposeLibrary(@gen)
 
-    fnGen = FunctionGenerator.new("")
+    fnGen = CPP::FunctionGenerator.new("")
 
     assert_equal 4, exposer.exposedMetaData.fullTypes.length
 
@@ -123,7 +123,7 @@ class TestGenerator < Test::Unit::TestCase
   def test_functionGeneratorParamDirection
     exposer, lib = exposeLibrary(@gen)
 
-    fnGen = FunctionGenerator.new("")
+    fnGen = CPP::FunctionGenerator.new("")
 
     assert_equal 4, exposer.exposedMetaData.fullTypes.length
 
@@ -154,7 +154,7 @@ class TestGenerator < Test::Unit::TestCase
   def test_functionGeneratorConstructors
     exposer, lib = exposeLibrary(@gen)
 
-    fnGen = FunctionGenerator.new("")
+    fnGen = CPP::FunctionGenerator.new("")
 
     assert_equal 4, exposer.exposedMetaData.fullTypes.length
 
@@ -172,7 +172,7 @@ class TestGenerator < Test::Unit::TestCase
 
     assert_equal 2, ctors.length
 
-    fnGen = FunctionGenerator.new("")
+    fnGen = CPP::FunctionGenerator.new("")
 
     fnGen.generate(cls, ctors)
 
@@ -188,7 +188,7 @@ class TestGenerator < Test::Unit::TestCase
   def test_classGenerator
     exposer, lib = exposeLibrary(@gen)
 
-    gen = ClassGenerator.new()
+    gen = CPP::ClassGenerator.new()
 
     cls = exposer.exposedMetaData.findClass("::Gen::Gen").parsed
     assert_not_nil cls
