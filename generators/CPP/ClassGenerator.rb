@@ -13,6 +13,8 @@ module CPP
     def reset()
       @interface = ""
       @implementation = ""
+
+      @fnGen = CPP::FunctionGenerator.new("", "  ")
     end
 
     def generate(exposer, md)
@@ -25,6 +27,7 @@ module CPP
       @functions = exposer.findExposedFunctions(@cls)
 
       generateHeader()
+      generateSource()
     end
 
   private
@@ -39,6 +42,51 @@ module CPP
         root = findRootClass(@metaData)
         @interface = "#{MACRO_PREFIX}EXPOSED_DERIVED_CLASS(#{clsPath}, #{parent}, #{root})"
       end
+    end
+
+    # Generate binding data for a class
+    def generateSource()
+      # find a name that is a valid literal in c++ used for static definitions
+      fullyQualified = @cls.fullyQualifiedName()
+      literalName = fullyQualified.sub("::", "").gsub("::", "_")
+
+      methodsLiteral = literalName + "_methods";
+
+
+      classInfo =
+"COBRA_IMPLEMENT_EXPOSED_CLASS(
+  #{fullyQualified},
+  #{methodsLiteral})"
+
+      functions = @exposer.findExposedFunctions(@cls)
+
+      methods = []
+      extraMethods = []
+
+      # for each function, work out how best to call it.
+      functions.sort.each do |name, fns|
+        @fnGen.generate(@cls, fns)
+
+        methods << @fnGen.bind
+        extraMethods = extraMethods.concat(@fnGen.extraFunctions)
+      end
+
+      methodsSource = ""
+      if (methods.length > 0)
+        methodsSource = "  " + methods.join("\n  ")
+      end
+      extraMethodSource = ""
+      if (extraMethods.length > 0)
+        extraMethodSource = "\n" + extraMethods.join("\n\n") + "\n"
+      end
+
+      @implementation =
+"// Exposing class #{fullyQualified}
+#{extraMethodSource}
+const cobra::function #{methodsLiteral}[] = {\n#{methodsSource}\n};
+
+#{classInfo}
+"
     end
 
     CLASS_MODES = [ :copyable, :managed, :unmanaged ]

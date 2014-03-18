@@ -3,8 +3,9 @@ require_relative "FunctionWrapperGenerator.rb"
 module CPP
 
   class FunctionGenerator
-    def initialize(lineStart)
+    def initialize(extraFnLineStart, lineStart)
       @lineStart = lineStart
+      @extraFunctionLineStart = extraFnLineStart
       reset()
       @wrapperGenerator = FunctionWrapperGenerator.new
     end
@@ -55,7 +56,7 @@ module CPP
 
     def visitFunction(owner, function, functionIndex, argCount)
       @wrapperGenerator.generateCall(
-        @lineStart,
+        @extraFunctionLineStart,
         owner,
         function,
         functionIndex,

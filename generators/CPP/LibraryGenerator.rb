@@ -16,8 +16,8 @@ module CPP
     attr_reader :header, :source
 
     def generate(exposer)
-      @header = ""
-      @source = ""
+      @header = filePreamble("//") + "\n\n"
+      @source = filePreamble("//")
 
       clsGen = ClassGenerator.new
 
@@ -26,7 +26,7 @@ module CPP
           clsGen.reset()
           clsGen.generate(exposer, cls)
           @header += "#{clsGen.interface}\n"
-          @source += clsGen.implementation
+          @source += "\n\n\n#{clsGen.implementation}"
         end
       end
 
@@ -134,7 +134,7 @@ module CPP
 
     # write the pre amble for a C++ file to [file]
     def writePreamble(file)
-      Object.send(:writePreamble, file, "// ")
+      #Object.send(:writePreamble, file, "// ")
     end
   end
 end

@@ -24,7 +24,7 @@ class TestGenerator < Test::Unit::TestCase
   def test_functionGenerator
     exposer, lib = exposeLibrary(@gen)
 
-    fnGen = CPP::FunctionGenerator.new("")
+    fnGen = CPP::FunctionGenerator.new("", "")
 
     assert_equal 4, exposer.exposedMetaData.fullTypes.length
 
@@ -123,7 +123,7 @@ class TestGenerator < Test::Unit::TestCase
   def test_functionGeneratorParamDirection
     exposer, lib = exposeLibrary(@gen)
 
-    fnGen = CPP::FunctionGenerator.new("")
+    fnGen = CPP::FunctionGenerator.new("", "")
 
     assert_equal 4, exposer.exposedMetaData.fullTypes.length
 
@@ -154,7 +154,7 @@ class TestGenerator < Test::Unit::TestCase
   def test_functionGeneratorConstructors
     exposer, lib = exposeLibrary(@gen)
 
-    fnGen = CPP::FunctionGenerator.new("")
+    fnGen = CPP::FunctionGenerator.new("", "")
 
     assert_equal 4, exposer.exposedMetaData.fullTypes.length
 
@@ -172,7 +172,7 @@ class TestGenerator < Test::Unit::TestCase
 
     assert_equal 2, ctors.length
 
-    fnGen = CPP::FunctionGenerator.new("")
+    fnGen = CPP::FunctionGenerator.new("", "")
 
     fnGen.generate(cls, ctors)
 
@@ -208,11 +208,19 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen.generate(exposer)
 
-    assert_equal "COBRA_EXPOSED_CLASS_MANAGED(::Gen::Gen)
-COBRA_EXPOSED_DERIVED_CLASS(::Gen::InheritTest, ::Gen::Gen, ::Gen::Gen)
-COBRA_EXPOSED_CLASS_COPYABLE(::Gen::MultipleReturnGen)
-COBRA_EXPOSED_CLASS_COPYABLE(::Gen::CtorGen)\n", libGen.header
-    assert_equal "", libGen.source
+    expectedHeader = "test/testData/GeneratorOutput/expected.h"
+    expectedSource = "test/testData/GeneratorOutput/expected.cpp"
 
+    if (false)
+      File.open(expectedHeader, 'w') do |file|
+        file.write(libGen.header)
+      end
+      File.open(expectedSource, 'w') do |file|
+        file.write(libGen.source)
+      end
+    end
+
+    assert_equal File.read(expectedHeader), libGen.header
+    assert_equal File.read(expectedSource), libGen.source
   end
 end

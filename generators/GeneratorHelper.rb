@@ -5,12 +5,9 @@ TYPE_NAMESPACE = "Cobra"
 MACRO_PREFIX = "COBRA_"
 
 # Write the copyright and auto gen message to a file, using [lineStart] as a line begin
-def writePreamble(file, lineStart)
-  file.write(
-"#{lineStart} #{COPYRIGHT_MESSAGE}
+def filePreamble(lineStart)
+  return "#{lineStart} #{COPYRIGHT_MESSAGE}
 #{lineStart}
 #{lineStart} #{AUTOGEN_MESSAGE}
-#{lineStart}
-
-")
+#{lineStart}"
 end
