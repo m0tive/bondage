@@ -190,7 +190,7 @@ class TestGenerator < Test::Unit::TestCase
 
     gen = CPP::ClassGenerator.new()
 
-    cls = exposer.exposedMetaData.findClass("::Gen::Gen").parsed
+    cls = exposer.exposedMetaData.findClass("::Gen::Gen")
     assert_not_nil cls
 
     gen.generate(exposer, cls)
@@ -201,9 +201,18 @@ class TestGenerator < Test::Unit::TestCase
     assert_not_nil derived.parentClass
     assert_not_nil cls
 
-    gen.generate(exposer, cls)
+    gen.generate(exposer, derived)
     assert_equal "COBRA_EXPOSED_DERIVED_CLASS(::Gen::InheritTest, ::Gen::Gen, ::Gen::Gen)", gen.interface
 
+    libGen = CPP::LibraryGenerator.new()
+
+    libGen.generate(exposer)
+
+    assert_equal "COBRA_EXPOSED_CLASS_MANAGED(::Gen::Gen)
+COBRA_EXPOSED_DERIVED_CLASS(::Gen::InheritTest, ::Gen::Gen, ::Gen::Gen)
+COBRA_EXPOSED_CLASS_COPYABLE(::Gen::MultipleReturnGen)
+COBRA_EXPOSED_CLASS_COPYABLE(::Gen::CtorGen)\n", libGen.header
+    assert_equal "", libGen.source
 
   end
 end

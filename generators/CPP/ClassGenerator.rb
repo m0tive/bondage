@@ -15,12 +15,14 @@ module CPP
       @implementation = ""
     end
 
-    def generate(exposer, cls)
-      @exposer = exposer
-      @functions = exposer.findExposedFunctions(cls)
+    def generate(exposer, md)
+      @metaData = md
+      @cls = md.parsed
 
-      @cls = cls
-      @metaData = exposer.exposedMetaData.findClass(cls.fullyQualifiedName)
+      raise "Unparsed classes can not be exposed #{md.name}" unless @cls && @metaData
+
+      @exposer = exposer
+      @functions = exposer.findExposedFunctions(@cls)
 
       generateHeader()
     end

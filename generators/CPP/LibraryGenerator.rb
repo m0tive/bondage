@@ -7,6 +7,32 @@ require_relative "ClassGenerator.rb"
 
 module CPP
 
+  class LibraryGenerator
+    def initialize()
+      @header = ""
+      @source = ""
+    end
+
+    attr_reader :header, :source
+
+    def generate(exposer)
+      @header = ""
+      @source = ""
+
+      clsGen = ClassGenerator.new
+
+      exposer.exposedMetaData.types.each do |path, cls|
+        if (cls.type == :class && cls.fullyExposed)
+          clsGen.reset()
+          clsGen.generate(exposer, cls)
+          @header += "#{clsGen.interface}\n"
+          @source += clsGen.implementation
+        end
+      end
+
+    end
+  end
+
   # Generate exposure output in c++ for classes.
   class Generator
     # Create a generator for a [library], with a given [exposer]
