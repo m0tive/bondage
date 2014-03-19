@@ -1,3 +1,6 @@
 [submodule "parser/ffi-clang"]
 	path = parser/ffi-clang
 	url = https://github.com/jorj1988/ffi-clang.git
+[submodule "runtime/Reflect"]
+	path = runtime/Reflect
+	url = https://github.com/jorj1988/Reflect.git

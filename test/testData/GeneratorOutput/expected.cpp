@@ -2,6 +2,11 @@
 //
 // This file is auto generated, do not change it!
 //
+#include "../GeneratorOutput/expected.h"
+#include "bondage/RuntimeHelpersImpl.h"
+#include "utility"
+
+
 
 
 // Exposing class ::Gen::Gen
@@ -22,19 +27,19 @@ int Gen_Gen_test3_overload1(bool inputArg0, int inputArg1)
   return result;
 }
 
-const cobra::function Gen_Gen_methods[] = {
-  cobra::function_builder::build<
-    cobra::function_builder::build_call<void(::Gen::Gen::*)(int, float, double), &::Gen::Gen::test1>
+const bondage::function Gen_Gen_methods[] = {
+  bondage::function_builder::build<
+    bondage::function_builder::build_call<void(::Gen::Gen::*)(int, float, double), &::Gen::Gen::test1>
     >("test1")
-  cobra::function_builder::build_overloaded<
-    cobra::function_builder::build_member_standin_call<void(*)(::Gen::Gen &, int), &Gen_Gen_test2_overload0>,
-    cobra::function_builder::build_member_standin_call<void(*)(::Gen::Gen &, int, float), &Gen_Gen_test2_overload1>,
-    cobra::function_builder::build_call<void(::Gen::Gen::*)(int, float, double), &::Gen::Gen::test2>
+  bondage::function_builder::build_overloaded<
+    bondage::function_builder::build_member_standin_call<void(*)(::Gen::Gen &, int), &Gen_Gen_test2_overload0>,
+    bondage::function_builder::build_member_standin_call<void(*)(::Gen::Gen &, int, float), &Gen_Gen_test2_overload1>,
+    bondage::function_builder::build_call<void(::Gen::Gen::*)(int, float, double), &::Gen::Gen::test2>
     >("test2")
-  cobra::function_builder::build_overloaded<
-    cobra::function_builder::build_call<void(*)(bool), &::Gen::Gen::test3>,
-    cobra::function_builder::build_call<int(*)(bool, int), &Gen_Gen_test3_overload1>,
-    cobra::function_builder::build_call<int(*)(bool, int, bool), &::Gen::Gen::test3>
+  bondage::function_builder::build_overloaded<
+    bondage::function_builder::build_call<void(*)(bool), &::Gen::Gen::test3>,
+    bondage::function_builder::build_call<int(*)(bool, int), &Gen_Gen_test3_overload1>,
+    bondage::function_builder::build_call<int(*)(bool, int, bool), &::Gen::Gen::test3>
     >("test3")
 };
 
@@ -46,12 +51,12 @@ COBRA_IMPLEMENT_EXPOSED_CLASS(
 
 // Exposing class ::Gen::InheritTest
 
-const cobra::function Gen_InheritTest_methods[] = {
-  cobra::function_builder::build<
-    cobra::function_builder::build_call<void(::Gen::InheritTest::*)(), &::Gen::InheritTest::pork>
+const bondage::function Gen_InheritTest_methods[] = {
+  bondage::function_builder::build<
+    bondage::function_builder::build_call<void(::Gen::InheritTest::*)(), &::Gen::InheritTest::pork>
     >("pork")
-  cobra::function_builder::build<
-    cobra::function_builder::build_call<int(::Gen::InheritTest::*)(), &::Gen::InheritTest::pork2>
+  bondage::function_builder::build<
+    bondage::function_builder::build_call<int(::Gen::InheritTest::*)(), &::Gen::InheritTest::pork2>
     >("pork2")
 };
 
@@ -80,10 +85,10 @@ inputArg0.test(&std::tuple::get<0>(result), &std::tuple::get<1>(result));
   return result;
 }
 
-const cobra::function Gen_MultipleReturnGen_methods[] = {
-  cobra::function_builder::build_overloaded<
-    cobra::function_builder::build_member_standin_call<int(*)(::Gen::MultipleReturnGen &), &Gen_MultipleReturnGen_test_overload0>,
-    cobra::function_builder::build_member_standin_call<std::tuple<int, float>(*)(::Gen::MultipleReturnGen &, float *), &Gen_MultipleReturnGen_test_overload1>
+const bondage::function Gen_MultipleReturnGen_methods[] = {
+  bondage::function_builder::build_overloaded<
+    bondage::function_builder::build_member_standin_call<int(*)(::Gen::MultipleReturnGen &), &Gen_MultipleReturnGen_test_overload0>,
+    bondage::function_builder::build_member_standin_call<std::tuple<int, float>(*)(::Gen::MultipleReturnGen &, float *), &Gen_MultipleReturnGen_test_overload1>
     >("test")
 };
 
@@ -97,7 +102,7 @@ COBRA_IMPLEMENT_EXPOSED_CLASS(
 
 ::Gen::CtorGen * Gen_CtorGen_CtorGen_overload0()
 {
-  auto &&result = Cobra::Type<::Gen::CtorGen>::create()
+  auto &&result = bondage::Type<::Gen::CtorGen>::create()
   return result;
 }
 
@@ -105,14 +110,14 @@ std::tuple<::Gen::CtorGen *, int> Gen_CtorGen_CtorGen_overload1()
 {
   std::tuple<::Gen::CtorGen *, int> result;
 
-std::tuple::get<0>(result) = Cobra::Type<::Gen::CtorGen>::create(&std::tuple::get<1>(result))
+std::tuple::get<0>(result) = bondage::Type<::Gen::CtorGen>::create(&std::tuple::get<1>(result))
   return result;
 }
 
-const cobra::function Gen_CtorGen_methods[] = {
-  cobra::function_builder::build_overloaded<
-    cobra::function_builder::build_call<::Gen::CtorGen *(*)(), &Gen_CtorGen_CtorGen_overload0>,
-    cobra::function_builder::build_call<std::tuple<::Gen::CtorGen *, int>(*)(), &Gen_CtorGen_CtorGen_overload1>
+const bondage::function Gen_CtorGen_methods[] = {
+  bondage::function_builder::build_overloaded<
+    bondage::function_builder::build_call<::Gen::CtorGen *(*)(), &Gen_CtorGen_CtorGen_overload0>,
+    bondage::function_builder::build_call<std::tuple<::Gen::CtorGen *, int>(*)(), &Gen_CtorGen_CtorGen_overload1>
     >("CtorGen")
 };
 

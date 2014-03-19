@@ -59,7 +59,7 @@ module CPP
         generateWrapper(calls, extraFunctions)
       else
         sig = signature()
-        calls << "cobra::function_builder::build_call<#{sig}, &#{@function.fullyQualifiedName}>"
+        calls << "#{TYPE_NAMESPACE}::function_builder::build_call<#{sig}, &#{@function.fullyQualifiedName}>"
       end
     end
 
@@ -119,7 +119,7 @@ module CPP
 
       sig = signature()
       callType = @static ? "build_call" : "build_member_standin_call"
-      calls << "cobra::function_builder::#{callType}<#{sig}, &#{extraFnName}>"
+      calls << "#{TYPE_NAMESPACE}::function_builder::#{callType}<#{sig}, &#{extraFnName}>"
 
       extra = ""
       if (initArgs.length != 0)

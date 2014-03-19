@@ -83,7 +83,7 @@ module CPP
       @implementation =
 "// Exposing class #{fullyQualified}
 #{extraMethodSource}
-const cobra::function #{methodsLiteral}[] = {\n#{methodsSource}\n};
+const #{TYPE_NAMESPACE}::function #{methodsLiteral}[] = {\n#{methodsSource}\n};
 
 #{classInfo}
 "

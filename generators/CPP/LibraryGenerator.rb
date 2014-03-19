@@ -5,6 +5,8 @@ require_relative "../../exposer/FunctionVisitor.rb"
 require_relative "FunctionGenerator.rb"
 require_relative "ClassGenerator.rb"
 
+require 'pathname'
+
 module CPP
 
   class LibraryGenerator
@@ -15,21 +17,50 @@ module CPP
 
     attr_reader :header, :source
 
-    def generate(exposer)
-      @header = filePreamble("//") + "\n\n"
-      @source = filePreamble("//")
+    def generate(library, exposer, destHeaderFilename)
+      setLibrary(library)
+
+      @header = filePreamble("//") + "\n\n" 
+      @source = filePreamble("//") + "\n"
+      @source += generateInclude(destHeaderFilename)
+      sourcefiles = [ TYPE_NAMESPACE + "/RuntimeHelpersImpl.h", "utility" ]
+      @source += "\n" + sourcefiles.map{ |f| "#include \"#{f}\"" }.join("\n") + "\n\n"
 
       clsGen = ClassGenerator.new
+
+      files = Set.new
+
+      classHeader = ""
+      classSource = ""
 
       exposer.exposedMetaData.types.each do |path, cls|
         if (cls.type == :class && cls.fullyExposed)
           clsGen.reset()
           clsGen.generate(exposer, cls)
-          @header += "#{clsGen.interface}\n"
-          @source += "\n\n\n#{clsGen.implementation}"
+          classHeader += "#{clsGen.interface}\n"
+          classSource += "\n\n\n#{clsGen.implementation}"
+
+          files.add(cls.parsed.fileLocation)
         end
       end
 
+      @header += files.map{ |path| generateInclude(path) }.join("\n")
+      @header += "\n#include \"#{TYPE_NAMESPACE}/RuntimeHelpers.h\"\n\n"
+
+      @header += classHeader
+      @source += classSource
+
+    end
+
+  private
+    def generateInclude(libraryfile)
+      path = Pathname.new(libraryfile).relative_path_from(@libraryPath).cleanpath
+      return "#include \"#{path}\""
+    end
+
+    def setLibrary(lib)
+      @library = lib
+      @libraryPath = Pathname.new(lib.root)
     end
   end
 
@@ -101,7 +132,7 @@ module CPP
       output =
   "// Exposing class #{fullyQualified}
 
-  const cobra::function #{methodsLiteral}[] = #{generateMethodData(parsed)};
+  const #{TYPE_NAMESPACE}::function #{methodsLiteral}[] = #{generateMethodData(parsed)};
 
   #{classInfo}
 
@@ -120,7 +151,7 @@ module CPP
           generateSingularMethod(fns[0])
         else
           functions = fns.map{ |fn| "&#{fn.fullyQualifiedName()}" }.join(",\n    ")
-          "cobra::function_builder::build_overloaded<\n    #{functions}>(\"#{name}\")"
+          "#{TYPE_NAMESPACE}::function_builder::build_overloaded<\n    #{functions}>(\"#{name}\")"
         end
       end
 
@@ -129,7 +160,7 @@ module CPP
 
     # generate an expose signature for a singlular method.
     def generateSingularMethod(fn)
-      "cobra::function_builder::build<&#{fn.fullyQualifiedName()}>(\"#{fn.name}\")"
+      "#{TYPE_NAMESPACE}::function_builder::build<&#{fn.fullyQualifiedName()}>(\"#{fn.name}\")"
     end
 
     # write the pre amble for a C++ file to [file]

@@ -53,6 +53,10 @@ class HierarchyItem
   def locationString
     return sourceError(@cursor)
   end
+
+  def fileLocation
+    return @cursor.location.file
+  end
 end
 
 # A classable item can contain classes, structs and unions.

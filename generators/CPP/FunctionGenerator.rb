@@ -15,7 +15,7 @@ module CPP
     def generateSimpleCall(sig, name)
       fnDef = generateBuildCall(name, sig, false)
       olLs = @lineStart + "  "
-      @bind = "cobra::function_builder::build<
+      @bind = "#{TYPE_NAMESPACE}::function_builder::build<
   #{olLs}#{fnDef}
   #{olLs}>"
     end
@@ -49,7 +49,7 @@ module CPP
 
 
       @bind = 
-"cobra::function_builder::#{caller}<
+"#{TYPE_NAMESPACE}::function_builder::#{caller}<
 #{olLs}#{list}
 #{olLs}>(\"#{name}\")"
     end
