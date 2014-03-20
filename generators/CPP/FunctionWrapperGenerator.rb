@@ -28,6 +28,15 @@ module CPP
       end
     end
 
+    class OutputArg
+      def initialize(type, name)
+        @type = type
+        @name = name
+      end
+
+      attr_reader :type, :name
+    end
+
     def generateCall(ls, owner, function, functionIndex, argCount, calls, extraFunctions)
       @lineStart = ls
       @constructor = function.isConstructor
@@ -47,9 +56,9 @@ module CPP
       end
 
       if (@constructor)
-        @outputArguments << "#{owner.fullyQualifiedName} *"
+        @outputArguments << OutputArg.new(:pointer, "#{owner.fullyQualifiedName} *")
       elsif (function.returnType)
-        @outputArguments << function.returnType.name
+        @outputArguments << OutputArg.new(argType(function.returnType), function.returnType.name)
       end
 
       # visit arguments of function.
@@ -98,17 +107,21 @@ module CPP
       args = call.join(', ')
       call = ""
       if (@constructor)
-        call = "#{TYPE_NAMESPACE}::Type<#{@owner.fullyQualifiedName}>::create(#{args})"
+        call = "#{TYPE_NAMESPACE}::wrapped_class_helper<#{@owner.fullyQualifiedName}>::create(#{args})"
       else
         accessor = functionAccessor()
-        call = "#{accessor}(#{args});"
+        call = "#{accessor}(#{args})"
       end
 
       if (hasReturnType)
         if (@outputArguments.length > 1)
           call = "#{outputArgReference(0)} = #{call}"
         else
-          call = "auto &&#{resVar} = #{call}"
+          type = "auto"
+          if (@outputArguments[0].type == :reference)
+            type = "auto &&"
+          end
+          call = "#{type} #{resVar} = #{call}"
         end
       end
 
@@ -123,13 +136,13 @@ module CPP
 
       extra = ""
       if (initArgs.length != 0)
-        extra = initArgs.join("\n") + "\n\n"
+        extra = initArgs.join("\n#{olLs}") + "\n\n#{olLs}"
       end
 
       extraFunctions << 
 "#{ls}#{ret} #{extraFnName}(#{inArgs})
 #{ls}{
-#{olLs}#{extra}#{call}#{returnExtra}
+#{olLs}#{extra}#{call};#{returnExtra}
 #{ls}}"
     end
 
@@ -159,19 +172,30 @@ module CPP
     def addOutputArgumentHelper(arg)
       outIdx = @outputArguments.length
       name = arg.type.name
-      accessor = ""
+      accessor = argType(arg.type)
 
       if (arg.type.isPointer)
-        accessor = :pointer
         name = arg.type.pointeeType().name
       elsif (arg.type.isLValueReference)
         name = arg.type.pointeeType().name
       elsif (arg.type.isRValueReference)
         raise "R value reference as an output? this needs some thought."
       end
-      @outputArguments << name
+      @outputArguments << OutputArg.new(accessor, name)
 
       return outIdx, accessor
+    end
+
+    def argType(arg)
+      type = :value
+
+      if (arg.isPointer)
+        type = :pointer
+      elsif (arg.isLValueReference)
+        type = :reference
+      end
+
+      return type
     end
 
     def signature()
@@ -202,7 +226,7 @@ module CPP
 
     def outputArgReference(i)
       if (@outputArguments.length > 1)
-        return "std::tuple::get<#{i}>(#{resultName()})"
+        return "std::get<#{i}>(#{resultName()})"
       end
 
       return resultName()
@@ -227,10 +251,12 @@ module CPP
       if (@outputArguments.length == 0)
         return "void"
       elsif (@outputArguments.length == 1)
-        return @outputArguments[0]
+        return @outputArguments[0].name
       end
 
-      return "std::tuple<#{@outputArguments.join(', ')}>"
+      args = @outputArguments.map{ |a| a.name }
+
+      return "std::tuple<#{args.join(', ')}>"
     end
 
     def literalName

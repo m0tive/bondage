@@ -36,7 +36,11 @@ module CPP
       clsPath = @cls.fullyQualifiedName
       if(!@metaData.hasParentClass())
         type = classMode()
-        @interface = "#{MACRO_PREFIX}EXPOSED_CLASS_#{type}(#{clsPath})"
+        derivable = ""
+        if (@metaData.isDerivable)
+        derivable = "DERIVABLE_"
+        end
+        @interface = "#{MACRO_PREFIX}EXPOSED_CLASS_#{derivable}#{type}(#{clsPath})"
       else
         parent = @metaData.parentClass
         root = findRootClass(@metaData)
@@ -54,9 +58,9 @@ module CPP
 
 
       classInfo =
-"COBRA_IMPLEMENT_EXPOSED_CLASS(
+"#{MACRO_PREFIX}IMPLEMENT_EXPOSED_CLASS(
   #{fullyQualified},
-  #{methodsLiteral})"
+  #{methodsLiteral});"
 
       functions = @exposer.findExposedFunctions(@cls)
 
@@ -73,7 +77,7 @@ module CPP
 
       methodsSource = ""
       if (methods.length > 0)
-        methodsSource = "  " + methods.join("\n  ")
+        methodsSource = "  " + methods.join(",\n  ")
       end
       extraMethodSource = ""
       if (extraMethods.length > 0)

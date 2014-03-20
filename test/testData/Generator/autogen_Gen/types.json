@@ -1,0 +1,20 @@
+{
+  "::Gen::Gen": {
+    "name": "Gen",
+    "parent": null,
+    "derivable": true
+  },
+  "::Gen::InheritTest": {
+    "name": "InheritTest",
+    "parent": "::Gen::Gen",
+    "derivable": true
+  },
+  "::Gen::MultipleReturnGen": {
+    "name": "MultipleReturnGen",
+    "parent": null
+  },
+  "::Gen::CtorGen": {
+    "name": "CtorGen",
+    "parent": null
+  }
+}

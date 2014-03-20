@@ -17,13 +17,24 @@ module CPP
 
     attr_reader :header, :source
 
-    def generate(library, exposer, destHeaderFilename)
+    def headerPath(library)
+      return "#{library.autogenPath}/#{library.name}.h"
+    end
+
+    def sourcePath(library)
+      return "#{library.autogenPath}/#{library.name}.cpp"
+    end
+
+    def generate(library, exposer)
       setLibrary(library)
 
       @header = filePreamble("//") + "\n\n" 
       @source = filePreamble("//") + "\n"
-      @source += generateInclude(destHeaderFilename)
-      sourcefiles = [ TYPE_NAMESPACE + "/RuntimeHelpersImpl.h", "utility" ]
+      @source += generateInclude(headerPath(library))
+      sourcefiles = [ TYPE_NAMESPACE + "/RuntimeHelpersImpl.h", "utility", "tuple" ]
+
+      library.dependencies.each{ |l| sourcefiles << headerPath(l) }
+
       @source += "\n" + sourcefiles.map{ |f| "#include \"#{f}\"" }.join("\n") + "\n\n"
 
       clsGen = ClassGenerator.new
