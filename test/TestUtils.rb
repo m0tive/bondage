@@ -55,3 +55,11 @@ def cleanLibrary(library)
     result = FileUtils.rm_rf(path)
   end
 end
+
+def runProcess(process)
+  output = `#{process}`
+  puts output
+  if !$?.success?
+    raise output
+  end
+end

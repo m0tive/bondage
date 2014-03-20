@@ -25,13 +25,13 @@ public:
     }
 };
 
-int test4(bool a, bool b)
+inline int test4(bool a, bool b)
   {
   (void)a;
   (void)b;
   return 3;
   }
-int test5(bool a, bool b, float = 4.3f)
+inline int test5(bool a, bool b, float = 4.3f)
   {
   (void)a;
   (void)b;

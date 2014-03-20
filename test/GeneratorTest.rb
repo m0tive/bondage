@@ -221,5 +221,8 @@ class TestGenerator < Test::Unit::TestCase
 
     assert_equal File.read(expectedHeader), libGen.header
     assert_equal File.read(expectedSource), libGen.source
+
+    runProcess("qmake runtime/test")
+    runProcess("make check runtime/test")
   end
 end

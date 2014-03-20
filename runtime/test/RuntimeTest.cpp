@@ -1,26 +1,25 @@
 #include <QString>
 #include <QtTest>
 
-#include "GeneratorOutput/expected.h"
+#include "Generator/autogen_Gen/Gen.h"
 
 class RuntimeTest : public QObject
   {
   Q_OBJECT
 
-public:
-  RuntimeTest();
-
 private Q_SLOTS:
-  void test1();
+  void testTypes();
   };
 
-RuntimeTest::RuntimeTest()
+void RuntimeTest::testTypes()
   {
-  }
+  const Reflect::Type *value = Reflect::findType<Gen::Gen>();
+  const Reflect::Type *ptr = Reflect::findType<Gen::Gen*>();
+  const Reflect::Type *constPtr = Reflect::findType<const Gen::Gen*>();
+  const Reflect::Type *ref = Reflect::findType<Gen::Gen&>();
+  const Reflect::Type *constRef = Reflect::findType<const Gen::Gen&>();
 
-void RuntimeTest::test1()
-  {
-  QVERIFY2(true, "Failure");
+
   }
 
 QTEST_APPLESS_MAIN(RuntimeTest)
