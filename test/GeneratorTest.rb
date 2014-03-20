@@ -208,9 +208,8 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen.generate(lib.library, exposer)
 
-    if (true)
-      FileUtils.mkdir_p("test/testData/Generator")
-      puts FileUtils.mkdir_p(lib.library.autogenPath).to_s
+    if (false)
+      FileUtils.mkdir_p(lib.library.autogenPath)
       File.open(expectedHeader, 'w') do |file|
         file.write(libGen.header)
       end
@@ -222,7 +221,6 @@ class TestGenerator < Test::Unit::TestCase
     assert_equal File.read(expectedHeader), libGen.header
     assert_equal File.read(expectedSource), libGen.source
 
-    runProcess("qmake runtime/test")
-    runProcess("make check runtime/test")
+    runProcess("test/testGenerator.sh")
   end
 end
