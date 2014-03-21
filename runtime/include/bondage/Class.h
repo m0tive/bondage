@@ -1,7 +1,7 @@
 #pragma once
 #include "Reflect/Type.h"
-#include "Bondage/Function.h"
-#include "Bondage/Boxer.h"
+#include "bondage/Function.h"
+#include "bondage/Boxer.h"
 
 #define BONDAGE_ARRAY_COUNT(arr) (sizeof(arr)/sizeof(arr[0]))
 #define BONDAGE_IMPLEMENT_EXPOSED_CLASS(name, fns) bondage::wrapped_class class_##fns (Reflect::findType<name>(), fns, BONDAGE_ARRAY_COUNT(fns))
