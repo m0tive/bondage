@@ -4,25 +4,25 @@
 namespace bondage
 {
 
-class function_builder
+class FunctionBuilder
   {
 public:
-  template <typename Fn> static function build(const char *)
+  template <typename Fn> static Function build(const char *)
     {
-    return function();
+    return Function();
     }
 
-  template <typename... Overloads> static function build_overloaded(const char *)
+  template <typename... Overloads> static Function buildOverloaded(const char *)
     {
-    return function();
+    return Function();
     }
 
 
-  template <typename Signature, Signature Fn> class build_call
+  template <typename Signature, Signature Fn> class buildCall
     {
     };
 
-  template <typename Signature, Signature Fn> class build_member_standin_call
+  template <typename Signature, Signature Fn> class buildMemberStandinCall
     {
     };
   };

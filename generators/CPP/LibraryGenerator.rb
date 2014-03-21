@@ -41,13 +41,15 @@ module CPP
 
       files = Set.new
 
+      libraryName = "g_bondage_library";
+
       classHeader = ""
       classSource = ""
 
       exposer.exposedMetaData.types.each do |path, cls|
         if (cls.type == :class && cls.fullyExposed)
           clsGen.reset()
-          clsGen.generate(exposer, cls)
+          clsGen.generate(exposer, cls, libraryName)
           classHeader += "#{clsGen.interface}\n"
           classSource += "\n\n\n#{clsGen.implementation}"
 
@@ -60,15 +62,13 @@ module CPP
 
       @header += "namespace #{library.name}
 {
-#{library.exportMacro} const bondage::library &bindings();
+#{library.exportMacro} const bondage::Library &bindings();
 }\n\n"
 
-      libraryName = "g_bondage_library";
-
-      @source += "bondage::library #{libraryName};
+      @source += "bondage::Library #{libraryName};
 namespace #{library.name}
 {
-const bondage::library &bindings()
+const bondage::Library &bindings()
 {
   return #{libraryName};
 }

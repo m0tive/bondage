@@ -3,7 +3,7 @@
 namespace bondage
 {
 
-class function
+class Function
   {
   };
 

@@ -17,7 +17,7 @@ module CPP
       @fnGen = CPP::FunctionGenerator.new("", "  ")
     end
 
-    def generate(exposer, md)
+    def generate(exposer, md, libraryVariable)
       @metaData = md
       @cls = md.parsed
 
@@ -27,12 +27,11 @@ module CPP
       @functions = exposer.findExposedFunctions(@cls)
 
       generateHeader()
-      generateSource()
+      generateSource(libraryVariable)
     end
 
   private
     def generateHeader()
-
       clsPath = @cls.fullyQualifiedName
       if(!@metaData.hasParentClass())
         type = classMode()
@@ -49,7 +48,7 @@ module CPP
     end
 
     # Generate binding data for a class
-    def generateSource()
+    def generateSource(libraryVariable)
       # find a name that is a valid literal in c++ used for static definitions
       fullyQualified = @cls.fullyQualifiedName()
       literalName = fullyQualified.sub("::", "").gsub("::", "_")
@@ -59,6 +58,7 @@ module CPP
 
       classInfo =
 "#{MACRO_PREFIX}IMPLEMENT_EXPOSED_CLASS(
+  #{libraryVariable},
   #{fullyQualified},
   #{methodsLiteral});"
 
@@ -87,7 +87,7 @@ module CPP
       @implementation =
 "// Exposing class #{fullyQualified}
 #{extraMethodSource}
-const #{TYPE_NAMESPACE}::function #{methodsLiteral}[] = {\n#{methodsSource}\n};
+const #{TYPE_NAMESPACE}::Function #{methodsLiteral}[] = {\n#{methodsSource}\n};
 
 #{classInfo}
 "

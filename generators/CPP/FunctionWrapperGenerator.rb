@@ -68,7 +68,7 @@ module CPP
         generateWrapper(calls, extraFunctions)
       else
         sig = signature()
-        calls << "#{TYPE_NAMESPACE}::function_builder::build_call< #{sig}, &#{@function.fullyQualifiedName} >"
+        calls << "#{TYPE_NAMESPACE}::FunctionBuilder::buildCall< #{sig}, &#{@function.fullyQualifiedName} >"
       end
     end
 
@@ -107,7 +107,7 @@ module CPP
       args = call.join(', ')
       call = ""
       if (@constructor)
-        call = "#{TYPE_NAMESPACE}::wrapped_class_helper< #{@owner.fullyQualifiedName} >::create(#{args})"
+        call = "#{TYPE_NAMESPACE}::WrappedClassHelper< #{@owner.fullyQualifiedName} >::create(#{args})"
       else
         accessor = functionAccessor()
         call = "#{accessor}(#{args})"
@@ -131,8 +131,8 @@ module CPP
       end
 
       sig = signature()
-      callType = @static ? "build_call" : "build_member_standin_call"
-      calls << "#{TYPE_NAMESPACE}::function_builder::#{callType}< #{sig}, &#{extraFnName} >"
+      callType = @static ? "buildCall" : "buildMemberStandinCall"
+      calls << "#{TYPE_NAMESPACE}::FunctionBuilder::#{callType}< #{sig}, &#{extraFnName} >"
 
       extra = ""
       if (initArgs.length != 0)

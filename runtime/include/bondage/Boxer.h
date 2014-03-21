@@ -1,12 +1,12 @@
 #pragma once
 #include <memory>
 
-class boxer
+class Boxer
   {
 public:
   struct BoxedContainer;
   typedef BoxedContainer *BoxedData;
-  typedef void (*Cleanup)(boxer *, BoxedData);
+  typedef void (*Cleanup)(Boxer *, BoxedData);
 
   struct BoxedContainer
     {

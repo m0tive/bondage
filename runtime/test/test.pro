@@ -17,7 +17,9 @@ TEMPLATE = app
 
 SOURCES += \
   RuntimeTest.cpp \
-  ../../test/testData/Generator/autogen_Gen/Gen.cpp
+  ../../test/testData/Generator/autogen_Gen/Gen.cpp \
+    ../src/Library.cpp \
+    ../src/WrappedClass.cpp
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
@@ -28,8 +30,8 @@ HEADERS += \
     ../include/bondage/Boxer.h \
     ../include/bondage/Function.h \
     ../include/bondage/FunctionBuilder.h \
-    ../include/bondage/Class.h \
-    ../include/bondage/Library.h
+    ../include/bondage/Library.h \
+    ../include/bondage/WrappedClass.h
 
 INCLUDEPATH += \
   ../include/ \

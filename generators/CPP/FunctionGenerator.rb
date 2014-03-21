@@ -15,7 +15,7 @@ module CPP
     def generateSimpleCall(sig, name)
       fnDef = generateBuildCall(name, sig, false)
       olLs = @lineStart + "  "
-      @bind = "#{TYPE_NAMESPACE}::function_builder::build<
+      @bind = "#{TYPE_NAMESPACE}::FunctionBuilder::build<
   #{olLs}#{fnDef}
   #{olLs}>"
     end
@@ -43,13 +43,13 @@ module CPP
         caller = "build"
         list = @calls[0]
       elsif(@calls.length > 1)
-        caller = "build_overloaded"
+        caller = "buildOverloaded"
         list = @calls.join(",\n#{olLs}")
       end
 
 
       @bind = 
-"#{TYPE_NAMESPACE}::function_builder::#{caller}<
+"#{TYPE_NAMESPACE}::FunctionBuilder::#{caller}<
 #{olLs}#{list}
 #{olLs}>(\"#{name}\")"
     end

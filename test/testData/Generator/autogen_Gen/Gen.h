@@ -8,7 +8,7 @@
 
 namespace Gen
 {
-GEN_EXPORT const bondage::library &bindings();
+GEN_EXPORT const bondage::Library &bindings();
 }
 
 BONDAGE_EXPOSED_CLASS_DERIVABLE_MANAGED(::Gen::Gen)
