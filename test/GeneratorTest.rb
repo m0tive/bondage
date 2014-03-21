@@ -65,16 +65,16 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen.generate(cls, [ fn1 ])
     assert_equal "bondage::function_builder::build<
-  bondage::function_builder::build_call<void(::Gen::Gen::*)(int, float, double), &::Gen::Gen::test1>
+  bondage::function_builder::build_call< void(::Gen::Gen::*)(int, float, double), &::Gen::Gen::test1 >
   >(\"test1\")", fnGen.bind
     assert_equal [], fnGen.extraFunctions
 
 
     fnGen.generate(cls, [ fn2 ])
     assert_equal "bondage::function_builder::build_overloaded<
-  bondage::function_builder::build_member_standin_call<void(*)(::Gen::Gen &, int), &Gen_Gen_test2_overload0>,
-  bondage::function_builder::build_member_standin_call<void(*)(::Gen::Gen &, int, float), &Gen_Gen_test2_overload1>,
-  bondage::function_builder::build_call<void(::Gen::Gen::*)(int, float, double), &::Gen::Gen::test2>
+  bondage::function_builder::build_member_standin_call< void(*)(::Gen::Gen &, int), &Gen_Gen_test2_overload0 >,
+  bondage::function_builder::build_member_standin_call< void(*)(::Gen::Gen &, int, float), &Gen_Gen_test2_overload1 >,
+  bondage::function_builder::build_call< void(::Gen::Gen::*)(int, float, double), &::Gen::Gen::test2 >
   >(\"test2\")", fnGen.bind
     assert_equal ["void Gen_Gen_test2_overload0(::Gen::Gen & inputArg0, int inputArg1)\n{\n  inputArg0.test2(std::forward<int>(inputArg1));\n}",
  "void Gen_Gen_test2_overload1(::Gen::Gen & inputArg0, int inputArg1, float inputArg2)\n{\n  inputArg0.test2(std::forward<int>(inputArg1), std::forward<float>(inputArg2));\n}"], fnGen.extraFunctions
@@ -82,39 +82,39 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen.generate(cls, [ fn3 ])
     assert_equal "bondage::function_builder::build<
-  bondage::function_builder::build_call<void(*)(bool), &::Gen::Gen::test3>
+  bondage::function_builder::build_call< void(*)(bool), &::Gen::Gen::test3 >
   >(\"test3\")", fnGen.bind
     assert_equal [], fnGen.extraFunctions
 
 
     fnGen.generate(cls, [ fn4 ])
     assert_equal "bondage::function_builder::build_overloaded<
-  bondage::function_builder::build_call<int(*)(bool, int), &Gen_Gen_test3_overload0>,
-  bondage::function_builder::build_call<int(*)(bool, int, bool), &::Gen::Gen::test3>
+  bondage::function_builder::build_call< int(*)(bool, int), &Gen_Gen_test3_overload0 >,
+  bondage::function_builder::build_call< int(*)(bool, int, bool), &::Gen::Gen::test3 >
   >(\"test3\")", fnGen.bind
     assert_equal ["int Gen_Gen_test3_overload0(bool inputArg0, int inputArg1)\n{\n  auto result = ::Gen::Gen::test3(std::forward<bool>(inputArg0), std::forward<int>(inputArg1));\n  return result;\n}"], fnGen.extraFunctions
 
 
     fnGen.generate(cls, [ fn3, fn4 ])
     assert_equal "bondage::function_builder::build_overloaded<
-  bondage::function_builder::build_call<void(*)(bool), &::Gen::Gen::test3>,
-  bondage::function_builder::build_call<int(*)(bool, int), &Gen_Gen_test3_overload1>,
-  bondage::function_builder::build_call<int(*)(bool, int, bool), &::Gen::Gen::test3>
+  bondage::function_builder::build_call< void(*)(bool), &::Gen::Gen::test3 >,
+  bondage::function_builder::build_call< int(*)(bool, int), &Gen_Gen_test3_overload1 >,
+  bondage::function_builder::build_call< int(*)(bool, int, bool), &::Gen::Gen::test3 >
   >(\"test3\")", fnGen.bind
     assert_equal ["int Gen_Gen_test3_overload1(bool inputArg0, int inputArg1)\n{\n  auto result = ::Gen::Gen::test3(std::forward<bool>(inputArg0), std::forward<int>(inputArg1));\n  return result;\n}"], fnGen.extraFunctions
 
 
     fnGen.generate(cls, [ fn5 ])
     assert_equal "bondage::function_builder::build<
-  bondage::function_builder::build_call<int(*)(bool, bool), &::Gen::test4>
+  bondage::function_builder::build_call< int(*)(bool, bool), &::Gen::test4 >
   >(\"test4\")", fnGen.bind
     assert_equal [], fnGen.extraFunctions
 
 
     fnGen.generate(cls, [ fn6 ])
     assert_equal "bondage::function_builder::build_overloaded<
-  bondage::function_builder::build_call<int(*)(bool, bool), &Gen_test5_overload0>,
-  bondage::function_builder::build_call<int(*)(bool, bool, float), &::Gen::test5>
+  bondage::function_builder::build_call< int(*)(bool, bool), &Gen_test5_overload0 >,
+  bondage::function_builder::build_call< int(*)(bool, bool, float), &::Gen::test5 >
   >(\"test5\")", fnGen.bind
     assert_equal ["int Gen_test5_overload0(bool inputArg0, bool inputArg1)\n{\n  auto result = ::Gen::test5(std::forward<bool>(inputArg0), std::forward<bool>(inputArg1));\n  return result;\n}"], fnGen.extraFunctions
   end
@@ -139,13 +139,13 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen.generate(multiReturnCls, [ fn1, fn2 ])
     assert_equal "bondage::function_builder::build_overloaded<
-  bondage::function_builder::build_member_standin_call<int(*)(::Gen::MultipleReturnGen &), &Gen_MultipleReturnGen_test_overload0>,
-  bondage::function_builder::build_member_standin_call<std::tuple<int, float>(*)(::Gen::MultipleReturnGen &, float *), &Gen_MultipleReturnGen_test_overload1>,
-  bondage::function_builder::build_member_standin_call<std::tuple<double, int, int>(*)(::Gen::MultipleReturnGen &, int &, int *), &Gen_MultipleReturnGen_test_overload2>
+  bondage::function_builder::build_member_standin_call< int(*)(::Gen::MultipleReturnGen &), &Gen_MultipleReturnGen_test_overload0 >,
+  bondage::function_builder::build_member_standin_call< std::tuple< int, float >(*)(::Gen::MultipleReturnGen &, float *), &Gen_MultipleReturnGen_test_overload1 >,
+  bondage::function_builder::build_member_standin_call< std::tuple< double, int, int >(*)(::Gen::MultipleReturnGen &, int &, int *), &Gen_MultipleReturnGen_test_overload2 >
   >(\"test\")", fnGen.bind
     assert_equal ["int Gen_MultipleReturnGen_test_overload0(::Gen::MultipleReturnGen & inputArg0)\n{\n  int result;\n\n  inputArg0.test(&result);\n  return result;\n}",
- "std::tuple<int, float> Gen_MultipleReturnGen_test_overload1(::Gen::MultipleReturnGen & inputArg0, float * inputArg1)\n{\n  std::tuple<int, float> result;\n  std::get<1>(result) = * std::forward<float *>(inputArg1);\n\n  inputArg0.test(&std::get<0>(result), &std::get<1>(result));\n  return result;\n}",
- "std::tuple<double, int, int> Gen_MultipleReturnGen_test_overload2(::Gen::MultipleReturnGen & inputArg0, int & inputArg1, int * inputArg2)\n{\n  std::tuple<double, int, int> result;\n  std::get<1>(result) = * std::forward<int *>(inputArg2);\n\n  std::get<0>(result) = inputArg0.test(std::forward<int &>(inputArg1), &std::get<1>(result), std::get<2>(result));\n  return result;\n}"], 
+ "std::tuple< int, float > Gen_MultipleReturnGen_test_overload1(::Gen::MultipleReturnGen & inputArg0, float * inputArg1)\n{\n  std::tuple< int, float > result;\n  std::get<1>(result) = * std::forward<float *>(inputArg1);\n\n  inputArg0.test(&std::get<0>(result), &std::get<1>(result));\n  return result;\n}",
+ "std::tuple< double, int, int > Gen_MultipleReturnGen_test_overload2(::Gen::MultipleReturnGen & inputArg0, int & inputArg1, int * inputArg2)\n{\n  std::tuple< double, int, int > result;\n  std::get<1>(result) = * std::forward<int *>(inputArg2);\n\n  std::get<0>(result) = inputArg0.test(std::forward<int &>(inputArg1), &std::get<1>(result), std::get<2>(result));\n  return result;\n}"], 
       fnGen.extraFunctions
   end
 
@@ -175,11 +175,11 @@ class TestGenerator < Test::Unit::TestCase
     fnGen.generate(cls, ctors)
 
     assert_equal "bondage::function_builder::build_overloaded<
-  bondage::function_builder::build_call<::Gen::CtorGen *(*)(), &Gen_CtorGen_CtorGen_overload0>,
-  bondage::function_builder::build_call<std::tuple<::Gen::CtorGen *, int>(*)(), &Gen_CtorGen_CtorGen_overload1>
+  bondage::function_builder::build_call< ::Gen::CtorGen *(*)(), &Gen_CtorGen_CtorGen_overload0 >,
+  bondage::function_builder::build_call< std::tuple< ::Gen::CtorGen *, int >(*)(), &Gen_CtorGen_CtorGen_overload1 >
   >(\"CtorGen\")", fnGen.bind
-    assert_equal ["::Gen::CtorGen * Gen_CtorGen_CtorGen_overload0()\n{\n  auto result = bondage::wrapped_class_helper<::Gen::CtorGen>::create();\n  return result;\n}",
- "std::tuple<::Gen::CtorGen *, int> Gen_CtorGen_CtorGen_overload1()\n{\n  std::tuple<::Gen::CtorGen *, int> result;\n\n  std::get<0>(result) = bondage::wrapped_class_helper<::Gen::CtorGen>::create(&std::get<1>(result));\n  return result;\n}"], fnGen.extraFunctions
+    assert_equal ["::Gen::CtorGen * Gen_CtorGen_CtorGen_overload0()\n{\n  auto result = bondage::wrapped_class_helper< ::Gen::CtorGen >::create();\n  return result;\n}",
+ "std::tuple< ::Gen::CtorGen *, int > Gen_CtorGen_CtorGen_overload1()\n{\n  std::tuple< ::Gen::CtorGen *, int > result;\n\n  std::get<0>(result) = bondage::wrapped_class_helper< ::Gen::CtorGen >::create(&std::get<1>(result));\n  return result;\n}"], fnGen.extraFunctions
   end
 
   def test_classGenerator
@@ -208,7 +208,7 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen.generate(lib.library, exposer)
 
-    if (false)
+    if (true)
       FileUtils.mkdir_p(lib.library.autogenPath)
       File.open(expectedHeader, 'w') do |file|
         file.write(libGen.header)
