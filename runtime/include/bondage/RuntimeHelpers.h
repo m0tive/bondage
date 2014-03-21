@@ -1,5 +1,6 @@
 #pragma once
 #include "Crate/Traits.h"
+#include "bondage/Library.h"
 
 #define BONDAGE_CLASS_RESOLVER(CLS) \
   namespace Reflect { \

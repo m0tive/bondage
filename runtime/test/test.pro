@@ -28,7 +28,8 @@ HEADERS += \
     ../include/bondage/Boxer.h \
     ../include/bondage/Function.h \
     ../include/bondage/FunctionBuilder.h \
-    ../include/bondage/Class.h
+    ../include/bondage/Class.h \
+    ../include/bondage/Library.h
 
 INCLUDEPATH += \
   ../include/ \

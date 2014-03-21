@@ -35,7 +35,7 @@ module CPP
 
       library.dependencies.each{ |l| sourcefiles << headerPath(l) }
 
-      @source += "\n" + sourcefiles.map{ |f| "#include \"#{f}\"" }.join("\n") + "\n\n"
+      @source += "\n" + sourcefiles.map{ |f| "#include \"#{f}\"" }.join("\n") + "\n\n\n"
 
       clsGen = ClassGenerator.new
 
@@ -57,6 +57,22 @@ module CPP
 
       @header += files.map{ |path| generateInclude(path) }.join("\n")
       @header += "\n#include \"#{TYPE_NAMESPACE}/RuntimeHelpers.h\"\n\n"
+
+      @header += "namespace #{library.name}
+{
+#{library.exportMacro} const bondage::library &bindings();
+}\n\n"
+
+      libraryName = "g_bondage_library";
+
+      @source += "bondage::library #{libraryName};
+namespace #{library.name}
+{
+const bondage::library &bindings()
+{
+  return #{libraryName};
+}
+}"
 
       @header += classHeader
       @source += classSource

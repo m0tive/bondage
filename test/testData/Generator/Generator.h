@@ -1,5 +1,7 @@
 #include <cstddef>
 
+#define GEN_EXPORT
+
 namespace Gen
 {
 

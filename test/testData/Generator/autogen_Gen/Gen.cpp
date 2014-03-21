@@ -8,6 +8,14 @@
 #include "tuple"
 
 
+bondage::library g_bondage_library;
+namespace Gen
+{
+const bondage::library &bindings()
+{
+  return g_bondage_library;
+}
+}
 
 
 // Exposing class ::Gen::Gen
