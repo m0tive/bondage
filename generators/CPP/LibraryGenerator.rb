@@ -31,7 +31,7 @@ module CPP
       @header = filePreamble("//") + "\n\n" 
       @source = filePreamble("//") + "\n"
       @source += generateInclude(headerPath(library))
-      sourcefiles = [ TYPE_NAMESPACE + "/RuntimeHelpersImpl.h", "utility", "tuple" ]
+      sourcefiles = [ TYPE_NAMESPACE + "/RuntimeHelpersImpl.h", "utility", "tuple", "memory" ]
 
       library.dependencies.each{ |l| sourcefiles << headerPath(l) }
 
