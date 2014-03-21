@@ -19,7 +19,10 @@ void RuntimeTest::testTypes()
   const Reflect::Type *ref = Reflect::findType<Gen::Gen&>();
   const Reflect::Type *constRef = Reflect::findType<const Gen::Gen&>();
 
-
+  QCOMPARE(value, ptr);
+  QCOMPARE(value, constPtr);
+  QCOMPARE(value, ref);
+  QCOMPARE(value, constRef);
   }
 
 QTEST_APPLESS_MAIN(RuntimeTest)
