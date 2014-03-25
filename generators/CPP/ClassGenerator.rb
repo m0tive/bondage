@@ -59,7 +59,8 @@ module CPP
       classInfo =
 "#{MACRO_PREFIX}IMPLEMENT_EXPOSED_CLASS(
   #{libraryVariable},
-  #{fullyQualified},
+  #{@cls.parent.fullyQualifiedName()},
+  #{@cls.name},
   #{methodsLiteral});"
 
       functions = @exposer.findExposedFunctions(@cls)

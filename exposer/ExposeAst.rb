@@ -29,12 +29,10 @@ class HierarchyItem
       return @fullyQualified
     end
 
-    if(parent.kind_of?(Visitor))
-      @fullyQualified = ""
-    elsif(@parent)
+    if(@parent && !parent.kind_of?(Visitor))
       @fullyQualified = "#{@parent.fullyQualifiedName()}::#{self.name()}"
     else
-      @fullyQualified = "::#{self.name()}"
+      @fullyQualified = ""
     end
 
     return @fullyQualified

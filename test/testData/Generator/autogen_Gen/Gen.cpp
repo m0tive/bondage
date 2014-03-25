@@ -54,7 +54,8 @@ const bondage::Function Gen_Gen_methods[] = {
 
 BONDAGE_IMPLEMENT_EXPOSED_CLASS(
   g_bondage_library,
-  ::Gen::Gen,
+  ::Gen,
+  Gen,
   Gen_Gen_methods);
 
 
@@ -72,7 +73,8 @@ const bondage::Function Gen_InheritTest_methods[] = {
 
 BONDAGE_IMPLEMENT_EXPOSED_CLASS(
   g_bondage_library,
-  ::Gen::InheritTest,
+  ::Gen,
+  InheritTest,
   Gen_InheritTest_methods);
 
 
@@ -105,7 +107,8 @@ const bondage::Function Gen_MultipleReturnGen_methods[] = {
 
 BONDAGE_IMPLEMENT_EXPOSED_CLASS(
   g_bondage_library,
-  ::Gen::MultipleReturnGen,
+  ::Gen,
+  MultipleReturnGen,
   Gen_MultipleReturnGen_methods);
 
 
@@ -135,5 +138,6 @@ const bondage::Function Gen_CtorGen_methods[] = {
 
 BONDAGE_IMPLEMENT_EXPOSED_CLASS(
   g_bondage_library,
-  ::Gen::CtorGen,
+  ::Gen,
+  CtorGen,
   Gen_CtorGen_methods);

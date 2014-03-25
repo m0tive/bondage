@@ -2,6 +2,7 @@
 #include <QtTest>
 
 #include "Generator/autogen_Gen/Gen.h"
+#include "bondage/Library.h"
 
 class RuntimeTest : public QObject
   {
@@ -23,6 +24,17 @@ void RuntimeTest::testTypes()
   QCOMPARE(value, constPtr);
   QCOMPARE(value, ref);
   QCOMPARE(value, constRef);
+
+  std::map<std::string, const bondage::WrappedClass *> classes;
+  for(auto cls : bondage::ClassWalker(Gen::bindings()))
+    {
+    classes[cls->type().name()] = cls;
+    }
+
+  QVERIFY(classes["Gen"]);
+  QVERIFY(classes["InheritTest"]);
+  QVERIFY(classes["MultipleReturnGen"]);
+  QVERIFY(classes["CtorGen"]);
   }
 
 QTEST_APPLESS_MAIN(RuntimeTest)

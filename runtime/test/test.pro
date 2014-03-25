@@ -31,7 +31,8 @@ HEADERS += \
     ../include/bondage/Function.h \
     ../include/bondage/FunctionBuilder.h \
     ../include/bondage/Library.h \
-    ../include/bondage/WrappedClass.h
+    ../include/bondage/WrappedClass.h \
+    ../include/bondage/Bondage.h
 
 INCLUDEPATH += \
   ../include/ \
