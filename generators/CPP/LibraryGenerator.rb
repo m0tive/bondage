@@ -65,7 +65,7 @@ module CPP
 #{library.exportMacro} const bondage::Library &bindings();
 }\n\n"
 
-      @source += "bondage::Library #{libraryName};
+      @source += "bondage::Library #{libraryName}(\"#{library.name}\");
 namespace #{library.name}
 {
 const bondage::Library &bindings()

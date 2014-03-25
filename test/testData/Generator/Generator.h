@@ -9,6 +9,8 @@ namespace Gen
 class Gen
 {
 public:
+  virtual ~Gen() { }
+
   void test1(int, float, double)
     {
     }

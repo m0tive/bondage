@@ -4,7 +4,8 @@
 namespace bondage
 {
 
-Library::Library()
+Library::Library(const char *name)
+    : m_name(name)
   {
   }
 

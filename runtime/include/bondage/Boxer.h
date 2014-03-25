@@ -1,6 +1,9 @@
 #pragma once
 #include <memory>
 
+namespace bondage
+{
+
 class Boxer
   {
 public:
@@ -50,3 +53,4 @@ public:
     }
   };
 
+}

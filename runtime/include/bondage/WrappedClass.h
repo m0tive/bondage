@@ -6,7 +6,11 @@
 #include "bondage/Boxer.h"
 
 #define BONDAGE_ARRAY_COUNT(arr) (sizeof(arr)/sizeof(arr[0]))
-#define BONDAGE_IMPLEMENT_EXPOSED_CLASS(lib, parent, name, fns) bondage::WrappedClass class_##fns (lib, Reflect::findType<parent::name>(), fns, BONDAGE_ARRAY_COUNT(fns))
+#define BONDAGE_IMPLEMENT_EXPOSED_CLASS(lib, parent, name, fns) \
+  namespace Reflect { namespace detail { \
+  const Type *TypeResolver<parent::name>::find() \
+    { static Type t(#name); return &t; } } } \
+  bondage::WrappedClass class_##fns (lib, Reflect::findType<parent::name>(), fns, BONDAGE_ARRAY_COUNT(fns))
 
 namespace bondage
 {

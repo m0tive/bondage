@@ -6,7 +6,7 @@
   namespace Reflect { \
   namespace detail { \
   template <> struct TypeResolver<CLS> { \
-  static const Type *find() { static Type t(#CLS); return &t; } }; } }
+  static const Type *find(); }; } }
 
 
 #define BONDAGE_CLASS_CRATER(CLS, TRAITS) \

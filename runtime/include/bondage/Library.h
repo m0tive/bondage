@@ -8,7 +8,7 @@ namespace bondage
 class BONDAGE_EXPORT Library
   {
 public:
-  Library();
+  Library(const char *name);
 
   void registerClass(WrappedClass *cls);
 
@@ -20,6 +20,7 @@ public:
 private:
   WrappedClass *m_first;
   WrappedClass *m_last;
+  std::string m_name;
   };
 
 class BONDAGE_EXPORT ClassWalker

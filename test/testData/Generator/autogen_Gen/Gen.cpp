@@ -8,7 +8,7 @@
 #include "tuple"
 
 
-bondage::Library g_bondage_library;
+bondage::Library g_bondage_library("Gen");
 namespace Gen
 {
 const bondage::Library &bindings()
