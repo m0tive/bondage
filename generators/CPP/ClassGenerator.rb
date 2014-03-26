@@ -32,16 +32,18 @@ module CPP
     end
 
     def findRootClass(md)
+      distance = 0
       cls = md.parentClass
       while(!cls.empty?)
         parentName = @exposer.exposedMetaData.findClass(cls).parentClass
+        distance += 1
         if (!parentName)
-          return cls
+          return cls, distance
         end
         cls = parentName
       end
 
-      return nil
+      return nil, distance
     end
 
   private
@@ -51,12 +53,12 @@ module CPP
         type = classMode()
         derivable = ""
         if (@metaData.isDerivable)
-        derivable = "DERIVABLE_"
+          derivable = "DERIVABLE_"
         end
         @interface = "#{MACRO_PREFIX}EXPOSED_CLASS_#{derivable}#{type}(#{clsPath})"
       else
         parent = @metaData.parentClass
-        root = findRootClass(@metaData)
+        root, dist = findRootClass(@metaData)
         @interface = "#{MACRO_PREFIX}EXPOSED_DERIVED_CLASS(#{clsPath}, #{parent}, #{root})"
       end
     end

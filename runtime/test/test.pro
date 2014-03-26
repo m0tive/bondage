@@ -9,7 +9,7 @@ QT       += testlib
 QT       -= gui
 
 TARGET = RuntimeTest
-CONFIG   += console
+CONFIG   += console testcase
 CONFIG   -= app_bundle
 
 TEMPLATE = app
@@ -19,7 +19,8 @@ SOURCES += \
   RuntimeTest.cpp \
   ../../test/testData/Generator/autogen_Gen/Gen.cpp \
     ../src/Library.cpp \
-    ../src/WrappedClass.cpp
+    ../src/WrappedClass.cpp \
+    ../src/CastHelper.cpp
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
@@ -32,7 +33,9 @@ HEADERS += \
     ../include/bondage/FunctionBuilder.h \
     ../include/bondage/Library.h \
     ../include/bondage/WrappedClass.h \
-    ../include/bondage/Bondage.h
+    ../include/bondage/Bondage.h \
+    CastHelper.Gen_Gen.h \
+    ../include/bondage/CastHelper.h
 
 INCLUDEPATH += \
   ../include/ \

@@ -9,6 +9,11 @@
     "parent": "::Gen::Gen",
     "derivable": true
   },
+  "::Gen::InheritTest2": {
+    "name": "InheritTest2",
+    "parent": "::Gen::InheritTest",
+    "derivable": true
+  },
   "::Gen::MultipleReturnGen": {
     "name": "MultipleReturnGen",
     "parent": null

@@ -4,6 +4,7 @@
 #include "Generator/autogen_Gen/Gen.h"
 #include "bondage/Library.h"
 #include "bondage/Boxer.h"
+#include "CastHelper.Gen_Gen.h"
 
 class RuntimeTest : public QObject
   {
@@ -12,24 +13,6 @@ class RuntimeTest : public QObject
 private Q_SLOTS:
   void testTypes();
   };
-
-namespace Crate
-{
-
-template <typename Derived> class CastHelper<Gen::Gen, Derived>
-  {
-public:
-  typedef Traits<Gen::Gen> RootTraits;
-
-  static bool canCast(const Gen::Gen *root)
-    {
-    auto cast = dynamic_cast<const Derived*>(root);
-
-    return cast != nullptr;
-    }
-  };
-
-}
 
 template <typename T> struct Helper
   {
@@ -65,10 +48,11 @@ void RuntimeTest::testTypes()
     classes[cls->type().name()] = cls;
     }
 
-  QVERIFY(4 == classes.size());
+  QVERIFY(5 == classes.size());
 
   QVERIFY(classes["Gen"]);
   QVERIFY(classes["InheritTest"]);
+  QVERIFY(classes["InheritTest2"]);
   QVERIFY(classes["MultipleReturnGen"]);
   QVERIFY(classes["CtorGen"]);
 
@@ -92,6 +76,7 @@ void RuntimeTest::testTypes()
   // genbox and inheritbox should cast to derived types.
   auto inheritBox = Helper<Gen::Gen>::create(&boxer, new Gen::InheritTest);
   auto inheritBox2 = Helper<Gen::InheritTest>::create(&boxer, new Gen::InheritTest);
+  auto inheritBox3 = Helper<Gen::Gen>::create(&boxer, new Gen::InheritTest2);
   auto genBox = Helper<Gen::Gen>::create(&boxer, new Gen::Gen);
 
   // check no casting to other types
@@ -103,15 +88,57 @@ void RuntimeTest::testTypes()
   // both object can be a gen.
   QVERIFY(Crate::Traits<Gen::Gen>::canUnbox(&boxer, genBox.get()));
   QVERIFY(Crate::Traits<Gen::Gen>::canUnbox(&boxer, inheritBox.get()));
-  QVERIFY(Crate::Traits<Gen::Gen>::canUnbox(&boxer, inheritBox.get()));
+  QVERIFY(Crate::Traits<Gen::Gen>::canUnbox(&boxer, inheritBox2.get()));
+  QVERIFY(Crate::Traits<Gen::Gen>::canUnbox(&boxer, inheritBox3.get()));
 
   // only the derived type can be an inherittest
   QVERIFY(!Crate::Traits<Gen::InheritTest>::canUnbox(&boxer, genBox.get()));
   QVERIFY(Crate::Traits<Gen::InheritTest>::canUnbox(&boxer, inheritBox.get()));
   QVERIFY(Crate::Traits<Gen::InheritTest>::canUnbox(&boxer, inheritBox2.get()));
+  QVERIFY(Crate::Traits<Gen::InheritTest>::canUnbox(&boxer, inheritBox3.get()));
 
-  QVERIFY(false);
-  //test finding derived class type from box...?
+  // only the derived type can be an inherittest
+  QVERIFY(!Crate::Traits<Gen::InheritTest2>::canUnbox(&boxer, genBox.get()));
+  QVERIFY(!Crate::Traits<Gen::InheritTest2>::canUnbox(&boxer, inheritBox.get()));
+  QVERIFY(!Crate::Traits<Gen::InheritTest2>::canUnbox(&boxer, inheritBox2.get()));
+  QVERIFY(Crate::Traits<Gen::InheritTest2>::canUnbox(&boxer, inheritBox3.get()));
+
+  auto multiGenData = Crate::Traits<Gen::MultipleReturnGen>::unbox(&boxer, multiGen.get());
+  auto ctorGenData = Crate::Traits<Gen::CtorGen>::unbox(&boxer, ctorGen.get());
+  auto genData = Crate::Traits<Gen::Gen>::unbox(&boxer, genBox.get());
+  auto inherit1Data = Crate::Traits<Gen::Gen>::unbox(&boxer, inheritBox.get());
+  auto inherit2Data = Crate::Traits<Gen::Gen>::unbox(&boxer, inheritBox2.get());
+  auto inherit3Data = Crate::Traits<Gen::Gen>::unbox(&boxer, inheritBox3.get());
+
+  auto ctorCls = bondage::WrappedClassFinder<Gen::CtorGen>::find(ctorGenData);
+  auto ctorClsBase = bondage::WrappedClassFinder<Gen::CtorGen>::findBase();
+  QCOMPARE(ctorCls, ctorClsBase);
+  QCOMPARE(classes["CtorGen"], ctorCls);
+
+  auto multiCls = bondage::WrappedClassFinder<Gen::MultipleReturnGen>::find(multiGenData);
+  auto multiClsBase = bondage::WrappedClassFinder<Gen::MultipleReturnGen>::findBase();
+  QCOMPARE(multiCls, multiClsBase);
+  QCOMPARE(classes["MultipleReturnGen"], multiCls);
+
+  auto genCls = bondage::WrappedClassFinder<Gen::Gen>::find(genData);
+  auto genClsBase = bondage::WrappedClassFinder<Gen::Gen>::findBase();
+  QCOMPARE(genCls, genClsBase);
+  QCOMPARE(classes["Gen"], genCls);
+
+  auto i1Cls = bondage::WrappedClassFinder<Gen::InheritTest>::find(inherit1Data);
+  auto i1ClsBase = bondage::WrappedClassFinder<Gen::InheritTest>::findBase();
+  QCOMPARE(i1Cls, i1ClsBase);
+  QCOMPARE(classes["InheritTest"], i1Cls);
+
+  auto i2Cls = bondage::WrappedClassFinder<Gen::Gen>::find(inherit2Data);
+  auto i2ClsBase = bondage::WrappedClassFinder<Gen::Gen>::findBase();
+  QCOMPARE(i2ClsBase, genCls);
+  QCOMPARE(classes["InheritTest"], i2Cls);
+
+  auto i3Cls = bondage::WrappedClassFinder<Gen::InheritTest2>::find(inherit3Data);
+  auto i3ClsBase = bondage::WrappedClassFinder<Gen::InheritTest2>::findBase();
+  QCOMPARE(i3Cls, i3ClsBase);
+  QCOMPARE(classes["InheritTest2"], i3Cls);
   }
 
 QTEST_APPLESS_MAIN(RuntimeTest)

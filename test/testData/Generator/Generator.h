@@ -56,6 +56,10 @@ public:
     }
 };
 
+/// \expose
+class InheritTest2 : public InheritTest
+{
+};
 
 /// \expose
 class MultipleReturnGen

@@ -10,7 +10,13 @@
   namespace Reflect { namespace detail { \
   const Type *TypeResolver<parent::name>::find() \
     { static Type t(#name); return &t; } } } \
-  bondage::WrappedClass varName (lib, Reflect::findType<parent::name>(), fns, BONDAGE_ARRAY_COUNT(fns))
+  bondage::WrappedClass varName ( \
+    lib, \
+    Reflect::findType<parent::name>(), \
+    fns, \
+    BONDAGE_ARRAY_COUNT(fns)); \
+  const bondage::WrappedClass *bondage::WrappedClassFinder<parent::name>::findBase() \
+    { return &varName; }
 
 namespace bondage
 {
@@ -49,5 +55,7 @@ public:
     return new T(std::forward<Args>(args)...);
     }
   };
+
+template <typename T> class WrappedClassFinder;
 
 }

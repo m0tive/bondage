@@ -10,6 +10,18 @@ require 'pathname'
 module CPP
 
   class LibraryGenerator
+    
+    class DerivedClass
+      def initialize(literalName, path, rootPath, distance)
+        @literalName = literalName
+        @path = path
+        @rootPath = rootPath
+        @distance = distance
+      end
+
+      attr_reader :literalName, :path, :rootPath, :distance
+    end
+
     def initialize()
       @header = ""
       @source = ""
@@ -57,7 +69,9 @@ module CPP
           files << cls.parsed.fileLocation
 
           if (cls.parentClass)
-            derivedClasses << [ clsGen.wrapperName, path ]
+            rootPath, distance = clsGen.findRootClass(cls)
+
+            derivedClasses << DerivedClass.new(clsGen.wrapperName, path, rootPath, distance)
           end
         end
       end
@@ -82,7 +96,7 @@ const bondage::Library &bindings()
       @header += classHeader
       @source += classSource
 
-      @source += "\n\n" + generateDerivedCasts(clsGen, exposer, derivedClasses)
+      @source += "\n\n" + generateDerivedCasts(clsGen, derivedClasses)
     end
 
   private
@@ -91,17 +105,14 @@ const bondage::Library &bindings()
       return "#include \"#{path}\""
     end
 
-    def generateDerivedCasts(clsGen, exposer, clss)
+    def generateDerivedCasts(clsGen, clss)
       byRoots = { }
 
       clss.each do |classData|
-        classMd = exposer.exposedMetaData.findClass(classData[1])
-        root = clsGen.findRootClass(classMd)
-
-        arr = byRoots[root]
+        arr = byRoots[classData.rootPath]
         if (!arr)
           arr = []
-          byRoots[root] = arr
+          byRoots[classData.rootPath] = arr
         end
 
         arr << classData
@@ -116,18 +127,22 @@ const bondage::Library &bindings()
     end
 
     def generateDerivedCast(root, classes)
-      functionName = "#{@library.name}_#{root.sub("::", "").gsub("::", "_")}_caster"
-      output =  "const bondage::WrappedClass *#{functionName}(const void *vPtr)\n{\n"
+      rootNiceName = root.sub("::", "").gsub("::", "_")
+      functionName = "#{@library.name}_#{rootNiceName}_caster"
+      output = "#include \"CastHelper.#{rootNiceName}.h\"\n\n"
+      output += "const bondage::WrappedClass *#{functionName}(const void *vPtr)\n{\n"
 
       output += "  auto ptr = static_cast<const #{root}*>(vPtr);\n\n"
 
-      classes.each do |literal, path|
-        output += "  if (Crate::CastHelper<#{root}, #{path}>::canCast(ptr))\n  {\n    return &#{literal};\n  }\n"
+      classes.sort_by{ |a| a.distance }.reverse.each do |derived|
+        output += "  if (Crate::CastHelper<#{root}, #{derived.path}>::canCast(ptr))\n  {\n    return &#{derived.literalName};\n  }\n"
       end
 
       output += "  return nullptr;"
 
-      output += "\n}"
+      output += "\n}\n\n"
+
+      output += "bondage::CastHelperLibrary g_#{functionName}(bondage::WrappedClassFinder<#{root}>::castHelper(), #{functionName});"
       return output
     end
 

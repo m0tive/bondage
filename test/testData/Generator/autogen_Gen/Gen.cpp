@@ -81,6 +81,21 @@ BONDAGE_IMPLEMENT_EXPOSED_CLASS(
 
 
 
+// Exposing class ::Gen::InheritTest2
+
+const bondage::Function Gen_InheritTest2_methods[] = {
+
+};
+
+BONDAGE_IMPLEMENT_EXPOSED_CLASS(
+  Gen_InheritTest2,
+  g_bondage_library,
+  ::Gen,
+  InheritTest2,
+  Gen_InheritTest2_methods);
+
+
+
 // Exposing class ::Gen::MultipleReturnGen
 
 int Gen_MultipleReturnGen_test_overload0(::Gen::MultipleReturnGen & inputArg0)
@@ -147,14 +162,22 @@ BONDAGE_IMPLEMENT_EXPOSED_CLASS(
   Gen_CtorGen_methods);
 
 
+#include "CastHelper.Gen_Gen.h"
+
 const bondage::WrappedClass *Gen_Gen_Gen_caster(const void *vPtr)
 {
   auto ptr = static_cast<const ::Gen::Gen*>(vPtr);
 
+  if (Crate::CastHelper<::Gen::Gen, ::Gen::InheritTest2>::canCast(ptr))
+  {
+    return &Gen_InheritTest2;
+  }
   if (Crate::CastHelper<::Gen::Gen, ::Gen::InheritTest>::canCast(ptr))
   {
     return &Gen_InheritTest;
   }
   return nullptr;
 }
+
+bondage::CastHelperLibrary g_Gen_Gen_Gen_caster(bondage::WrappedClassFinder<::Gen::Gen>::castHelper(), Gen_Gen_Gen_caster);
 
