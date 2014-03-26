@@ -30,10 +30,10 @@ class CastHelper;
       return findBase(); } }; }
 
 #define BONDAGE_CLASS_DERIVED(CLS, ROOT) namespace bondage { \
-  template <> class bondage::WrappedClassFinder<CLS> { public: \
-    static const bondage::WrappedClass *findBase(); \
-    static const bondage::WrappedClass *find(const void *p) \
-      { return bondage::WrappedClassFinder<ROOT>::find(p); } }; }
+  template <> class WrappedClassFinder<CLS> { public: \
+    static const WrappedClass *findBase(); \
+    static const WrappedClass *find(const void *p) \
+      { return WrappedClassFinder<ROOT>::find(p); } }; }
 
 #define BONDAGE_CLASS_CRATER(CLS, TRAITS) \
   namespace Crate { template <> class Traits<CLS> : public TRAITS<CLS> { }; }
