@@ -53,6 +53,7 @@ const bondage::Function Gen_Gen_methods[] = {
 };
 
 BONDAGE_IMPLEMENT_EXPOSED_CLASS(
+  Gen_Gen,
   g_bondage_library,
   ::Gen,
   Gen,
@@ -72,6 +73,7 @@ const bondage::Function Gen_InheritTest_methods[] = {
 };
 
 BONDAGE_IMPLEMENT_EXPOSED_CLASS(
+  Gen_InheritTest,
   g_bondage_library,
   ::Gen,
   InheritTest,
@@ -106,6 +108,7 @@ const bondage::Function Gen_MultipleReturnGen_methods[] = {
 };
 
 BONDAGE_IMPLEMENT_EXPOSED_CLASS(
+  Gen_MultipleReturnGen,
   g_bondage_library,
   ::Gen,
   MultipleReturnGen,
@@ -137,7 +140,21 @@ const bondage::Function Gen_CtorGen_methods[] = {
 };
 
 BONDAGE_IMPLEMENT_EXPOSED_CLASS(
+  Gen_CtorGen,
   g_bondage_library,
   ::Gen,
   CtorGen,
   Gen_CtorGen_methods);
+
+
+const bondage::WrappedClass *Gen_Gen_Gen_caster(const void *vPtr)
+{
+  auto ptr = static_cast<const ::Gen::Gen*>(vPtr);
+
+  if (Crate::CastHelper<::Gen::Gen, ::Gen::InheritTest>::canCast(ptr))
+  {
+    return &Gen_InheritTest;
+  }
+  return nullptr;
+}
+

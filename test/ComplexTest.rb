@@ -44,7 +44,7 @@ class TestComplex < Test::Unit::TestCase
 
     exposer, visitor = exposeLibrary(library)
 
-    CPP::Generator.new(library, exposer).generate(path)
+    CPP::LibraryGenerator.new().generate(library, exposer)
     LuaGenerator.new(library, exposer).generate(path)
   end
 end

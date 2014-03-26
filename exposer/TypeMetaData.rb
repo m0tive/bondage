@@ -1,4 +1,4 @@
-require_relative "Exposer.rb"
+  require_relative "Exposer.rb"
 require_relative "ExposeAst.rb"
 require "json"
 

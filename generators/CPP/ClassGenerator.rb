@@ -8,11 +8,12 @@ module CPP
       reset()
     end
 
-    attr_reader :interface, :implementation
+    attr_reader :interface, :implementation, :wrapperName
 
     def reset()
       @interface = ""
       @implementation = ""
+      @wrapperName = ""
 
       @fnGen = CPP::FunctionGenerator.new("", "  ")
     end
@@ -28,6 +29,19 @@ module CPP
 
       generateHeader()
       generateSource(libraryVariable)
+    end
+
+    def findRootClass(md)
+      cls = md.parentClass
+      while(!cls.empty?)
+        parentName = @exposer.exposedMetaData.findClass(cls).parentClass
+        if (!parentName)
+          return cls
+        end
+        cls = parentName
+      end
+
+      return nil
     end
 
   private
@@ -51,13 +65,14 @@ module CPP
     def generateSource(libraryVariable)
       # find a name that is a valid literal in c++ used for static definitions
       fullyQualified = @cls.fullyQualifiedName()
-      literalName = fullyQualified.sub("::", "").gsub("::", "_")
+      @wrapperName = fullyQualified.sub("::", "").gsub("::", "_")
 
-      methodsLiteral = literalName + "_methods";
+      methodsLiteral = wrapperName + "_methods";
 
 
       classInfo =
 "#{MACRO_PREFIX}IMPLEMENT_EXPOSED_CLASS(
+  #{wrapperName},
   #{libraryVariable},
   #{@cls.parent.fullyQualifiedName()},
   #{@cls.name},
@@ -120,19 +135,6 @@ const #{TYPE_NAMESPACE}::Function #{methodsLiteral}[] = {\n#{methodsSource}\n};
       raise "#{@cls.locationString}: A copyable class cannot be derivable." if @metaData.isDerivable && mode == :copyable
 
       return mode.to_s.upcase
-    end
-
-    def findRootClass(md)
-      cls = md.parentClass
-      while(!cls.empty?)
-        parentName = @exposer.exposedMetaData.findClass(cls).parentClass
-        if (!parentName)
-          return cls
-        end
-        cls = parentName
-      end
-
-      return nil
     end
   end
 end

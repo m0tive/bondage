@@ -55,10 +55,14 @@ def cleanLibrary(library)
   end
 end
 
-def runProcess(process)
+def runProcess(process, debug=false)
   output = `#{process}`
-  puts output
-  if !$?.success?
+
+  if (debug)
+    puts output
+  end
+  
+  if (!$?.success? || $?.exitstatus != 0)
     raise output
   end
 end
