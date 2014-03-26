@@ -1,3 +1,5 @@
+require "set"
+
 EXTRA_COMMAND_TYPES = {
   "expose" => Set.new([
     "derivable",

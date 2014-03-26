@@ -21,6 +21,19 @@ class Library
     @files << path
   end
 
+  # Add a source file path to the library
+  def addFiles(path, pattern, recursive)
+    rootPath = Pathname.new(root)
+    pattern = "#{root}/#{path}/#{recursive ? "**/" : ""}#{pattern}"
+    Dir.glob(pattern).each do |item|
+      next if item == '.' or item == '..'
+      # do work on real items
+
+      filePath = Pathname.new(item).relative_path_from(rootPath)
+      addFile(filePath)
+    end
+  end
+
   # add a dependency library to this library
   def addDependency(dep)
     @dependencies << dep

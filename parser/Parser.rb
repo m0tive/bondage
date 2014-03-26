@@ -20,7 +20,7 @@ end
 
 class Parser
   def initialize(library, coreIncludes=[], dbg=false)
-    @debug = false
+    @debug = dbg
     @index = FFI::Clang::Index.new
     @library = library
 
@@ -31,6 +31,7 @@ class Parser
     library.includePaths.each do |path|
       args << "-I#{path}"
     end
+    args << "-I#{library.root}"
 
     source = "#define BINDER_PARSING\n"
     library.files.each do |file|

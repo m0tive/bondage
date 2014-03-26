@@ -208,7 +208,7 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen.generate(lib.library, exposer)
 
-    if (true)
+    if (false)
       FileUtils.mkdir_p(lib.library.autogenPath)
       File.open(expectedHeader, 'w') do |file|
         file.write(libGen.header)
@@ -221,6 +221,10 @@ class TestGenerator < Test::Unit::TestCase
     assert_equal File.read(expectedHeader), libGen.header
     assert_equal File.read(expectedSource), libGen.source
 
-    runProcess("test/testGenerator.sh")
+    if (os != :windows)
+      runProcess("test/testGenerator.sh")
+    else
+      #runProcess("test/testGenerator.bat")
+    end
   end
 end
