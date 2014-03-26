@@ -15,25 +15,25 @@ class CastHelper;
   template <> struct TypeResolver<CLS> { \
   static const Type *find(); }; } }
 
-#define BONDAGE_CLASS_UNDERIVABLE(CLS) \
+#define BONDAGE_CLASS_UNDERIVABLE(CLS) namespace bondage { \
   template <> class bondage::WrappedClassFinder<CLS> { public: \
     static const bondage::WrappedClass *findBase(); \
-    static const bondage::WrappedClass *find(const void *) { return findBase(); } };
+    static const bondage::WrappedClass *find(const void *) { return findBase(); } }; }
 
-#define BONDAGE_CLASS_DERIVABLE(CLS) \
-  template <> class bondage::WrappedClassFinder<CLS> { public: \
-    static const bondage::WrappedClass *findBase(); \
-    static bondage::CastHelper &castHelper() { static CastHelper data; return data; } \
-    static const bondage::WrappedClass *find(const void *d) \
+#define BONDAGE_CLASS_DERIVABLE(CLS) namespace bondage { \
+  template <> class WrappedClassFinder<CLS> { public: \
+    static const WrappedClass *findBase(); \
+    static CastHelper &castHelper() { static CastHelper data; return data; } \
+    static const WrappedClass *find(const void *d) \
       { auto cls = castHelper().search(d); \
       if (cls) { return cls; } \
-      return findBase(); } };
+      return findBase(); } }; }
 
-#define BONDAGE_CLASS_DERIVED(CLS, ROOT) \
+#define BONDAGE_CLASS_DERIVED(CLS, ROOT) namespace bondage { \
   template <> class bondage::WrappedClassFinder<CLS> { public: \
     static const bondage::WrappedClass *findBase(); \
     static const bondage::WrappedClass *find(const void *p) \
-      { return bondage::WrappedClassFinder<ROOT>::find(p); } };
+      { return bondage::WrappedClassFinder<ROOT>::find(p); } }; }
 
 #define BONDAGE_CLASS_CRATER(CLS, TRAITS) \
   namespace Crate { template <> class Traits<CLS> : public TRAITS<CLS> { }; }
