@@ -135,14 +135,14 @@ const bondage::Library &bindings()
       output += "  auto ptr = static_cast<const #{root}*>(vPtr);\n\n"
 
       classes.sort_by{ |a| a.distance }.reverse.each do |derived|
-        output += "  if (Crate::CastHelper<#{root}, #{derived.path}>::canCast(ptr))\n  {\n    return &#{derived.literalName};\n  }\n"
+        output += "  if (Crate::CastHelper< #{root}, #{derived.path} >::canCast(ptr))\n  {\n    return &#{derived.literalName};\n  }\n"
       end
 
       output += "  return nullptr;"
 
       output += "\n}\n\n"
 
-      output += "bondage::CastHelperLibrary g_#{functionName}(bondage::WrappedClassFinder<#{root}>::castHelper(), #{functionName});"
+      output += "bondage::CastHelperLibrary g_#{functionName}(bondage::WrappedClassFinder< #{root} >::castHelper(), #{functionName});"
       return output
     end
 
