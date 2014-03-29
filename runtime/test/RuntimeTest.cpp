@@ -10,7 +10,9 @@ class RuntimeTest : public QObject
   Q_OBJECT
 
 private Q_SLOTS:
-  void testTypes();
+  void testTypeExistance();
+  void testTypeCasting();
+  void testFunctionExistance();
   };
 
 template <typename T> struct Helper
@@ -28,7 +30,7 @@ template <typename T> struct Helper
     }
   };
 
-void RuntimeTest::testTypes()
+void RuntimeTest::testTypeExistance()
   {
   const Reflect::Type *value = Reflect::findType<Gen::Gen>();
   const Reflect::Type *ptr = Reflect::findType<Gen::Gen*>();
@@ -54,7 +56,15 @@ void RuntimeTest::testTypes()
   QVERIFY(classes["InheritTest2"]);
   QVERIFY(classes["MultipleReturnGen"]);
   QVERIFY(classes["CtorGen"]);
+  }
 
+void RuntimeTest::testTypeCasting()
+  {
+  std::map<std::string, const bondage::WrappedClass *> classes;
+  for(auto cls : bondage::ClassWalker(Gen::bindings()))
+    {
+    classes[cls->type().name()] = cls;
+    }
 
   bondage::Builder::Boxer boxer;
 
@@ -138,6 +148,38 @@ void RuntimeTest::testTypes()
   auto i3ClsBase = bondage::WrappedClassFinder<Gen::InheritTest2>::findBase();
   QCOMPARE(i3Cls, i3ClsBase);
   QCOMPARE(classes["InheritTest2"], i3Cls);
+  }
+
+void RuntimeTest::testFunctionExistance()
+  {
+  std::map<std::string, const bondage::WrappedClass *> classes;
+  for(auto cls : bondage::ClassWalker(Gen::bindings()))
+    {
+    classes[cls->type().name()] = cls;
+    }
+
+  auto ctorGen = classes["CtorGen"];
+  QVERIFY(ctorGen->functionCount() == 1);
+  QVERIFY("CtorGen" == ctorGen->function(0).name());
+
+  auto multiGen = classes["MultipleReturnGen"];
+  QVERIFY(multiGen->functionCount() == 1);
+  QVERIFY("test" == multiGen->function(0).name());
+
+  auto gen = classes["Gen"];
+  QVERIFY(gen->functionCount() == 3);
+  QVERIFY("test1" == gen->function(0).name());
+  QVERIFY("test2" == gen->function(1).name());
+  QVERIFY("test3" == gen->function(2).name());
+
+  auto inheritGen = classes["InheritTest"];
+  QVERIFY(inheritGen->functionCount() == 2);
+  QVERIFY("pork" == inheritGen->function(0).name());
+  QVERIFY("pork2" == inheritGen->function(1).name());
+
+  auto inherit2Gen = classes["InheritTest2"];
+  QVERIFY(inherit2Gen->functionCount() == 0);
+
   }
 
 QTEST_APPLESS_MAIN(RuntimeTest)

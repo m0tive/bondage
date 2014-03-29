@@ -29,8 +29,8 @@ public:
 
   const Reflect::Type &type() const;
 
-  const Function *functions() const;
-  size_t functionCount();
+  const Function &function(std::size_t i) const { return m_functions[i]; }
+  size_t functionCount() const { return m_functionCount; }
 
   void setNext(WrappedClass *cls);
   const WrappedClass *next() const { return m_next; }
@@ -39,7 +39,7 @@ public:
 private:
   const Reflect::Type *m_type;
   const Function *m_functions;
-  size_t m_functionCount;
+  std::size_t m_functionCount;
 
   WrappedClass *m_next;
   };

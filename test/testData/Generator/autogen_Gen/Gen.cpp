@@ -168,16 +168,16 @@ const bondage::WrappedClass *Gen_Gen_Gen_caster(const void *vPtr)
 {
   auto ptr = static_cast<const ::Gen::Gen*>(vPtr);
 
-  if (Crate::CastHelper<::Gen::Gen, ::Gen::InheritTest2>::canCast(ptr))
+  if (Crate::CastHelper< ::Gen::Gen, ::Gen::InheritTest2 >::canCast(ptr))
   {
     return &Gen_InheritTest2;
   }
-  if (Crate::CastHelper<::Gen::Gen, ::Gen::InheritTest>::canCast(ptr))
+  if (Crate::CastHelper< ::Gen::Gen, ::Gen::InheritTest >::canCast(ptr))
   {
     return &Gen_InheritTest;
   }
   return nullptr;
 }
 
-bondage::CastHelperLibrary g_Gen_Gen_Gen_caster(bondage::WrappedClassFinder<::Gen::Gen>::castHelper(), Gen_Gen_Gen_caster);
+bondage::CastHelperLibrary g_Gen_Gen_Gen_caster(bondage::WrappedClassFinder< ::Gen::Gen >::castHelper(), Gen_Gen_Gen_caster);
 

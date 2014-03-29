@@ -20,16 +20,6 @@ const Reflect::Type &WrappedClass::type() const
   return *m_type;
   }
 
-const Function *WrappedClass::functions() const
-  {
-  return m_functions;
-  }
-
-size_t WrappedClass::functionCount()
-  {
-  return m_functionCount;
-  }
-
 void WrappedClass::setNext(WrappedClass *cls)
   {
   assert(!m_next);

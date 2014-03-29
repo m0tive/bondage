@@ -12,8 +12,9 @@ public:
 
   typedef void (*Call)(bondage::Builder::Boxer *, Arguments *);
 
-  Function(Call fn)
-      : m_function(fn)
+  Function(const char *name, Call fn)
+      : m_function(fn),
+        m_name(name)
     {
     }
 
@@ -22,18 +23,21 @@ public:
     m_function(b, a);
     }
 
+  const std::string &name() const { return m_name; }
+
 private:
   Call m_function;
+  std::string m_name;
   };
 
 class FunctionCaller : public bondage::Builder
   {
 public:
-  typedef Function Result;
+  typedef Function::Call Result;
 
   template <typename Builder> static Result build()
     {
-    return Function(call<Builder>);
+    return call<Builder>;
     }
 
   template <typename Builder> static void call(Boxer *b, Function::Arguments *args)

@@ -9,16 +9,16 @@ namespace bondage
 class FunctionBuilder
   {
 public:
-  template <typename Fn> static Function build(const char *)
+  template <typename Fn> static Function build(const char *name)
     {
     typename Fn::binder bind;
 
-    return bind.template buildInvocation<typename Fn::Caller>();
+    return Function(name, bind.template buildInvocation<typename Fn::Caller>());
     }
 
-  template <typename... Overloads> static Function buildOverloaded(const char *)
+  template <typename... Overloads> static Function buildOverloaded(const char *name)
     {
-    return Function(nullptr);
+    return Function(name, nullptr);
     }
 
 
