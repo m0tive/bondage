@@ -1,4 +1,5 @@
 #pragma once
+#include "PackHelper.h"
 
 namespace bondage
 {
@@ -6,35 +7,28 @@ namespace bondage
 class Function
   {
 public:
-  class Arguments
-    {
-  public:
-    void **_args;
-    void *_this;
-    void *_result;
-    };
+  typedef bondage::Builder::Arguments Arguments;
   typedef Arguments *CallData;
 
-  typedef void (*Call)(Arguments *);
+  typedef void (*Call)(bondage::Builder::Boxer *, Arguments *);
 
   Function(Call fn)
       : m_function(fn)
     {
     }
 
-  void call(Arguments *a)
+  void call(bondage::Builder::Boxer *b, Arguments *a)
     {
-    m_function(a);
+    m_function(b, a);
     }
 
 private:
   Call m_function;
   };
 
-class FunctionCaller
+class FunctionCaller : public bondage::Builder
   {
 public:
-  typedef Function::Arguments *CallData;
   typedef Function Result;
 
   template <typename Builder> static Result build()
@@ -42,27 +36,10 @@ public:
     return Function(call<Builder>);
     }
 
-  template <typename Builder> static void call(CallData data)
+  template <typename Builder> static void call(Boxer *b, Function::Arguments *args)
     {
-    Builder::call(data);
-    }
-
-
-  template <typename T> static T getThis(CallData args)
-    {
-    return (T)args->_this;
-    }
-
-  template <std::size_t I, typename Arg>
-      static Arg unpackArgument(CallData args)
-    {
-    typedef typename std::remove_reference<Arg>::type NoRef;
-    return *(NoRef*)args->_args[I];
-    }
-
-  template <typename Return, typename T> static void packReturn(CallData data, T &&result)
-    {
-    *(Return*)data->_result = result;
+    Call data = { args, b };
+    Builder::call(&data);
     }
   };
 

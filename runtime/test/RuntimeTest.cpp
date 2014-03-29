@@ -3,7 +3,6 @@
 
 #include "Generator/autogen_Gen/Gen.h"
 #include "bondage/Library.h"
-#include "bondage/Boxer.h"
 #include "CastHelper.Gen_Gen.h"
 
 class RuntimeTest : public QObject
@@ -18,8 +17,8 @@ template <typename T> struct Helper
   {
   typedef Crate::Traits<T> Traits;
 
-  static std::unique_ptr<bondage::Boxer::BoxedContainer> create(
-      bondage::Boxer *boxer,
+  static std::unique_ptr<Reflect::example::Object> create(
+      bondage::Builder::Boxer *boxer,
       T *data)
     {
     auto box = boxer->create<Traits>();
@@ -57,7 +56,7 @@ void RuntimeTest::testTypes()
   QVERIFY(classes["CtorGen"]);
 
 
-  bondage::Boxer boxer;
+  bondage::Builder::Boxer boxer;
 
   // Multigen and ctor gen should only cast to themselves.
   auto multiGen = Helper<Gen::MultipleReturnGen>::create(&boxer, new Gen::MultipleReturnGen);

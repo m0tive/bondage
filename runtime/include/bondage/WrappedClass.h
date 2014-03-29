@@ -3,7 +3,6 @@
 #include "Reflect/Type.h"
 #include "Crate/Traits.h"
 #include "bondage/Function.h"
-#include "bondage/Boxer.h"
 
 #define BONDAGE_ARRAY_COUNT(arr) (sizeof(arr)/sizeof(arr[0]))
 #define BONDAGE_IMPLEMENT_EXPOSED_CLASS(varName, lib, parent, name, fns) \

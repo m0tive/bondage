@@ -28,14 +28,14 @@ HEADERS += \
     ../../test/testData/Generator/autogen_Gen/Gen.h \
     ../include/bondage/RuntimeHelpers.h \
     ../include/bondage/RuntimeHelpersImpl.h \
-    ../include/bondage/Boxer.h \
     ../include/bondage/Function.h \
     ../include/bondage/FunctionBuilder.h \
     ../include/bondage/Library.h \
     ../include/bondage/WrappedClass.h \
     ../include/bondage/Bondage.h \
+    ../include/bondage/CastHelper.h \
     CastHelper.Gen_Gen.h \
-    ../include/bondage/CastHelper.h
+    PackHelper.h
 
 INCLUDEPATH += \
   ../include/ \
