@@ -16,9 +16,9 @@ class CastHelper;
   static const Type *find(); }; } }
 
 #define BONDAGE_CLASS_UNDERIVABLE(CLS) namespace bondage { \
-  template <> class bondage::WrappedClassFinder<CLS> { public: \
-    static const bondage::WrappedClass *findBase(); \
-    static const bondage::WrappedClass *find(const void *) { return findBase(); } }; }
+  template <> class WrappedClassFinder<CLS> { public: \
+    static const WrappedClass *findBase(); \
+    static const WrappedClass *find(const void *) { return findBase(); } }; }
 
 #define BONDAGE_CLASS_DERIVABLE(CLS) namespace bondage { \
   template <> class WrappedClassFinder<CLS> { public: \
