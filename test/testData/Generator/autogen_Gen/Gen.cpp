@@ -40,16 +40,29 @@ const bondage::Function Gen_Gen_methods[] = {
   bondage::FunctionBuilder::build<
     bondage::FunctionBuilder::buildCall< void(::Gen::Gen::*)(int, float, double), &::Gen::Gen::test1 >
     >("test1"),
-  bondage::FunctionBuilder::buildOverloaded<
-    bondage::FunctionBuilder::buildMemberStandinCall< void(*)(::Gen::Gen &, int), &Gen_Gen_test2_overload0 >,
-    bondage::FunctionBuilder::buildMemberStandinCall< void(*)(::Gen::Gen &, int, float), &Gen_Gen_test2_overload1 >,
-    bondage::FunctionBuilder::buildCall< void(::Gen::Gen::*)(int, float, double), &::Gen::Gen::test2 >
-    >("test2"),
-  bondage::FunctionBuilder::buildOverloaded<
-    bondage::FunctionBuilder::buildCall< void(*)(bool), &::Gen::Gen::test3 >,
-    bondage::FunctionBuilder::buildCall< int(*)(bool, int), &Gen_Gen_test3_overload1 >,
-    bondage::FunctionBuilder::buildCall< int(*)(bool, int, bool), &::Gen::Gen::test3 >
-    >("test3")
+  bondage::FunctionBuilder::buildArgumentCountOverload< std::tuple<
+    bondage::FunctionBuilder::buildOverloaded<1, std::tuple<
+      bondage::FunctionBuilder::buildMemberStandinCall< void(*)(::Gen::Gen &, int), &Gen_Gen_test2_overload0 >
+      > >,
+    bondage::FunctionBuilder::buildOverloaded<2, std::tuple<
+      bondage::FunctionBuilder::buildMemberStandinCall< void(*)(::Gen::Gen &, int, float), &Gen_Gen_test2_overload1 >
+      > >,
+    bondage::FunctionBuilder::buildOverloaded<3, std::tuple<
+      bondage::FunctionBuilder::buildCall< void(::Gen::Gen::*)(int, float, double), &::Gen::Gen::test2 >
+      > >
+    > >("test2"),
+  bondage::FunctionBuilder::buildArgumentCountOverload< std::tuple<
+    bondage::FunctionBuilder::buildOverloaded<1, std::tuple<
+      bondage::FunctionBuilder::buildCall< void(*)(bool), &::Gen::Gen::test3 >
+      > >,
+    bondage::FunctionBuilder::buildOverloaded<2, std::tuple<
+      bondage::FunctionBuilder::buildCall< int(*)(bool, int), &Gen_Gen_test3_overload1 >,
+      bondage::FunctionBuilder::buildCall< int(*)(float, float), &::Gen::Gen::test3 >
+      > >,
+    bondage::FunctionBuilder::buildOverloaded<3, std::tuple<
+      bondage::FunctionBuilder::buildCall< int(*)(bool, int, bool), &::Gen::Gen::test3 >
+      > >
+    > >("test3")
 };
 
 BONDAGE_IMPLEMENT_EXPOSED_CLASS(
@@ -116,10 +129,14 @@ std::tuple< int, float > Gen_MultipleReturnGen_test_overload1(::Gen::MultipleRet
 }
 
 const bondage::Function Gen_MultipleReturnGen_methods[] = {
-  bondage::FunctionBuilder::buildOverloaded<
-    bondage::FunctionBuilder::buildMemberStandinCall< int(*)(::Gen::MultipleReturnGen &), &Gen_MultipleReturnGen_test_overload0 >,
-    bondage::FunctionBuilder::buildMemberStandinCall< std::tuple< int, float >(*)(::Gen::MultipleReturnGen &, float *), &Gen_MultipleReturnGen_test_overload1 >
-    >("test")
+  bondage::FunctionBuilder::buildArgumentCountOverload< std::tuple<
+    bondage::FunctionBuilder::buildOverloaded<1, std::tuple<
+      bondage::FunctionBuilder::buildMemberStandinCall< int(*)(::Gen::MultipleReturnGen &), &Gen_MultipleReturnGen_test_overload0 >
+      > >,
+    bondage::FunctionBuilder::buildOverloaded<2, std::tuple<
+      bondage::FunctionBuilder::buildMemberStandinCall< std::tuple< int, float >(*)(::Gen::MultipleReturnGen &, float *), &Gen_MultipleReturnGen_test_overload1 >
+      > >
+    > >("test")
 };
 
 BONDAGE_IMPLEMENT_EXPOSED_CLASS(
@@ -148,10 +165,14 @@ std::tuple< ::Gen::CtorGen *, int > Gen_CtorGen_CtorGen_overload1()
 }
 
 const bondage::Function Gen_CtorGen_methods[] = {
-  bondage::FunctionBuilder::buildOverloaded<
-    bondage::FunctionBuilder::buildCall< ::Gen::CtorGen *(*)(), &Gen_CtorGen_CtorGen_overload0 >,
-    bondage::FunctionBuilder::buildCall< std::tuple< ::Gen::CtorGen *, int >(*)(), &Gen_CtorGen_CtorGen_overload1 >
-    >("CtorGen")
+  bondage::FunctionBuilder::buildArgumentCountOverload< std::tuple<
+    bondage::FunctionBuilder::buildOverloaded<0, std::tuple<
+      bondage::FunctionBuilder::buildCall< ::Gen::CtorGen *(*)(), &Gen_CtorGen_CtorGen_overload0 >
+      > >,
+    bondage::FunctionBuilder::buildOverloaded<1, std::tuple<
+      bondage::FunctionBuilder::buildCall< std::tuple< ::Gen::CtorGen *, int >(*)(), &Gen_CtorGen_CtorGen_overload1 >
+      > >
+    > >("CtorGen")
 };
 
 BONDAGE_IMPLEMENT_EXPOSED_CLASS(

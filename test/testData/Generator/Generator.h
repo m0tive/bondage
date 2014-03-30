@@ -27,6 +27,11 @@ public:
     {
     return 5;
     }
+
+  static int test3(float, float)
+    {
+    return 5;
+    }
 };
 
 inline int test4(bool a, bool b)

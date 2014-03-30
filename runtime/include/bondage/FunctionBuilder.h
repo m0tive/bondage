@@ -16,10 +16,6 @@ public:
     return Function(name, bind.template buildInvocation<typename Fn::Caller>());
     }
 
-  template <typename... Overloads> static Function buildOverloaded(const char *name)
-    {
-    return Function(name, nullptr);
-    }
 
 
   template <typename Signature, Signature Fn> class buildCall
@@ -33,6 +29,21 @@ public:
     {
     typedef Reflect::FunctionBuilder<Signature, Fn> binder;
     typedef Reflect::MethodInjectorBuilder<FunctionCaller> Caller;
+    };
+
+
+
+  template <typename Functions> static Function buildArgumentCountOverload(const char *name)
+    {
+    return Function(name, nullptr);
+    }
+
+  template <std::size_t _Count, typename _Functions> class buildOverloaded
+    {
+  public:
+    typedef std::integral_constant<std::size_t, _Count> Count;
+    typedef _Functions Functions;
+
     };
   };
 

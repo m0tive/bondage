@@ -22,7 +22,7 @@ module CPP
 
     def reset()
       @bind = ""
-      @calls = []
+      @calls = { }
       @extraFunctions = []
       @extraFunctionDecls = nil
     end
@@ -34,34 +34,57 @@ module CPP
 
       name = functions[0].name
 
-      caller = "build"
-      list = nil
-
-      olLs = @lineStart + "  "
-
-      if (@calls.length == 1)
-        caller = "build"
-        list = @calls[0]
-      elsif(@calls.length > 1)
-        caller = "buildOverloaded"
-        list = @calls.join(",\n#{olLs}")
+      singleCall = nil
+      @calls.each do |num, calls|
+        raise "Invalid call" unless calls.length()
+        if (singleCall)
+          singleCall = nil
+          break
+        end
+        singleCall = calls[0]
       end
 
+      olLs = @lineStart + "  "
+      ovOlLs = @lineStart + "    "
 
-      @bind = 
-"#{TYPE_NAMESPACE}::FunctionBuilder::#{caller}<
-#{olLs}#{list}
+      if (singleCall)
+        @bind = "#{TYPE_NAMESPACE}::FunctionBuilder::build<
+#{olLs}#{singleCall}
 #{olLs}>(\"#{name}\")"
+        return
+      end
+
+      argCalls = @calls.map do |num, calls|
+        raise "Invalid call" unless calls.length()
+
+        callsJoined = calls.join(",\n#{ovOlLs}")
+
+        "#{TYPE_NAMESPACE}::FunctionBuilder::buildOverloaded<#{num}, std::tuple<
+#{ovOlLs}#{callsJoined}
+#{ovOlLs}> >"
+      end
+
+      callsJoined = argCalls.join(",\n#{olLs}")
+
+@bind = "#{TYPE_NAMESPACE}::FunctionBuilder::buildArgumentCountOverload< std::tuple<
+#{olLs}#{callsJoined}
+#{olLs}> >(\"#{name}\")"
     end
 
     def visitFunction(owner, function, functionIndex, argCount)
+      callsArray = @calls[argCount]
+      if (callsArray == nil)
+        callsArray = []
+        @calls[argCount] = callsArray
+      end
+
       @wrapperGenerator.generateCall(
         @extraFunctionLineStart,
         owner,
         function,
         functionIndex,
         argCount,
-        @calls,
+        callsArray,
         @extraFunctions)
     end
   end
