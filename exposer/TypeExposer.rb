@@ -41,11 +41,37 @@ class TypeExposer
     # otherwise, find the fully qualified type name, and find out if its exposed.
     fullName = type.fullyQualifiedName
 
-    if((partialOk && @metaData.partiallyExposed?(fullName)) ||
-      @metaData.fullyExposed?(fullName))
-      return true
+    foundClass = nil
+    if (partialOk)
+      foundClass = @metaData.types[fullName]
+    elsif
+      foundClass = @metaData.fullTypes[fullName]
     end
 
-    return false
+    if (!foundClass)
+      return false
+    end
+
+    return canExposeTemplateArguments(foundClass, type, partialOk)
+  end
+
+  def canExposeTemplateArguments(templateMetaData, type, partialOk) 
+    argsToSatisfy = templateMetaData.templateArgumentsToSatisfy
+    if (!argsToSatisfy)
+      return true;
+    end
+
+    argCount = type.templateArgCount
+
+    argsToSatisfy.each do |i|
+      raise "Invalid template type index" unless i < argCount
+
+      arg = type.templateArg(i)
+      if (!canExposeType(arg, partialOk))
+        return false
+      end
+    end
+
+    return true
   end
 end

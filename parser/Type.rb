@@ -178,4 +178,14 @@ class Type
 
     return Type.new(@type.result_type)
   end
+
+  # Find the number of template arguments
+  def templateArgCount
+    return @type.num_template_arguments
+  end
+
+  # Find the number of template arguments
+  def templateArg(i)
+    return Type.new(@type.template_argument(i))
+  end
 end

@@ -68,9 +68,9 @@ class FunctionExposer
         puts " - not override: #{notOverride}"
         puts " - return type: #{returnType}"
         puts " - arg types: #{arguments}"
-        puts " - #{canExpose}"
+        puts " - combined: #{canExpose}"
 
-        if (mustExpose)
+        if (!canExpose && mustExpose)
           raise "Unable to expose required method #{owner.fullyQualifiedName}::#{fn.name}" 
         end
       end

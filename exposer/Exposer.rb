@@ -56,7 +56,7 @@ class Exposer
     @exposedMetaData.export(visitor.library.autogenPath)
 
     @typeExposer = TypeExposer.new(@allMetaData)
-    @functionExposer = FunctionExposer.new(@typeExposer)
+    @functionExposer = FunctionExposer.new(@typeExposer, debug)
   end
 
   attr_reader :exposedMetaData, :allMetaData, :functionExposer
@@ -127,7 +127,6 @@ private
         validSuperClasses << clsPath
       end
     end
-
     
     return validSuperClasses
   end

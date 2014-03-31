@@ -41,11 +41,11 @@ def setupLibrary(library)
   FileUtils.mkdir_p(path)
 end
 
-def exposeLibrary(lib)
-  parser = Parser.new(lib, PLATFORM_INCLUDES, [], DEBUGGING)
+def exposeLibrary(lib, dbg = false)
+  parser = Parser.new(lib, PLATFORM_INCLUDES, [], DEBUGGING || dbg)
   visitor = ExposeAstVisitor.new(lib)
   parser.parse(visitor)
-  return Exposer.new(visitor, DEBUGGING), visitor
+  return Exposer.new(visitor, DEBUGGING || dbg), visitor
 end
 
 def cleanLibrary(library)

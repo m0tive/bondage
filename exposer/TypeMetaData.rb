@@ -1,4 +1,4 @@
-  require_relative "Exposer.rb"
+require_relative "Exposer.rb"
 require_relative "ExposeAst.rb"
 require "json"
 
@@ -15,9 +15,16 @@ class TypeData
     @isDerivable = false
     @parsed = parsed
     @parentClass = parent
+    @templateArgumentsToSatisfy = nil
   end
 
-  attr_reader :name, :type, :fullyExposed, :parsed, :parentClass, :isDerivable
+  attr_reader :name, 
+              :type, 
+              :fullyExposed,
+              :parsed,
+              :parentClass,
+              :isDerivable,
+              :templateArgumentsToSatisfy
 
   # Set this class as fully exposed, a fully exposed
   # class can be used as both an input and output argument.
@@ -28,6 +35,10 @@ class TypeData
   # Set this class as deriable, ie can have child classes.
   def setDerivable()
     @isDerivable = true
+  end
+
+  def setTemplateArgumentsToSatisfy(args)
+    @templateArgumentsToSatisfy = args
   end
 
   # The parent class is supplied on construction, and worked out when creating all
@@ -55,6 +66,10 @@ class TypeData
     if(@isDerivable)
       data[:derivable] = true
     end
+
+    if(@templateArgumentsToSatisfy)
+      data[:templateArgumentsToSatisfy] = @templateArgumentsToSatisfy
+    end
     return JSON.pretty_generate(data, opt)
   end
 
@@ -64,13 +79,19 @@ class TypeData
     if (data.has_key?("type"))
       type = data["type"]
     end
+
     cls = TypeData.new(data["name"], data["parent"], type)
-    if(!data.include?("partial"))
+    if (!data.include?("partial"))
       cls.setFullyExposed()
     end
 
-    if(data.include?("derivable"))
+    if (data.include?("derivable"))
       cls.setDerivable()
+    end
+
+    templateArgs = data["templateArgumentsToSatisfy"]
+    if (templateArgs)
+      cls.setTemplateArgumentsToSatisfy(templateArgs)
     end
 
     return cls

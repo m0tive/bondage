@@ -1,0 +1,8 @@
+{
+  "::Functions::TestType": {
+    "name": "TestType",
+    "parent": null,
+    "derivable": true,
+    "templateArgumentsToSatisfy": [ 0 ]
+  }
+}

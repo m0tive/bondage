@@ -30,9 +30,12 @@ class TestExpose < Test::Unit::TestCase
     @enum.addIncludePath(".")
     @enum.addFile("Enum.h")
 
+    @functionsManual = Library.new("FunctionsManual", "test/testData/Functions/FunctionsManual")
+
     @functions = Library.new("Functions", "test/testData/Functions")
     @functions.addIncludePath(".")
     @functions.addFile("Functions.h")
+    @functions.addDependency(@functionsManual)
 
     @ctors = Library.new("Constructors", "test/testData/Constructors")
     @ctors.addIncludePath(".")
@@ -272,10 +275,10 @@ class TestExpose < Test::Unit::TestCase
     exposedClass = exposer.exposedMetaData.fullTypes["::Functions::SomeClass"].parsed
     assert_not_nil exposedClass
 
-    assert_equal 12, exposedClass.functions.length
+    assert_equal 14, exposedClass.functions.length
 
     fns = exposer.findExposedFunctions(exposedClass)
-    assert_equal 5, fns.length
+    assert_equal 6, fns.length
 
     overloaded = fns["overloaded"]
     assert_equal 3, overloaded.length
@@ -288,6 +291,8 @@ class TestExpose < Test::Unit::TestCase
     assert_nil fns["complex6"]
     assert_nil fns["complex7"]
     assert_not_nil fns["complex8"]
+    assert_nil fns["template1"]
+    assert_not_nil fns["template2"]
 
     overloaded.each do |fn|
       assert_equal nil, fn.returnType

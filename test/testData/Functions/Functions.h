@@ -1,5 +1,11 @@
+
 namespace Functions
 {
+
+template <typename A, typename B> class TestType
+{
+
+};
 
 /// \expose derivable
 class TestA
@@ -62,6 +68,10 @@ public:
   // pointers to references should be exposed.
   /// \param[out] out a param
   void complex8(TestC *&out);
+
+  TestType<TestB, TestB> template1();
+
+  TestType<TestA, TestB> template2();
 };
 
 }
