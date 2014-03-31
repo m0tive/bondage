@@ -42,7 +42,7 @@ def setupLibrary(library)
 end
 
 def exposeLibrary(lib)
-  parser = Parser.new(lib, PLATFORM_INCLUDES, DEBUGGING)
+  parser = Parser.new(lib, PLATFORM_INCLUDES, [], DEBUGGING)
   visitor = ExposeAstVisitor.new(lib)
   parser.parse(visitor)
   return Exposer.new(visitor, DEBUGGING), visitor
