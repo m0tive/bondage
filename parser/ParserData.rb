@@ -27,7 +27,7 @@ PARAM_DEFAULT_VALUE_STATE =     ParserStateItem.new(:param_default_value,     ->
 FUNCTION_BODY_STATE =           ParserStateItem.new(:function_body)
 FUNCTION_DECORATOR_STATE =      ParserStateItem.new(:function_body)
 TYPEDEF_STATE =                 ParserStateItem.new(:typedef,                 ->(parent, data){ parent.addTypedef(data) })
-UNEXPOSED_STATE =               ParserStateItem.new(:unexposed)
+UNUSED_STATE =                  ParserStateItem.new(:unused)
 
 TRANSITIONS = {
   # inside a namespace
@@ -40,8 +40,13 @@ TRANSITIONS = {
     :cursor_typedef_decl => TYPEDEF_STATE,
     :cursor_class_template => CLASS_TEMPLATE_STATE,
     :cursor_enum_decl => ENUM_STATE,
-    :cursor_unexposed_decl => UNEXPOSED_STATE,
     :cursor_function_template => FUNCTION_TEMPLATE_STATE,
+
+    :cursor_class_template_partial_specialization => UNUSED_STATE,
+    :cursor_unexposed_decl => UNUSED_STATE,
+    :cursor_constructor => UNUSED_STATE,
+    :cursor_using_declaration => UNUSED_STATE,
+    :cursor_variable => UNUSED_STATE,
   },
   # a typedef
   :typedef => {
@@ -62,6 +67,7 @@ TRANSITIONS = {
     :cursor_cxx_method => FUNCTION_STATE,
     :cursor_function_template => FUNCTION_TEMPLATE_STATE,
     :cursor_field_decl => FIELD_STATE,
+    :cursor_variable => FIELD_STATE,
     :cursor_enum_decl => ENUM_STATE,
     :cursor_cxx_access_specifier => ACCESS_SPECIFIER_STATE,
   },
@@ -84,7 +90,7 @@ TRANSITIONS = {
     :cursor_namespace_ref => RETURN_TYPE_NAMESPACE_STATE,
     :cursor_template_ref => RETURN_TYPE_STATE,
     :cursor_compound_stmt => FUNCTION_BODY_STATE,
-    :cursor_cxx_override_attr => FUNCTION_DECORATOR_STATE
+    :cursor_cxx_override_attr => FUNCTION_DECORATOR_STATE,
   },
   :function_template => {
     :cursor_template_type_param => TEMPLATE_PARAM_STATE,
@@ -94,7 +100,7 @@ TRANSITIONS = {
     :cursor_template_ref => RETURN_TYPE_STATE,
     :cursor_param_decl => PARAM_STATE,
     :cursor_compound_stmt => FUNCTION_BODY_STATE,
-    :cursor_cxx_override_attr => FUNCTION_DECORATOR_STATE
+    :cursor_cxx_override_attr => FUNCTION_DECORATOR_STATE,
   },
   # inside a function parameter declaration
   :param => {
