@@ -26,7 +26,7 @@ case os
     ENV['LLVM_CONFIG'] = "../llvm-build/Release+Asserts/bin/llvm-config"
     PLATFORM_INCLUDES = [ "/usr/include/c++/4.2.1/" ]
   when :windows
-    ENV["PATH"] = ENV["PATH"] + ";" + "..\\llvm-build\\Release+Asserts\\bin"
+    ENV["PATH"] = ENV["PATH"] + ";" + "..\\llvmTrunk-build\\Release\\bin"
     PLATFORM_INCLUDES = [ "..\\libc++\\include" ]
   when :linux
     PLATFORM_INCLUDES = [ "/usr/include/c++/4.6/", "/usr/include/c++/4.6/x86_64-linux-gnu/32/" ]

@@ -62,8 +62,6 @@ class CommentExtractor
     if (@commandPendingExtra != nil && location.start.line == @commandPendingExtraLine)
       options = EXTRA_COMMAND_TYPES[@commandPendingExtra.name]
 
-      puts "Comment received: #{comment.text}"
-
       flags = comment.text.split
       flags.each do |flag|
         if (!options.include?(flag))
