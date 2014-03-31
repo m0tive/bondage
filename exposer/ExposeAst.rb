@@ -69,25 +69,34 @@ class ClassableItem < HierarchyItem
 
   # Add a struct to the container, [data] is a hash of data from clang
   def addStruct(data)
-    cls = ClassItem.build(self, data, true, false)
-    @classes[data[:name]] = cls
-    visitor().addDescendantClass(cls)
+    cls = @classes[data[:name]]
+    if (!cls)
+      cls = ClassItem.build(self, data, true, false)
+      @classes[data[:name]] = cls
+      visitor().addDescendantClass(cls)
+    end
     return cls
   end
 
   # Add a class to the container, [data] is a hash of data from clang
   def addClass(data)
-    cls = ClassItem.build(self, data, false, false)
-    @classes[data[:name]] = cls
-    visitor().addDescendantClass(cls)
+    cls = @classes[data[:name]]
+    if (!cls)
+      cls = ClassItem.build(self, data, false, false)
+      @classes[data[:name]] = cls
+      visitor().addDescendantClass(cls)
+    end
     return cls
   end
 
   # Add a template class to the container, [data] is a hash of data from clang
   def addClassTemplate(data)
-    cls = ClassItem.build(self, data, false, true)
-    @classes[data[:name]] = cls
-    visitor().addDescendantClass(cls)
+    cls = @classes[data[:name]]
+    if (!cls)
+      cls = ClassItem.build(self, data, false, true)
+      @classes[data[:name]] = cls
+      visitor().addDescendantClass(cls)
+    end
     return cls
   end
 
@@ -176,6 +185,7 @@ class ArgumentItem
 
   def addParamDefault(data)
     @hasDefault = true
+    return nil
   end
 
 private
