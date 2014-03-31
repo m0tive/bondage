@@ -64,6 +64,10 @@ class Exposer
   def findExposedFunctions(cls)
     functions = {}
 
+    if (@debugOutput)
+      puts "Gathering exposable functions from #{cls.name} with #{cls.functions.length} functions"
+    end
+
     # find all exposable functions as an array
     exposableFunctions = cls.functions.select{ |fn| @functionExposer.canExposeMethod(cls, fn) }
 
@@ -195,7 +199,7 @@ private
 
     parent = findParentClass(cls)
     if(@debugOutput)
-      puts "#{parent != nil ? "Y" : "N"}\t#{cls.name} (no derivable parent)"
+      puts "#{parent != nil ? " Y p" : "N"}\t#{cls.name} (no derivable parent)"
     end
     return parent != nil, parent
   end
@@ -232,7 +236,7 @@ private
       end
 
       if(@debugOutput)
-        puts "#{hasExposeComment ? "Y" : "N"}\t#{cls.name}"
+        puts "#{hasExposeComment ? " Y" : "N"}\t#{cls.name}"
       end
       verifyAbleToExposeClass(cls)
       cls.setExposed(true)
