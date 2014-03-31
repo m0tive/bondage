@@ -39,6 +39,10 @@ class Comment
     return @commands[name] = Command.new(name, text)
   end
 
+  def to_s
+    @commands.map{ |name, cmd| "#{name}: #{cmd.text}" }.join("\n")
+  end
+
   # add a param command to the comment. [index] is the parameter index,
   # [text] is the brief for the param, [explicitDirection] is whether there was an
   # explicit in or out direction, and dir is that direction
