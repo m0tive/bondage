@@ -19,14 +19,20 @@ end
 
 
 class Parser
-  def initialize(library, coreIncludes=[], dbg=false)
+  def initialize(library, coreIncludes=[], extraArgs=[], dbg=false)
     @debug = dbg
     @index = FFI::Clang::Index.new
     @library = library
 
     sourceName = "DATA.cpp"
 
-    args = [ "-fparse-all-comments", "-std=c++11", "/TC", sourceName ].concat(coreIncludes.map { |i| "-I#{i}" })
+    args = [
+      "-fparse-all-comments",
+      "-ferror-limit=100",
+      "-std=c++11",
+      "/TC",
+      sourceName
+    ].concat(coreIncludes.map { |i| "-I#{i}" }).concat(extraArgs)
 
     library.includePaths.each do |path|
       args << "-I#{path}"
@@ -64,19 +70,35 @@ class Parser
 
 private
   def shouldIgnoreCursor(cursor)
-    toFind = cursor.location.file
-    if(@library.files.any?{ |path| toFind[-path.length, toFind.length] == path })
+    file = cursor.location.file ? cursor.location.file : cursor.extent.start.file
+
+    if (!file)
+      return true
+    end
+
+    toFind = Pathname.new(file).cleanpath.to_s
+    if(@library.files.any?{ |path|
+        norm = Pathname.new(path).cleanpath.to_s
+        next toFind[-norm.length, toFind.length] == norm
+      })
       return false
     end
+
     return true
   end
 
   def findNextState(oldType, cursor)
     typeTransitions = TRANSITIONS[oldType]
-    raise formatParseError(cursor, "Unexpected child for #{oldType}, with child type #{cursor.kind}") unless typeTransitions
+    if (!typeTransitions)
+      # raise formatParseError(cursor, "Unexpected child for #{oldType}, with child type #{cursor.kind}")
+      return UNUSED_STATE
+    end
 
     newState = typeTransitions[cursor.kind]
-    raise formatParseError(cursor, "Unexpected transition #{oldType} -> #{cursor.kind}") unless newState
+    if (!newState)
+      # raise formatParseError(cursor, "Unexpected transition #{oldType} -> #{cursor.kind}")
+      return UNUSED_STATE
+    end
     return newState
   end
 
@@ -87,7 +109,7 @@ private
       newState = findNextState(states[-1], cursor)
 
       if(@depth == 0 && shouldIgnoreCursor(cursor))
-        next :continue          
+        next :continue
       end
 
       enterChildren = newState.enter(states, data, cursor)
