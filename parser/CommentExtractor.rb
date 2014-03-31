@@ -12,6 +12,7 @@ EXTRA_COMMAND_TYPES = {
 class CommentExtractor
   def initialize()
     @commandPendingExtra = nil
+    @commandPendingExtraLine = 0
   end
 
   
@@ -26,6 +27,9 @@ class CommentExtractor
   end
 
   def extractComment(toFill, comment, location)
+    if (!comment)
+      return
+    end
     raise "invalid comment passed #{comment}" unless comment.kind_of?(FFI::Clang::Comment)
 
     if (comment.is_whitespace)
@@ -55,8 +59,10 @@ class CommentExtractor
 
   # Extract a text comment into [toFill]
   def extractTextComment(toFill, comment, location)
-    if (@commandPendingExtra != nil)
+    if (@commandPendingExtra != nil && location.start.line == @commandPendingExtraLine)
       options = EXTRA_COMMAND_TYPES[@commandPendingExtra.name]
+
+      puts "Comment received: #{comment.text}"
 
       flags = comment.text.split
       flags.each do |flag|
@@ -71,21 +77,25 @@ class CommentExtractor
       toFill.addCommand("brief", comment.text)
     end
     @commandPendingExtra = nil
+    @commandPendingExtraLine = 0
   end
 
   # Extract a block command comment - like /brief
   def extractBlockCommandComment(toFill, comment, location)
     @commandPendingExtra = nil
+    @commandPendingExtraLine = 0
     toFill.addCommand(comment.name, comment.comment)
   end
 
   # Extract an inline command comment
   def extractInlineCommandComment(toFill, comment, location)
     @commandPendingExtra = nil
+    @commandPendingExtraLine = 0
     command = toFill.addCommand(comment.name, "")
 
     if (EXTRA_COMMAND_TYPES[comment.name] != nil)
       @commandPendingExtra = command
+      @commandPendingExtraLine = location.end.line
     end
   end
 
