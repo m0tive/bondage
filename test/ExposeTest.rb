@@ -392,9 +392,4 @@ class TestExpose < Test::Unit::TestCase
     assert_equal 0, bFns.length
     assert_nil bFns["pork"]
   end
-
-  # class copyability
-  # pushing - push style?
-  # indexes in methods  
-
 end
