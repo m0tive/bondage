@@ -75,8 +75,8 @@ public:
   /// \param[in,out] b test param
   void test(int *a = nullptr, float *b = nullptr)
     {
-    (void)a;
-    (void)b;
+    *a = 3;
+    *b = 2;
     }
 
   /// \brief test again
