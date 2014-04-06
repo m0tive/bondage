@@ -35,7 +35,7 @@ public:
     val += std::to_string(num);
     }
 
-  void append(int num, float num2)
+  void append(int num, int num2)
     {
     val += std::to_string(num) + std::to_string(num2);
     }
