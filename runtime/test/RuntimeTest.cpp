@@ -5,6 +5,7 @@
 #include "bondage/Library.h"
 #include "CastHelper.Gen_Gen.h"
 
+#include "StringLibrary/StringLibrary.h"
 #include "StringLibrary/autogen_String/String.h"
 
 class RuntimeTest : public QObject
@@ -221,6 +222,20 @@ template <typename A> void createArgs(
   out.args.ths = obj;
   }
 
+template <typename A, typename B> void createArgs(
+    bondage::Builder::Boxer *boxer,
+    Args<2> &out,
+    Reflect::example::Object *obj,
+    A a,
+    B b)
+  {
+  Reflect::example::initArgs(boxer, out.argumentStorage, out.argumentStoragePtrs, a, b);
+  out.boxer = boxer;
+  out.args.args = out.argumentStoragePtrs;
+  out.args.argCount = 2;
+  out.args.ths = obj;
+  }
+
 void RuntimeTest::testStringLibrary()
   {
   std::map<std::string, const bondage::WrappedClass *> classes;
@@ -261,11 +276,23 @@ void RuntimeTest::testStringLibrary()
   QCOMPARE("PORK", upper->val.c_str());
 
 
-  Args<1> appendFloatArgs;
-  createArgs(&boxer, appendFloatArgs, &toUpperArgs.args.results[0], 5);
-  appendFloatArgs.call(functions["append"]);
+  Args<1> appendIntArgs;
+  createArgs(&boxer, appendIntArgs, &toUpperArgs.args.results[0], 5);
+  appendIntArgs.call(functions["append"]);
 
   QCOMPARE("PORK5", upper->val.c_str());
+
+  Args<1> appendStringArgs;
+  createArgs(&boxer, appendStringArgs, &toUpperArgs.args.results[0], "_TEST");
+  appendStringArgs.call(functions["append"]);
+
+  QCOMPARE("PORK5_TEST", upper->val.c_str());
+
+  Args<2> appendIntIntArgs;
+  createArgs(&boxer, appendIntIntArgs, &toUpperArgs.args.results[0], 1, 2);
+  appendIntIntArgs.call(functions["append"]);
+
+  QCOMPARE("PORK5_TEST12", upper->val.c_str());
 
   }
 
