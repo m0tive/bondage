@@ -57,16 +57,22 @@ module CPP
       argCalls = @calls.map do |num, calls|
         raise "Invalid call" unless calls.length()
 
-        callsJoined = calls.join(",\n#{ovOlLs}")
+        if (calls.length > 1)
+          callsJoined = calls.join(",\n#{ovOlLs}")
 
-        "#{TYPE_NAMESPACE}::FunctionBuilder::buildOverloaded<#{num}, std::tuple<
+        "Reflect::FunctionArgCountSelectorBlock<#{num}, Reflect::FunctionArgumentTypeSelector<
 #{ovOlLs}#{callsJoined}
 #{ovOlLs}> >"
+        else
+          "Reflect::FunctionArgCountSelectorBlock<#{num},
+#{ovOlLs}#{calls[0]}
+#{ovOlLs}>"
+        end
       end
 
       callsJoined = argCalls.join(",\n#{olLs}")
 
-@bind = "#{TYPE_NAMESPACE}::FunctionBuilder::buildArgumentCountOverload< std::tuple<
+@bind = "#{TYPE_NAMESPACE}::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
 #{olLs}#{callsJoined}
 #{olLs}> >(\"#{name}\")"
     end

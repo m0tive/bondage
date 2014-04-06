@@ -17,9 +17,10 @@ public:
       : m_function(fn),
         m_name(name)
     {
+    assert(m_function);
     }
 
-  void call(bondage::Builder::Boxer *b, Arguments *a)
+  void call(bondage::Builder::Boxer *b, Arguments *a) const
     {
     m_function(b, a);
     }

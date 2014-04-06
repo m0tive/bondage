@@ -1,6 +1,7 @@
 #pragma once
 #include "bondage/Function.h"
 #include "Reflect/WrappedFunction.h"
+#include "Reflect/FunctionSelector.h"
 #include "Reflect/MethodInjectorBuilder.h"
 
 namespace bondage
@@ -11,43 +12,32 @@ class FunctionBuilder
 public:
   template <typename Fn> static Function build(const char *name)
     {
-    typedef typename Fn::Binder Binder;
-    typedef typename Binder::Builder Builder;
-
     typedef typename Fn::Caller Invoker;
 
-    return Function(name, Invoker::template buildCall<Builder>());
+    return Function(name, Invoker::template buildCall<Fn>());
     }
 
 
 
-  template <typename Signature, Signature Fn> class buildCall
+  template <typename Signature, Signature Fn> class buildCall :
+      public Reflect::WrappedFunction<Signature, Fn>::Builder
     {
   public:
-    typedef Reflect::WrappedFunction<Signature, Fn> Binder;
     typedef FunctionCaller Caller;
     };
 
-  template <typename Signature, Signature Fn> class buildMemberStandinCall
+  template <typename Signature, Signature Fn> class buildMemberStandinCall :
+      public Reflect::WrappedFunction<Signature, Fn>::Builder
     {
-    typedef Reflect::WrappedFunction<Signature, Fn> Binder;
     typedef Reflect::MethodInjectorBuilder<FunctionCaller> Caller;
     };
 
 
 
-  template <typename Functions> static Function buildArgumentCountOverload(const char *name)
+  template <typename Functions> static Function buildOverload(const char *name)
     {
-    return Function(name, nullptr);
+    return Function(name, FunctionCaller::template buildCall<Functions>());
     }
-
-  template <std::size_t _Count, typename _Functions> class buildOverloaded
-    {
-  public:
-    typedef std::integral_constant<std::size_t, _Count> Count;
-    typedef _Functions Functions;
-
-    };
   };
 
 }

@@ -20,7 +20,8 @@ SOURCES += \
   ../../test/testData/Generator/autogen_Gen/Gen.cpp \
     ../src/Library.cpp \
     ../src/WrappedClass.cpp \
-    ../src/CastHelper.cpp
+    ../src/CastHelper.cpp \
+    ../../test/testData/StringLibrary/autogen_String/String.cpp
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
@@ -41,7 +42,8 @@ INCLUDEPATH += \
   ../include/ \
   ../Reflect/include/ \
   ../../test/testData/ \
-  ../../test/testData/Generator
+  ../../test/testData/Generator \
+  ../../test/testData/StringLibrary
 
 macx-clang {
   QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9

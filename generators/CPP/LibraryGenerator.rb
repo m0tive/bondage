@@ -54,7 +54,7 @@ module CPP
       files = Set.new
       derivedClasses = Set.new
 
-      libraryName = "g_bondage_library";
+      libraryName = "g_bondage_library_#{library.name}";
 
       classHeader = ""
       classSource = ""
