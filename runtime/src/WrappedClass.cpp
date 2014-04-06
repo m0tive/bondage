@@ -5,7 +5,7 @@
 namespace bondage
 {
 
-WrappedClass::WrappedClass(Library &owningLib, const Reflect::Type *type, const Function *fn, std::size_t count)
+WrappedClass::WrappedClass(Library &owningLib, const Crate::Type *type, const Function *fn, std::size_t count)
     : m_type(type),
       m_functions(fn),
       m_functionCount(count),
@@ -15,7 +15,7 @@ WrappedClass::WrappedClass(Library &owningLib, const Reflect::Type *type, const 
   owningLib.registerClass(this);
   }
 
-const Reflect::Type &WrappedClass::type() const
+const Crate::Type &WrappedClass::type() const
   {
   return *m_type;
   }

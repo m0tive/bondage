@@ -10,7 +10,7 @@ class CastHelper;
 }
 
 #define BONDAGE_CLASS_RESOLVER(CLS) \
-  namespace Reflect { \
+  namespace Crate { \
   namespace detail { \
   template <> struct TypeResolver<CLS> { \
   static const Type *find(); }; } }

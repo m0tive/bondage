@@ -1,6 +1,6 @@
 #pragma once
 #include "bondage/Function.h"
-#include "Reflect/FunctionBuilder.h"
+#include "Reflect/WrappedFunction.h"
 #include "Reflect/MethodInjectorBuilder.h"
 
 namespace bondage
@@ -11,9 +11,12 @@ class FunctionBuilder
 public:
   template <typename Fn> static Function build(const char *name)
     {
-    typename Fn::binder bind;
+    typedef typename Fn::Binder Binder;
+    typedef typename Binder::Builder Builder;
 
-    return Function(name, bind.template buildInvocation<typename Fn::Caller>());
+    typedef typename Fn::Caller Invoker;
+
+    return Function(name, Invoker::template buildCall<Builder>());
     }
 
 
@@ -21,13 +24,13 @@ public:
   template <typename Signature, Signature Fn> class buildCall
     {
   public:
-    typedef Reflect::FunctionBuilder<Signature, Fn> binder;
+    typedef Reflect::WrappedFunction<Signature, Fn> Binder;
     typedef FunctionCaller Caller;
     };
 
   template <typename Signature, Signature Fn> class buildMemberStandinCall
     {
-    typedef Reflect::FunctionBuilder<Signature, Fn> binder;
+    typedef Reflect::WrappedFunction<Signature, Fn> Binder;
     typedef Reflect::MethodInjectorBuilder<FunctionCaller> Caller;
     };
 

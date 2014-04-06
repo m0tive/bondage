@@ -11,6 +11,7 @@ public:
   typedef Arguments *CallData;
 
   typedef void (*Call)(bondage::Builder::Boxer *, Arguments *);
+  typedef bool (*CanCall)(bondage::Builder::Boxer *, Arguments *);
 
   Function(const char *name, Call fn)
       : m_function(fn),
@@ -34,16 +35,28 @@ class FunctionCaller : public bondage::Builder
   {
 public:
   typedef Function::Call Result;
+  typedef Function::CanCall CanCallResult;
 
-  template <typename Builder> static Result build()
+  template <typename Function, typename Builder=FunctionCaller> static Result buildCall()
     {
-    return call<Builder>;
+    return call<Function, Builder>;
     }
 
-  template <typename Builder> static void call(Boxer *b, Function::Arguments *args)
+  template <typename Function, typename Builder=FunctionCaller> static CanCallResult buildCanCall()
     {
-    Call data = { args, b };
-    Builder::call(&data);
+    return canCall<Function, Builder>;
+    }
+
+  template <typename Fn, typename Builder=FunctionCaller> static void call(Boxer *b, Function::Arguments *data)
+    {
+    Call call = { data, b };
+    Fn::template call<Builder>(&call);
+    }
+
+  template <typename Fn, typename Builder=FunctionCaller> static bool canCall(Boxer *b, Function::Arguments *data)
+    {
+    Call call = { data, b };
+    return Fn::template canCall<Builder>(&call);
     }
   };
 
