@@ -258,7 +258,7 @@ void RuntimeTest::testStringLibrary()
 
   bondage::Builder::Boxer boxer;
 
-  Args<1> createStringArgs;
+  /*Args<1> createStringArgs;
   createArgs(&boxer, createStringArgs, nullptr, "pork");
   createStringArgs.call(functions["create"]);
 
@@ -292,7 +292,7 @@ void RuntimeTest::testStringLibrary()
   createArgs(&boxer, appendIntIntArgs, &toUpperArgs.args.results[0], 1, 2);
   appendIntIntArgs.call(functions["append"]);
 
-  QCOMPARE("PORK5_TEST12", upper->val.c_str());
+  QCOMPARE("PORK5_TEST12", upper->val.c_str());*/
 
   }
 
