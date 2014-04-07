@@ -258,15 +258,15 @@ void RuntimeTest::testStringLibrary()
 
   bondage::Builder::Boxer boxer;
 
-  Args<1> createStringArgs;
-  createArgs(&boxer, createStringArgs, nullptr, "pork");
+  //Args<1> createStringArgs;
+  //createArgs(&boxer, createStringArgs, nullptr, "pork");
   //createStringArgs.call(functions["create"]);
 
   String::String str = String::String::create("pork");
-  Reflect::example::Caster<String::String>::pack(
-    &boxer,
-    &createStringArgs.args.results[createStringArgs.args.resultCount++],
-    str);
+  Reflect::example::Object ex;
+
+  boxer.setupBox<Crate::Traits<String::String>>(&ex);
+  Crate::Traits<String::String>::box(&boxer, &ex, &str);
 
   /*QVERIFY(1 == createStringArgs.args.resultCount);
   QVERIFY(Reflect::example::Caster<String::String*>::canCast(&boxer, &createStringArgs.args.results[0]));
