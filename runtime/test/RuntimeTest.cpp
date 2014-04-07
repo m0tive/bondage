@@ -260,9 +260,9 @@ void RuntimeTest::testStringLibrary()
 
   Args<1> createStringArgs;
   createArgs(&boxer, createStringArgs, nullptr, "pork");
-  createStringArgs.call(functions["create"]);
+  /*createStringArgs.call(functions["create"]);
 
-  /*QVERIFY(1 == createStringArgs.args.resultCount);
+  QVERIFY(1 == createStringArgs.args.resultCount);
   QVERIFY(Reflect::example::Caster<String::String*>::canCast(&boxer, &createStringArgs.args.results[0]));
   QVERIFY(Reflect::example::Caster<String::String*>::cast(&boxer, &createStringArgs.args.results[0]) != nullptr);
 
