@@ -258,17 +258,12 @@ void RuntimeTest::testStringLibrary()
 
   bondage::Builder::Boxer boxer;
 
-  //Args<1> createStringArgs;
-  //createArgs(&boxer, createStringArgs, nullptr, "pork");
-  //createStringArgs.call(functions["create"]);
+  Args<1> createStringArgs;
+  createArgs(&boxer, createStringArgs, nullptr, "pork");
+  createStringArgs.call(functions["create"]);
 
-  String::String str = String::String::create("porkXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-  Reflect::example::Object ex;
 
-  boxer.setupBox<Crate::Traits<String::String>>(&ex);
-  Crate::Traits<String::String>::box(&boxer, &ex, &str);
-
-  /*QVERIFY(1 == createStringArgs.args.resultCount);
+  QVERIFY(1 == createStringArgs.args.resultCount);
   QVERIFY(Reflect::example::Caster<String::String*>::canCast(&boxer, &createStringArgs.args.results[0]));
   QVERIFY(Reflect::example::Caster<String::String*>::cast(&boxer, &createStringArgs.args.results[0]) != nullptr);
 
@@ -298,7 +293,7 @@ void RuntimeTest::testStringLibrary()
   createArgs(&boxer, appendIntIntArgs, &toUpperArgs.args.results[0], 1, 2);
   appendIntIntArgs.call(functions["append"]);
 
-  QCOMPARE("PORK5_TEST12", upper->val.c_str());*/
+  QCOMPARE("PORK5_TEST12", upper->val.c_str());
 
   }
 
