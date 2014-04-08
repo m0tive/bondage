@@ -2,23 +2,31 @@ require_relative "../exposer/ExposeAst.rb"
 require_relative "GeneratorHelper.rb"
 
 # Generate lua exposing code for C++ classes
-class LuaGenerator
+class LuaLibraryGenerator
   # create a lua generator for a [library], and a given [exposer].
-  def initialize(library, exposer)
-    @library = library
-    @exposer = exposer
+  def initialize()
   end
 
   # Generate lua classes into [dir]
-  def generate(dir)
+  def generate(library, exposer)
+    @library = library
+    @exposer = exposer
+    @classes = { }
+
 
     # for each fully exposed class, we write a file containing the classes methods and data.
     @exposer.exposedMetaData.fullTypes.each do |path, cls|
       if(cls.type == :class)
-        File.open(dir + "/#{cls.name}.lua", 'w') do |file|
-          #writePreamble(file, "-- ")
-          file.write(generateClassData(cls))
-        end
+        @classes[cls] = generateClassData(cls)
+      end
+    end
+  end
+
+  def write(dir)
+    @classes.each do |cls, data|
+      File.open(dir + "/#{cls.name}.lua", 'w') do |file|
+        #writePreamble(file, "-- ")
+        file.write(data)
       end
     end
   end

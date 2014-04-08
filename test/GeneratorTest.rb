@@ -272,8 +272,6 @@ class TestGenerator < Test::Unit::TestCase
     expectedHeader = libGen.headerPath(lib.library)
     expectedSource = libGen.sourcePath(lib.library)
 
-    libGen.generate(lib.library, exposer)
-
     FileUtils.mkdir_p(lib.library.autogenPath)
     File.open(expectedHeader, 'w') do |file|
       file.write(libGen.header)
