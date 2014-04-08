@@ -258,12 +258,12 @@ class TestGenerator < Test::Unit::TestCase
   end
 
   def test_stringLibGenerator
-    @stringLibrary = Library.new("String", "test/testData/StringLibrary")
-    @stringLibrary.addIncludePath(".")
-    @stringLibrary.addFile("StringLibrary.h")
-    setupLibrary(@stringLibrary)
+    stringLibrary = Library.new("String", "test/testData/StringLibrary")
+    stringLibrary.addIncludePath(".")
+    stringLibrary.addFile("StringLibrary.h")
+    setupLibrary(stringLibrary)
 
-    exposer, lib = exposeLibrary(@stringLibrary)
+    exposer, lib = exposeLibrary(stringLibrary)
 
     libGen = CPP::LibraryGenerator.new()
 
@@ -288,6 +288,6 @@ class TestGenerator < Test::Unit::TestCase
       #runProcess("test/testGenerator.bat")
     end
 
-    #cleanLibrary(@stringLibrary)
+    cleanLibrary(stringLibrary)
   end
 end
