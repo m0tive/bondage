@@ -262,7 +262,7 @@ void RuntimeTest::testStringLibrary()
   //createArgs(&boxer, createStringArgs, nullptr, "pork");
   //createStringArgs.call(functions["create"]);
 
-  String::String str = String::String::create("pork");
+  String::String str = String::String::create("porkXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
   Reflect::example::Object ex;
 
   boxer.setupBox<Crate::Traits<String::String>>(&ex);
