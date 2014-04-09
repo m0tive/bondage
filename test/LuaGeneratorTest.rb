@@ -18,9 +18,6 @@ class TestGenerator < Test::Unit::TestCase
   def teardown
   end
 
-<<<<<<< HEAD
-  def test_stringLibGeneratorLua
-=======
   def test_luaFunctionGenerator
     exposer, lib = exposeLibrary(@gen)
 
@@ -77,8 +74,7 @@ class TestGenerator < Test::Unit::TestCase
     assert_equal "test1 = getFunction(\"Gen\", \"test1\")", fnGen.classDefinition
   end
 
-  def test_stringLibGenerator 
->>>>>>> ongoing work, making comment extraction more reliable
+  def test_stringLibGeneratorLua
     stringLibrary = Library.new("String", "test/testData/StringLibrary")
     stringLibrary.addIncludePath(".")
     stringLibrary.addFile("StringLibrary.h")
