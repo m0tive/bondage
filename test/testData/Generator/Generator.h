@@ -5,13 +5,19 @@
 namespace Gen
 {
 
+/// \brief A CLASS!
+///
 /// \expose derivable managed
 class Gen
 {
 public:
   virtual ~Gen() { }
 
-  void test1(int, float, double)
+  /// \brief This funciton is a test
+  /// \param myint This is an int!
+  /// \param myFloat This is a float.
+  /// \return Returns NOTHING.
+  void test1(int myint, float myFloat, double)
     {
     }
 

@@ -5,7 +5,7 @@ require_relative "../parser/Parser.rb"
 require_relative "../exposer/Exposer.rb"
 require_relative "../exposer/ExposeAst.rb"
 require_relative "../generators/CPP/LibraryGenerator.rb"
-require_relative "../generators/LuaGenerator.rb"
+require_relative "../generators/Lua/LibraryGenerator.rb"
 
 require 'test/unit'
 
@@ -45,7 +45,7 @@ class TestComplex < Test::Unit::TestCase
     exposer, visitor = exposeLibrary(library)
 
     CPP::LibraryGenerator.new().generate(library, exposer)
-    luaGen = LuaLibraryGenerator.new()
+    luaGen = Lua::LibraryGenerator.new("getFunction")
     luaGen.generate(library, exposer)
     luaGen.write( library.autogenPath)
   end

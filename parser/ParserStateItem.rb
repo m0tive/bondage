@@ -32,7 +32,7 @@ private
   def buildData(cursor)
     comment = EMPTY_COMMENT
     if(cursor.comment_range.start.file != nil)
-      comment = CommentExtractor.extract(cursor.comment, cursor.comment_range)
+      comment = CommentExtractor.extract(cursor.comment, cursor.raw_comment_text, cursor.comment_range)
     end
 
     type = nil
