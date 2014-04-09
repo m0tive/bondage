@@ -19,6 +19,8 @@ public:
   /// \return Returns NOTHING.
   void test1(int myint, float myFloat, double)
     {
+    (void)myint;
+    (void)myFloat;
     }
 
   void test2(int, float = 2.0f, double = 4.0)
