@@ -4,8 +4,7 @@
 #include "Crate/Traits.h"
 #include "bondage/Function.h"
 
-#define BONDAGE_ARRAY_COUNT(arr) (sizeof(arr)/sizeof(arr[0]))
-#define BONDAGE_IMPLEMENT_EXPOSED_CLASS(varName, lib, parent, name, fns) \
+#define BONDAGE_IMPLEMENT_EXPOSED_CLASS(varName, lib, parent, name, fns, fnCount) \
   namespace Crate { namespace detail { \
   const Type *TypeResolver<parent::name>::find() \
     { static Type t(#name); return &t; } } } \
@@ -13,7 +12,7 @@
     lib, \
     Crate::findType<parent::name>(), \
     fns, \
-    BONDAGE_ARRAY_COUNT(fns)); \
+    fnCount); \
   const bondage::WrappedClass *bondage::WrappedClassFinder<parent::name>::findBase() \
     { return &varName; }
 
@@ -44,6 +43,37 @@ private:
   WrappedClass *m_next;
   };
 
+
+#ifdef REFLECT_MACRO_IMPL
+
+template <typename T> class WrappedClassHelper
+  {
+public:
+  typedef Crate::Traits<T> Traits;
+
+  static T *create()
+    {
+    return new T();
+    }
+
+  template <typename A> static T *create(A &&a)
+    {
+    return new T(std::forward<A>(a));
+    }
+
+  template <typename A, typename B> static T *create(A &&a, B &&b)
+    {
+    return new T(std::forward<A>(a), std::forward<Args>(b));
+    }
+
+  template <typename A, typename B, typename C> static T *create(A &&a, B &&b, C &&c)
+    {
+    return new T(std::forward<A>(a), std::forward<Args>(b), std::forward<Args>(c));
+    }
+  };
+
+#else
+
 template <typename T> class WrappedClassHelper
   {
 public:
@@ -54,6 +84,8 @@ public:
     return new T(std::forward<Args>(args)...);
     }
   };
+
+#endif
 
 template <typename T> class WrappedClassFinder;
 

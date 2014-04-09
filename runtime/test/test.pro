@@ -14,6 +14,11 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
+win32-msvc2012 {
+  # needs enabling for msvc2013, which has no mkspec yet...
+  # QMAKE_CXXFLAGS += /FS
+  DEFINES += REFLECT_MACRO_IMPL
+}
 
 SOURCES += \
   RuntimeTest.cpp \
@@ -43,7 +48,8 @@ INCLUDEPATH += \
   ../Reflect/include/ \
   ../../test/testData/ \
   ../../test/testData/Generator \
-  ../../test/testData/StringLibrary
+  ../../test/testData/StringLibrary \
+  .
 
 macx-clang {
   QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9

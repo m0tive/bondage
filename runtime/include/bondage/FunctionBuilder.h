@@ -14,7 +14,7 @@ public:
     {
     typedef typename Fn::Caller Invoker;
 
-    return Function(name, Invoker::template buildCall<Fn>());
+    return Function(name, Invoker::template buildCall<Fn, FunctionCaller>());
     }
 
 
@@ -36,7 +36,7 @@ public:
 
   template <typename Functions> static Function buildOverload(const char *name)
     {
-    return Function(name, FunctionCaller::template buildCall<Functions>());
+    return Function(name, FunctionCaller::template buildCall<Functions, FunctionCaller>());
     }
   };
 

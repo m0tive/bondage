@@ -19,7 +19,6 @@ const bondage::Library &bindings()
 
 
 // Exposing class ::Gen::Gen
-
 void Gen_Gen_test2_overload0(::Gen::Gen & inputArg0, int inputArg1)
 {
   inputArg0.test2(std::forward<int>(inputArg1));
@@ -65,17 +64,18 @@ const bondage::Function Gen_Gen_methods[] = {
     > >("test3")
 };
 
+
 BONDAGE_IMPLEMENT_EXPOSED_CLASS(
   Gen_Gen,
   g_bondage_library_Gen,
   ::Gen,
   Gen,
-  Gen_Gen_methods);
+  Gen_Gen_methods,
+  3);
 
 
 
 // Exposing class ::Gen::InheritTest
-
 const bondage::Function Gen_InheritTest_methods[] = {
   bondage::FunctionBuilder::build<
     bondage::FunctionBuilder::buildCall< void(::Gen::InheritTest::*)(), &::Gen::InheritTest::pork >
@@ -85,32 +85,29 @@ const bondage::Function Gen_InheritTest_methods[] = {
     >("pork2")
 };
 
+
 BONDAGE_IMPLEMENT_EXPOSED_CLASS(
   Gen_InheritTest,
   g_bondage_library_Gen,
   ::Gen,
   InheritTest,
-  Gen_InheritTest_methods);
+  Gen_InheritTest_methods,
+  2);
 
 
 
 // Exposing class ::Gen::InheritTest2
-
-const bondage::Function Gen_InheritTest2_methods[] = {
-
-};
-
 BONDAGE_IMPLEMENT_EXPOSED_CLASS(
   Gen_InheritTest2,
   g_bondage_library_Gen,
   ::Gen,
   InheritTest2,
-  Gen_InheritTest2_methods);
+  nullptr,
+  0);
 
 
 
 // Exposing class ::Gen::MultipleReturnGen
-
 int Gen_MultipleReturnGen_test_overload0(::Gen::MultipleReturnGen & inputArg0)
 {
   int result;
@@ -139,17 +136,18 @@ const bondage::Function Gen_MultipleReturnGen_methods[] = {
     > >("test")
 };
 
+
 BONDAGE_IMPLEMENT_EXPOSED_CLASS(
   Gen_MultipleReturnGen,
   g_bondage_library_Gen,
   ::Gen,
   MultipleReturnGen,
-  Gen_MultipleReturnGen_methods);
+  Gen_MultipleReturnGen_methods,
+  1);
 
 
 
 // Exposing class ::Gen::CtorGen
-
 ::Gen::CtorGen * Gen_CtorGen_CtorGen_overload0()
 {
   auto result = bondage::WrappedClassHelper< ::Gen::CtorGen >::create();
@@ -175,12 +173,14 @@ const bondage::Function Gen_CtorGen_methods[] = {
     > >("CtorGen")
 };
 
+
 BONDAGE_IMPLEMENT_EXPOSED_CLASS(
   Gen_CtorGen,
   g_bondage_library_Gen,
   ::Gen,
   CtorGen,
-  Gen_CtorGen_methods);
+  Gen_CtorGen_methods,
+  1);
 
 
 #include "CastHelper.Gen_Gen.h"
