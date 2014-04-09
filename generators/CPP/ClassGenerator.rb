@@ -69,17 +69,6 @@ module CPP
       fullyQualified = @cls.fullyQualifiedName()
       @wrapperName = fullyQualified.sub("::", "").gsub("::", "_")
 
-      methodsLiteral = wrapperName + "_methods";
-
-
-      classInfo =
-"#{MACRO_PREFIX}IMPLEMENT_EXPOSED_CLASS(
-  #{wrapperName},
-  #{libraryVariable},
-  #{@cls.parent.fullyQualifiedName()},
-  #{@cls.name},
-  #{methodsLiteral});"
-
       functions = @exposer.findExposedFunctions(@cls)
 
       methods = []
@@ -102,11 +91,26 @@ module CPP
         extraMethodSource = "\n" + extraMethods.join("\n\n") + "\n"
       end
 
-      @implementation =
-"// Exposing class #{fullyQualified}
-#{extraMethodSource}
-const #{TYPE_NAMESPACE}::Function #{methodsLiteral}[] = {\n#{methodsSource}\n};
 
+      methodsInfo = ""
+      methodsLiteral = "nullptr"
+      if (methods.length > 0)
+        methodsLiteral = wrapperName + "_methods";
+        methodsInfo = "\nconst #{TYPE_NAMESPACE}::Function #{methodsLiteral}[] = {\n#{methodsSource}\n};\n\n"
+      end
+
+      classInfo =
+"#{MACRO_PREFIX}IMPLEMENT_EXPOSED_CLASS(
+  #{wrapperName},
+  #{libraryVariable},
+  #{@cls.parent.fullyQualifiedName()},
+  #{@cls.name},
+  #{methodsLiteral},
+  #{methods.length});"
+
+
+      @implementation =
+"// Exposing class #{fullyQualified}#{extraMethodSource}#{methodsInfo}
 #{classInfo}
 "
     end
