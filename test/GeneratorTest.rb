@@ -286,6 +286,6 @@ class TestGenerator < Test::Unit::TestCase
       #runProcess("test/testGenerator.bat")
     end
 
-    cleanLibrary(stringLibrary)
+    #cleanLibrary(stringLibrary)
   end
 end
