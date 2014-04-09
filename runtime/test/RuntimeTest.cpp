@@ -200,6 +200,19 @@ public:
     }
   };
 
+
+template <> struct Args<0>
+  {
+public:
+  bondage::Builder::Arguments args;
+  bondage::Builder::Boxer *boxer;
+
+  void call(const bondage::Function *f)
+    {
+    f->call(boxer, &args);
+    }
+  };
+
 void createArgs(
     bondage::Builder::Boxer *boxer,
     Args<0> &out,
@@ -274,26 +287,26 @@ void RuntimeTest::testStringLibrary()
   QVERIFY(Reflect::example::Caster<String::String*>::canCast(&boxer, &toUpperArgs.args.results[0]));
   String::String* upper = Reflect::example::Caster<String::String*>::cast(&boxer, &toUpperArgs.args.results[0]);
   QVERIFY(upper != nullptr);
-  QCOMPARE("PORK", upper->val.c_str());
+  QCOMPARE(upper->val.c_str(), "PORK");
 
 
   Args<1> appendIntArgs;
   createArgs(&boxer, appendIntArgs, &toUpperArgs.args.results[0], 5);
   appendIntArgs.call(functions["append"]);
 
-  QCOMPARE("PORK5", upper->val.c_str());
+  QCOMPARE(upper->val.c_str(), "PORK5");
 
   Args<1> appendStringArgs;
   createArgs(&boxer, appendStringArgs, &toUpperArgs.args.results[0], "_TEST");
   appendStringArgs.call(functions["append"]);
 
-  QCOMPARE("PORK5_TEST", upper->val.c_str());
+  QCOMPARE(upper->val.c_str(), "PORK5_TEST");
 
   Args<2> appendIntIntArgs;
   createArgs(&boxer, appendIntIntArgs, &toUpperArgs.args.results[0], 1, 2);
   appendIntIntArgs.call(functions["append"]);
 
-  QCOMPARE("PORK5_TEST12", upper->val.c_str());
+  QCOMPARE(upper->val.c_str(), "PORK5_TEST12");
 
   }
 
