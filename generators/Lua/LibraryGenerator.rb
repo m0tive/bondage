@@ -7,8 +7,9 @@ module Lua
   # Generate lua exposing code for C++ classes
   class LibraryGenerator
     # create a lua generator for a [library], and a given [exposer].
-    def initialize(getter)
+    def initialize(getter, resolver)
       @lineStart = "  "
+      @pathResolver = resolver
       @clsGen = ClassGenerator.new(@lineStart, getter)
     end
 
@@ -20,7 +21,7 @@ module Lua
       # for each fully exposed class, we write a file containing the classes methods and data.
       exposer.exposedMetaData.fullTypes.each do |path, cls|
         if(cls.type == :class)
-          @clsGen.generate(library, exposer, cls)
+          @clsGen.generate(library, exposer, @pathResolver, cls)
 
           @classes[cls] = @clsGen.classDefinition
         end

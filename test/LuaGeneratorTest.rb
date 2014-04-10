@@ -5,6 +5,12 @@ require_relative "../generators/Lua/FunctionGenerator.rb"
 
 require 'test/unit'
 
+class TestPathResolver
+  def pathFor(cls)
+    return "#{cls.library.name}.#{cls.name}"
+  end
+end
+
 
 class TestGenerator < Test::Unit::TestCase
   def setup
@@ -82,7 +88,7 @@ class TestGenerator < Test::Unit::TestCase
 
     exposer, lib = exposeLibrary(stringLibrary)
 
-    libGen = Lua::LibraryGenerator.new("getFunction")
+    libGen = Lua::LibraryGenerator.new("getFunction", TestPathResolver.new)
 
     libGen.generate(lib.library, exposer)
 
@@ -91,7 +97,7 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen.write(luaPath)
 
-    #cleanLibrary(stringLibrary)
+    cleanLibrary(stringLibrary)
   end
 
   def test_defaultArgs 
@@ -103,7 +109,7 @@ class TestGenerator < Test::Unit::TestCase
 
     exposer, lib = exposeLibrary(gen)
 
-    libGen = Lua::LibraryGenerator.new("getFunction")
+    libGen = Lua::LibraryGenerator.new("getFunction", TestPathResolver.new)
 
     libGen.generate(lib.library, exposer)
 
@@ -112,6 +118,27 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen.write(luaPath)
 
-    #cleanLibrary(gen)
+    expectedInheritTest = "-- Copyright me, fool. No, copying and stuff.
+--
+-- This file is auto generated, do not change it!
+--
+
+-- \\brief 
+--
+local InheritTest2_cls = class \"InheritTest2\" {
+  super = require \"Gen.InheritTest\",
+
+
+}
+
+return InheritTest2_cls"
+    assert_equal expectedInheritTest, File.read("#{luaPath}/InheritTest2.lua")
+
+
+    cleanLibrary(gen)
   end
 end
+
+#todo
+#- indexing
+#- enums

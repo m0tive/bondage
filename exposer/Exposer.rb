@@ -19,7 +19,7 @@ class Exposer
 
         # check for parent classes (also updates parentClasses)
         superClass = findParentClass(cls)
-        data = TypeData.new(cls.name, superClass, :class, cls)
+        data = TypeData.new(cls.name, superClass, :class, visitor.library, cls)
         data.setFullyExposed()
 
         if (canDeriveFrom(cls, superClass))
@@ -29,12 +29,12 @@ class Exposer
         @exposedMetaData.addType(cls.fullyQualifiedName, data)
         @allMetaData.addType(cls.fullyQualifiedName, data)
 
-        gatherEnums(cls)
+        gatherEnums(cls, visitor.library)
       else
         canExpose, superClass = canPartiallyExposeClass(cls)
         if (canExpose)
 
-          data = TypeData.new(cls.name, superClass, :class, cls)
+          data = TypeData.new(cls.name, superClass, :class, visitor.library, cls)
 
           if (canDeriveFrom(cls, superClass))
             data.setDerivable()
@@ -50,7 +50,7 @@ class Exposer
     # We also try to expose enums from here.
     rootNs = visitor.getExposedNamespace()
     if(rootNs)
-      gatherEnums(rootNs)
+      gatherEnums(rootNs, visitor.library)
     end
 
     @exposedMetaData.export(visitor.library.autogenPath)
@@ -90,7 +90,7 @@ private
   end
 
   # Find all enums on the classable type [classable].
-  def gatherEnums(classable)
+  def gatherEnums(classable, lib)
     enums = []
     classable.enums.each do |name, enum|
       if(canExposeEnum(enum))
@@ -99,7 +99,7 @@ private
     end
 
     enums.each do |enum|
-      data = TypeData.new(enum.name, nil, :enum, enum)
+      data = TypeData.new(enum.name, nil, :enum, lib, enum)
       data.setFullyExposed()
 
       @exposedMetaData.addType(enum.fullyQualifiedName, data)
@@ -112,7 +112,7 @@ private
     lib.dependencies.each do |dep|
       mergeDependencyClasses(dataToMerge, dep)
 
-      metaData = TypeDataSet.import(dep.autogenPath)
+      metaData = TypeDataSet.import(dep.autogenPath, dep)
       dataToMerge.merge(metaData)
     end
   end

@@ -17,7 +17,7 @@ module Lua
     end
 
     # Generate the lua class data for [cls]
-    def generate(library, exposer, cls)
+    def generate(library, exposer, luaPathResolver, cls)
       parsed = cls.parsed
       functions = exposer.findExposedFunctions(parsed)
 
@@ -31,14 +31,13 @@ module Lua
       end
 
       # if [cls] has a parent class, find its data and require path.
-      parentInsert, parentPreamble = generateClassParentData(exposer, cls)
+      parentInsert = generateClassParentData(exposer, luaPathResolver, cls)
 
       # find a brief comment for [cls]
       brief = parsed.comment.strippedCommand("brief")
 
       # generate class output.
-      @classDefinition = "#{parentPreamble}
--- \\brief #{brief}
+      @classDefinition = "-- \\brief #{brief}
 --
 local #{cls.name}_cls = class \"#{cls.name}\" {
 #{parentInsert}
@@ -49,21 +48,21 @@ return #{cls.name}_cls"
     end
 
   private
-    def generateClassParentData(exposer, cls)
+    def generateClassParentData(exposer, luaPathResolver, cls)
       # if [cls] has a parent class, find its data and require path.
       parentInsert = ""
-      parentPreamble = ""
       if(cls.parentClass)
         parent = exposer.allMetaData.findClass(cls.parentClass)
         raise "Missing parent dependency '#{ls.parentClass}'" unless parent
 
         parentName = "#{parent.name}_cls"
 
-        parentInsert = "  super = #{parentName},\n"
-        parentPreamble = "local #{parentName} = require \"#{parent.name}\"\n"
+        parentRequirePath = luaPathResolver.pathFor(parent)
+
+        parentInsert = "  super = require \"#{parentRequirePath}\",\n"
       end
 
-      return parentInsert, parentPreamble
+      return parentInsert
     end
   end
 

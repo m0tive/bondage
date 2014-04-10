@@ -8,13 +8,14 @@ require "json"
 class TypeData
   # Create a TypeData, given a short name and a parent, fully qualified path.
   # [parsed] is optional, and should only be supplied if it was parsed in this library.
-  def initialize(name, parent, type, parsed=nil)
+  def initialize(name, parent, type, library, parsed=nil)
     @name = name
     @type = type
     @fullyExposed = false
     @isDerivable = false
     @parsed = parsed
     @parentClass = parent
+    @library = library
     @templateArgumentsToSatisfy = nil
   end
 
@@ -24,6 +25,7 @@ class TypeData
               :parsed,
               :parentClass,
               :isDerivable,
+              :library,
               :templateArgumentsToSatisfy
 
   # Set this class as fully exposed, a fully exposed
@@ -74,13 +76,13 @@ class TypeData
   end
 
   # Create a TypeData from json, with a nil [@parsed]
-  def self.from_json(data)
+  def self.from_json(data, library)
     type = :class
     if (data.has_key?("type"))
       type = data["type"]
     end
 
-    cls = TypeData.new(data["name"], data["parent"], type)
+    cls = TypeData.new(data["name"], data["parent"], type, library)
     if (!data.include?("partial"))
       cls.setFullyExposed()
     end
@@ -160,12 +162,12 @@ class TypeDataSet
   end
 
   # Load a set from [dir].
-  def self.import(dir)
+  def self.import(dir, library)
     types = JSON.parse(File.open("#{dir}/types.json", "r").read())
 
     outClasses = {}
     types.each do |ary|
-      outClasses[ary[0]] = TypeData.from_json(ary[1])
+      outClasses[ary[0]] = TypeData.from_json(ary[1], library)
     end
 
     return TypeDataSet.new(outClasses)

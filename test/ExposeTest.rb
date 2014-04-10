@@ -70,7 +70,7 @@ class TestExpose < Test::Unit::TestCase
     all = exposer.allMetaData
     exposed = exposer.exposedMetaData
 
-    loaded = TypeDataSet.import(@astTest.autogenPath)
+    loaded = TypeDataSet.import(@astTest.autogenPath, visitor.library)
 
     assert_equal 1, all.types.length
     assert_equal 1, all.fullTypes.length

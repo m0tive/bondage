@@ -238,23 +238,24 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen = CPP::LibraryGenerator.new()
 
-    expectedHeader = libGen.headerPath(lib.library)
-    expectedSource = libGen.sourcePath(lib.library)
+    expectedHeader = lib.library.autogenPath + "/../autogen_baked/Gen.h"
+    expectedSource = lib.library.autogenPath + "/../autogen_baked/Gen.cpp"
 
     libGen.generate(lib.library, exposer)
 
-    if (true)
+    if (false)
       FileUtils.mkdir_p(lib.library.autogenPath)
       File.open(expectedHeader, 'w') do |file|
-        file.write(libGen.header)
+        file.write(expectedHeader)
       end
       File.open(expectedSource, 'w') do |file|
-        file.write(libGen.source)
+        file.write(expectedSource)
       end
     end
 
     assert_equal File.read(expectedHeader), libGen.header
     assert_equal File.read(expectedSource), libGen.source
+    cleanLibrary(@gen)
   end
 
   def test_stringLibGenerator
@@ -263,9 +264,23 @@ class TestGenerator < Test::Unit::TestCase
     stringLibrary.addFile("StringLibrary.h")
     setupLibrary(stringLibrary)
 
+    genExposer, genLib = exposeLibrary(@gen)
     exposer, lib = exposeLibrary(stringLibrary)
 
     libGen = CPP::LibraryGenerator.new()
+
+    expectedHeader = libGen.headerPath(genLib.library)
+    expectedSource = libGen.sourcePath(genLib.library)
+
+    libGen.generate(genLib.library, genExposer)
+
+    FileUtils.mkdir_p(genLib.library.autogenPath)
+    File.open(expectedHeader, 'w') do |file|
+      file.write(libGen.header)
+    end
+    File.open(expectedSource, 'w') do |file|
+      file.write(libGen.source)
+    end
 
     libGen.generate(lib.library, exposer)
 
@@ -286,6 +301,7 @@ class TestGenerator < Test::Unit::TestCase
       #runProcess("test/testGenerator.bat")
     end
 
-    #cleanLibrary(stringLibrary)
+    cleanLibrary(stringLibrary)
+    cleanLibrary(@gen)
   end
 end
