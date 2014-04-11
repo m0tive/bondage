@@ -17,7 +17,7 @@ module Lua
     end
 
     # Generate the lua class data for [cls]
-    def generate(library, exposer, luaPathResolver, cls)
+    def generate(library, exposer, luaPathResolver, cls, localVarOut)
       parsed = cls.parsed
       functions = exposer.findExposedFunctions(parsed)
 
@@ -39,12 +39,10 @@ module Lua
       # generate class output.
       @classDefinition = "-- \\brief #{brief}
 --
-local #{cls.name}_cls = class \"#{cls.name}\" {
+local #{localVarOut} = class \"#{cls.name}\" {
 #{parentInsert}
 #{formattedFunctions.join(",\n\n")}
-}
-
-return #{cls.name}_cls"
+}"
     end
 
   private

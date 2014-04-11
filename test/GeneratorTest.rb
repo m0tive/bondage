@@ -302,6 +302,6 @@ class TestGenerator < Test::Unit::TestCase
     end
 
     cleanLibrary(stringLibrary)
-    cleanLibrary(@gen)
+    #cleanLibrary(@gen)
   end
 end

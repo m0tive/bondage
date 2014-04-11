@@ -118,7 +118,60 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen.write(luaPath)
 
+    expectedGenTest = "-- Copyright me, fool. No, copying and stuff.
+--
+-- This file is auto generated, do not change it!
+--
+
+-- \\brief A CLASS!
+--
+local Gen_cls = class \"Gen\" {
+
+  -- nil Gen:test1(number myint, number myFloat, number arg2)
+  -- \\brief This funciton is a test
+  -- \\param myFloat This is a float.
+  -- \\param myint This is an int!
+  -- \\return Returns NOTHING.
+  test1 = getFunction(\"Gen\", \"test1\"),
+
+  -- nil Gen:test2(number arg0)
+  -- nil Gen:test2(number arg0, number arg1)
+  -- nil Gen:test2(number arg0, number arg1, number arg2)
+  -- \\brief 
+  test2 = getFunction(\"Gen\", \"test2\"),
+
+  -- nil Gen.test3(boolean arg0)
+  -- number Gen.test3(boolean arg0, number arg1)
+  -- number Gen.test3(boolean arg0, number arg1, boolean arg2)
+  -- number Gen.test3(number arg0, number arg1)
+  -- \\brief 
+  test3 = getFunction(\"Gen\", \"test3\")
+}
+
+return Gen_cls"
+
     expectedInheritTest = "-- Copyright me, fool. No, copying and stuff.
+--
+-- This file is auto generated, do not change it!
+--
+
+-- \\brief 
+--
+local InheritTest_cls = class \"InheritTest\" {
+  super = require \"Gen.Gen\",
+
+  -- nil InheritTest:pork()
+  -- \\brief 
+  pork = getFunction(\"Gen\", \"pork\"),
+
+  -- number InheritTest:pork2()
+  -- \\brief 
+  pork2 = getFunction(\"Gen\", \"pork2\")
+}
+
+return InheritTest_cls"
+
+    expectedInherit2Test = "-- Copyright me, fool. No, copying and stuff.
 --
 -- This file is auto generated, do not change it!
 --
@@ -132,13 +185,18 @@ local InheritTest2_cls = class \"InheritTest2\" {
 }
 
 return InheritTest2_cls"
-    assert_equal expectedInheritTest, File.read("#{luaPath}/InheritTest2.lua")
+
+    assert_equal expectedGenTest, File.read("#{luaPath}/Gen.lua")
+    assert_equal expectedInheritTest, File.read("#{luaPath}/InheritTest.lua")
+    assert_equal expectedInherit2Test, File.read("#{luaPath}/InheritTest2.lua")
 
 
-    cleanLibrary(gen)
+    #cleanLibrary(gen)
   end
 end
 
 #todo
 #- indexing
 #- enums
+#- functions in ns
+#- named fns
