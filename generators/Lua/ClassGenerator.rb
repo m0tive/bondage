@@ -1,5 +1,6 @@
 require_relative "../../exposer/ExposeAst.rb"
 require_relative "FunctionGenerator.rb"
+require_relative "EnumGenerator.rb"
 
 module Lua
 
@@ -8,6 +9,7 @@ module Lua
     def initialize(lineStart, getter)
       @lineStart = lineStart
       @fnGen = FunctionGenerator.new(@lineStart, getter)
+      @enumGen = Lua::EnumGenerator.new(@lineStart)
     end
 
     attr_reader :classDefinition
@@ -33,6 +35,12 @@ module Lua
       # if [cls] has a parent class, find its data and require path.
       parentInsert = generateClassParentData(exposer, luaPathResolver, cls)
 
+      enumInsert = ""
+      @enumGen.generate(parsed)
+      @enumGen.enums.each do |enum|
+        enumInsert << "\n#{enum},\n"
+      end
+
       # find a brief comment for [cls]
       brief = parsed.comment.strippedCommand("brief")
 
@@ -40,7 +48,7 @@ module Lua
       @classDefinition = "-- \\brief #{brief}
 --
 local #{localVarOut} = class \"#{cls.name}\" {
-#{parentInsert}
+#{parentInsert}#{enumInsert}
 #{formattedFunctions.join(",\n\n")}
 }"
     end

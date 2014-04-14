@@ -59,11 +59,18 @@ module Lua
 
       ls = "#{@lineStart}"
 
-      fnGen = FunctionGenerator.new(@lineStart, @getter)
-
       data = @classes.map{ |cls, data| "#{ls}#{cls.name} = require(\"#{@pathResolver.pathFor(cls)}\")" }
 
+      enumGen = Lua::EnumGenerator.new(@lineStart)
+
+      enumGen.generate(rootNs)
+      enumGen.enums.each do |enum|
+        data << "#{enum}"
+      end
+
+
       # for each function, work out how best to call it.
+      fnGen = FunctionGenerator.new(@lineStart, @getter)
       functions.sort.each do |name, fns|
         fnGen.generate(library, rootNs, fns)
 

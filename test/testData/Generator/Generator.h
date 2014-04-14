@@ -75,6 +75,13 @@ public:
 /// \expose
 class InheritTest2 : public InheritTest
 {
+public:
+  enum MyEnum
+  {
+    test,
+    test2 = 2,
+    test3 = 3,
+  };
 };
 
 /// \expose
@@ -116,6 +123,12 @@ public:
     {
     (void)i;
     }
+};
+
+enum GlbEnum
+{
+  A,
+  B
 };
 
 }

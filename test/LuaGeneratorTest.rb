@@ -2,6 +2,7 @@
 require_relative 'TestUtils.rb'
 require_relative "../generators/Lua/LibraryGenerator.rb"
 require_relative "../generators/Lua/FunctionGenerator.rb"
+require_relative "../generators/Lua/EnumGenerator.rb"
 
 require 'test/unit'
 
@@ -100,7 +101,32 @@ class TestGenerator < Test::Unit::TestCase
     cleanLibrary(stringLibrary)
   end
 
-  def test_defaultArgs 
+  def test_enumTest
+    gen = Library.new("Gen", "test/testData/Generator")
+    gen.addIncludePath(".")
+    gen.addFile("Generator.h")
+
+    setupLibrary(gen)
+
+    exposer, lib = exposeLibrary(gen)
+
+    cls = exposer.exposedMetaData.findClass("::Gen::InheritTest2").parsed
+    assert_not_nil cls
+
+    assert_equal 1, cls.enums.length
+  
+    enumGen = Lua::EnumGenerator.new("")
+
+    enumGen.generate(cls)
+
+    assert_equal 1, enumGen.enums.length
+
+    assert_equal "MyEnum = {\n  test = 0,\n  test2 = 2,\n  test3 = 3,\n}", enumGen.enums[0]
+
+    cleanLibrary(gen)
+  end
+
+  def test_genTest
     gen = Library.new("Gen", "test/testData/Generator")
     gen.addIncludePath(".")
     gen.addFile("Generator.h")
@@ -181,6 +207,12 @@ return InheritTest_cls"
 local InheritTest2_cls = class \"InheritTest2\" {
   super = require \"Gen.InheritTest\",
 
+  MyEnum = {
+    test = 0,
+    test2 = 2,
+    test3 = 3,
+  },
+
 
 }
 
@@ -201,6 +233,11 @@ local Gen = {
   MultipleReturnGen = require(\"Gen.MultipleReturnGen\"),
 
   CtorGen = require(\"Gen.CtorGen\"),
+
+  GlbEnum = {
+    A = 0,
+    B = 1,
+  },
 
   -- number Gen.test4(boolean a, boolean b)
   -- \\brief 
@@ -226,5 +263,4 @@ end
 
 #todo
 #- indexing
-#- enums
 #- named fns
