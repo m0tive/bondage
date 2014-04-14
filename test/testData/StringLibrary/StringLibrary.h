@@ -43,6 +43,7 @@ public:
   std::string val;
 };
 
+/// \expose
 inline void quote(String& s)
   {
   s.val = "`" + s.val + "`";

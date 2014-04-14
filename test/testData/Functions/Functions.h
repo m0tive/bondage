@@ -21,7 +21,9 @@ class TestC : public TestA
 
 };
 
+/// \expose
 const TestA &testExpose1(float, bool pork);
+/// \expose
 TestA &testExpose2(TestA *a);
 const TestB &testNotExpose(float, bool);
 

@@ -42,12 +42,15 @@ public:
     }
 };
 
+/// \expose
 inline int test4(bool a, bool b)
   {
   (void)a;
   (void)b;
   return 3;
   }
+  
+/// \expose
 inline int test5(bool a, bool b, float = 4.3f)
   {
   (void)a;

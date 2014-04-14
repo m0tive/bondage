@@ -13,17 +13,22 @@ class FunctionExposer
   # find if a method [fn], a FunctionItem class can be exposed in the current library.
   def canExposeMethod(owner, fn)
     if(fn.isExposed == nil)
-      mustExpose = fn.comment.hasCommand("expose")
+      exposeFlag = fn.comment.hasCommand("expose")
       cantExpose = fn.comment.hasCommand("noexpose")
+      mustExpose = exposeFlag
+      shouldExpose = exposeFlag || !owner.kind_of?(NamespaceItem)
 
       if (mustExpose && cantExpose)
         raise "Cannot require and refuse exposure for a single type #{owner.fullyQualifiedName}::#{fn.name}"
       end
 
       fn.setExposed(false)
-      if (cantExpose)
-        puts "- #{owner.fullyQualifiedName}::#{fn.name}"
-        puts " - requested not to."
+      if (cantExpose || !shouldExpose)
+        if (@debug)
+          puts "- #{owner.fullyQualifiedName}::#{fn.name}"
+          puts " - asked to expose #{exposeFlag} automatically expose #{shouldExpose}"
+          puts " - requested not to."
+        end
         return
       end
 
