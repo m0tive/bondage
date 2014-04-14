@@ -90,7 +90,7 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen = Lua::LibraryGenerator.new("getFunction", TestPathResolver.new)
 
-    libGen.generate(lib.library, exposer)
+    libGen.generate(lib, exposer)
 
     luaPath = lib.library.autogenPath + "/lua"
     FileUtils.mkdir_p(luaPath)
@@ -111,7 +111,7 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen = Lua::LibraryGenerator.new("getFunction", TestPathResolver.new)
 
-    libGen.generate(lib.library, exposer)
+    libGen.generate(lib, exposer)
 
     luaPath = lib.library.autogenPath + "/lua"
     FileUtils.mkdir_p(luaPath)
@@ -186,9 +186,38 @@ local InheritTest2_cls = class \"InheritTest2\" {
 
 return InheritTest2_cls"
 
+    libraryTest = "-- Copyright me, fool. No, copying and stuff.
+--
+-- This file is auto generated, do not change it!
+--
+
+local Gen = {
+  Gen = require(\"Gen.Gen\"),
+
+  InheritTest = require(\"Gen.InheritTest\"),
+
+  InheritTest2 = require(\"Gen.InheritTest2\"),
+
+  MultipleReturnGen = require(\"Gen.MultipleReturnGen\"),
+
+  CtorGen = require(\"Gen.CtorGen\"),
+
+  -- number Gen.test4(boolean a, boolean b)
+  -- \\brief 
+  test4 = getFunction(\"Gen\", \"test4\"),
+
+  -- number Gen.test5(boolean a, boolean b)
+  -- number Gen.test5(boolean a, boolean b, number arg2)
+  -- \\brief 
+  test5 = getFunction(\"Gen\", \"test5\")
+}
+
+return Gen"
+
     assert_equal expectedGenTest, File.read("#{luaPath}/Gen.lua")
     assert_equal expectedInheritTest, File.read("#{luaPath}/InheritTest.lua")
     assert_equal expectedInherit2Test, File.read("#{luaPath}/InheritTest2.lua")
+    assert_equal libraryTest, File.read("#{luaPath}/GenLibrary.lua")
 
 
     cleanLibrary(gen)
@@ -198,5 +227,4 @@ end
 #todo
 #- indexing
 #- enums
-#- functions in ns
 #- named fns

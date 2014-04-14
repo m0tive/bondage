@@ -10,11 +10,13 @@ module Lua
     def initialize(getter, resolver)
       @lineStart = "  "
       @pathResolver = resolver
+      @getter = getter
       @clsGen = ClassGenerator.new(@lineStart, getter)
     end
 
     # Generate lua classes into [dir]
-    def generate(library, exposer)
+    def generate(visitor, exposer)
+      library = visitor.library
       @classes = { }
       @libraryName = library.name
 
@@ -28,10 +30,7 @@ module Lua
         end
       end
 
-      files = @classes.map{ |cls, data| "  #{cls.name} = require(\"#{@pathResolver.pathFor(cls)}\")" }
-      fileData = files.join("\n")
-
-      @libraryDef = "local #{@libraryName} = {\n#{fileData}\n}\n\nreturn #{@libraryName}"
+      generateLibrary(exposer, library, @classes, visitor.getExposedNamespace())
     end
 
     def write(dir)
@@ -44,14 +43,36 @@ module Lua
       end
 
       File.open(dir + "/#{@libraryName}Library.lua", 'w') do |file|
-          file.write(filePreamble("--") + "\n\n")
-          file.write(@libraryDef)
-
+        file.write(filePreamble("--") + "\n\n")
+        file.write(@libraryDef)
       end
     end
 
     def localName(cls)
       return "#{cls.name}_cls"
+    end
+
+    def generateLibrary(exposer, library, classes, rootNs)
+      functions = exposer.findExposedFunctions(rootNs)
+
+      formattedFunctions = []
+
+      ls = "#{@lineStart}"
+
+      fnGen = FunctionGenerator.new(@lineStart, @getter)
+
+      data = @classes.map{ |cls, data| "#{ls}#{cls.name} = require(\"#{@pathResolver.pathFor(cls)}\")" }
+
+      # for each function, work out how best to call it.
+      functions.sort.each do |name, fns|
+        fnGen.generate(library, rootNs, fns)
+
+        data << "#{fnGen.docs}\n#{@lineStart}#{fnGen.classDefinition}"
+      end
+
+      fileData = data.join(",\n\n")
+
+      @libraryDef = "local #{@libraryName} = {\n#{fileData}\n}\n\nreturn #{@libraryName}"
     end
 
   end
