@@ -8,7 +8,32 @@
 #include "tuple"
 
 
-bondage::Library g_bondage_library_Gen("Gen");
+
+int Gen_test5_overload0(bool inputArg0, bool inputArg1)
+{
+  auto result = ::Gen::test5(std::forward<bool>(inputArg0), std::forward<bool>(inputArg1));
+  return result;
+}
+
+const bondage::Function g_bondage_library_Gen_methods[] = {
+  bondage::FunctionBuilder::build<
+    bondage::FunctionBuilder::buildCall< int(*)(bool, bool), &::Gen::test4 >
+    >("test4"),
+  bondage::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
+    Reflect::FunctionArgCountSelectorBlock<2,
+      bondage::FunctionBuilder::buildCall< int(*)(bool, bool), &Gen_test5_overload0 >
+      >,
+    Reflect::FunctionArgCountSelectorBlock<3,
+      bondage::FunctionBuilder::buildCall< int(*)(bool, bool, float), &::Gen::test5 >
+      >
+    > >("test5")
+};
+
+
+bondage::Library g_bondage_library_Gen(
+  "Gen",
+  g_bondage_library_Gen_methods,
+  2);
 namespace Gen
 {
 const bondage::Library &bindings()

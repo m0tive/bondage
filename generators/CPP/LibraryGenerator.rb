@@ -37,7 +37,9 @@ module CPP
       return "#{library.autogenPath}/#{library.name}.cpp"
     end
 
-    def generate(library, exposer)
+    def generate(visitor, exposer)
+      library = visitor.library
+      rootNs = visitor.getExposedNamespace()
       setLibrary(library)
 
       @header = filePreamble("//") + "\n\n" 
@@ -76,22 +78,7 @@ module CPP
         end
       end
 
-      @header += files.map{ |path| generateInclude(path) }.join("\n")
-      @header += "\n#include \"#{TYPE_NAMESPACE}/RuntimeHelpers.h\"\n\n"
-
-      @header += "namespace #{library.name}
-{
-#{library.exportMacro} const bondage::Library &bindings();
-}\n\n"
-
-      @source += "bondage::Library #{libraryName}(\"#{library.name}\");
-namespace #{library.name}
-{
-const bondage::Library &bindings()
-{
-  return #{libraryName};
-}
-}"
+      generateLibrary(libraryName, library, exposer, rootNs, files)
 
       @header += classHeader
       @source += classSource
@@ -100,6 +87,37 @@ const bondage::Library &bindings()
     end
 
   private
+    def generateLibrary(libraryName, library, exposer, rootNs, files)
+      raise "Invalid root namespace for #{library.name}." unless rootNs
+
+      @header += files.map{ |path| generateInclude(path) }.join("\n")
+      @header += "\n#include \"#{TYPE_NAMESPACE}/RuntimeHelpers.h\"\n\n"
+
+      @header += "namespace #{library.name}
+{
+#{library.exportMacro} const bondage::Library &bindings();
+}\n\n"
+
+      fnGen = CPP::FunctionGenerator.new("", "  ")
+      methods, extraMethods = fnGen.gatherFunctions(rootNs, exposer)
+
+      methodsLiteral, methodsArray, extraMethodSource = fnGen.generateFunctionArray(methods, extraMethods, libraryName)
+
+      @source += "#{extraMethodSource}#{methodsArray}
+bondage::Library #{libraryName}(
+  \"#{library.name}\",
+  #{methodsLiteral},
+  #{methods.length});
+namespace #{library.name}
+{
+const bondage::Library &bindings()
+{
+  return #{libraryName};
+}
+}"
+
+    end
+
     def generateInclude(libraryfile)
       path = Pathname.new(libraryfile).relative_path_from(@libraryPath).cleanpath
       return "#include \"#{path}\""

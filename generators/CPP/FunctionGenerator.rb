@@ -27,6 +27,44 @@ module CPP
       @extraFunctionDecls = nil
     end
 
+    def gatherFunctions(owner, exposer)
+      functions = exposer.findExposedFunctions(owner)
+      
+      methods = []
+      extraMethods = []
+
+      # for each function, work out how best to call it.
+      functions.sort.each do |name, fns|
+        generate(owner, fns)
+
+        methods << bind
+        extraMethods = extraMethods.concat(extraFunctions)
+      end
+
+      return methods, extraMethods
+    end
+
+    def generateFunctionArray(binders, extraMethods, namingHelper)
+      methodsSource = ""
+      if (binders.length > 0)
+        methodsSource = "  " + binders.join(",\n  ")
+      end
+      extraMethodSource = ""
+      if (extraMethods.length > 0)
+        extraMethodSource = "\n" + extraMethods.join("\n\n") + "\n"
+      end
+
+
+      methodsInfo = ""
+      methodsLiteral = "nullptr"
+      if (binders.length > 0)
+        methodsLiteral = namingHelper + "_methods";
+        methodsInfo = "\nconst #{TYPE_NAMESPACE}::Function #{methodsLiteral}[] = {\n#{methodsSource}\n};\n\n"
+      end
+
+      return methodsLiteral, methodsInfo, extraMethodSource
+    end
+
     def generate(owner, functions)
       reset()
 

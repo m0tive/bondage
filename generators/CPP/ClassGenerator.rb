@@ -25,7 +25,6 @@ module CPP
       raise "Unparsed classes can not be exposed #{md.name}" unless @cls && @metaData
 
       @exposer = exposer
-      @functions = exposer.findExposedFunctions(@cls)
 
       generateHeader()
       generateSource(libraryVariable)
@@ -69,35 +68,9 @@ module CPP
       fullyQualified = @cls.fullyQualifiedName()
       @wrapperName = fullyQualified.sub("::", "").gsub("::", "_")
 
-      functions = @exposer.findExposedFunctions(@cls)
+      methods, extraMethods = @fnGen.gatherFunctions(@cls, @exposer)
 
-      methods = []
-      extraMethods = []
-
-      # for each function, work out how best to call it.
-      functions.sort.each do |name, fns|
-        @fnGen.generate(@cls, fns)
-
-        methods << @fnGen.bind
-        extraMethods = extraMethods.concat(@fnGen.extraFunctions)
-      end
-
-      methodsSource = ""
-      if (methods.length > 0)
-        methodsSource = "  " + methods.join(",\n  ")
-      end
-      extraMethodSource = ""
-      if (extraMethods.length > 0)
-        extraMethodSource = "\n" + extraMethods.join("\n\n") + "\n"
-      end
-
-
-      methodsInfo = ""
-      methodsLiteral = "nullptr"
-      if (methods.length > 0)
-        methodsLiteral = wrapperName + "_methods";
-        methodsInfo = "\nconst #{TYPE_NAMESPACE}::Function #{methodsLiteral}[] = {\n#{methodsSource}\n};\n\n"
-      end
+      methodsLiteral, methodsArray, extraMethodSource = @fnGen.generateFunctionArray(methods, extraMethods, @wrapperName)
 
       classInfo =
 "#{MACRO_PREFIX}IMPLEMENT_EXPOSED_CLASS(
@@ -110,7 +83,7 @@ module CPP
 
 
       @implementation =
-"// Exposing class #{fullyQualified}#{extraMethodSource}#{methodsInfo}
+"// Exposing class #{fullyQualified}#{extraMethodSource}#{methodsArray}
 #{classInfo}
 "
     end

@@ -241,15 +241,15 @@ class TestGenerator < Test::Unit::TestCase
     expectedHeader = lib.library.autogenPath + "/../autogen_baked/Gen.h"
     expectedSource = lib.library.autogenPath + "/../autogen_baked/Gen.cpp"
 
-    libGen.generate(lib.library, exposer)
+    libGen.generate(lib, exposer)
 
     if (false)
       FileUtils.mkdir_p(lib.library.autogenPath)
       File.open(expectedHeader, 'w') do |file|
-        file.write(expectedHeader)
+        file.write(libGen.header)
       end
       File.open(expectedSource, 'w') do |file|
-        file.write(expectedSource)
+        file.write(libGen.source)
       end
     end
 
@@ -272,7 +272,7 @@ class TestGenerator < Test::Unit::TestCase
     expectedHeader = libGen.headerPath(genLib.library)
     expectedSource = libGen.sourcePath(genLib.library)
 
-    libGen.generate(genLib.library, genExposer)
+    libGen.generate(genLib, genExposer)
 
     FileUtils.mkdir_p(genLib.library.autogenPath)
     File.open(expectedHeader, 'w') do |file|
@@ -282,7 +282,7 @@ class TestGenerator < Test::Unit::TestCase
       file.write(libGen.source)
     end
 
-    libGen.generate(lib.library, exposer)
+    libGen.generate(lib, exposer)
 
     expectedHeader = libGen.headerPath(lib.library)
     expectedSource = libGen.sourcePath(lib.library)
@@ -302,6 +302,6 @@ class TestGenerator < Test::Unit::TestCase
     end
 
     cleanLibrary(stringLibrary)
-    #cleanLibrary(@gen)
+    cleanLibrary(@gen)
   end
 end

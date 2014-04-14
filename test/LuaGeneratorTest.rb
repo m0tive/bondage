@@ -191,7 +191,7 @@ return InheritTest2_cls"
     assert_equal expectedInherit2Test, File.read("#{luaPath}/InheritTest2.lua")
 
 
-    #cleanLibrary(gen)
+    cleanLibrary(gen)
   end
 end
 

@@ -257,6 +257,9 @@ void RuntimeTest::testStringLibrary()
     classes[cls->type().name()] = cls;
     }
 
+  QVERIFY(1 == String::bindings().functionCount());
+  auto quote = String::bindings().function(0);
+
   auto stringClass = classes["String"];
   QVERIFY(stringClass);
 
@@ -308,6 +311,12 @@ void RuntimeTest::testStringLibrary()
 
   QCOMPARE(upper->val.c_str(), "PORK5_TEST12");
 
+  Args<1> quoteStringArgs;
+  createArgs(&boxer, quoteStringArgs, nullptr, upper);
+  quoteStringArgs.call(&quote);
+
+  String::String* arg1 = Reflect::example::Caster<String::String*>::cast(&boxer, quoteStringArgs.args.args[0]);
+  QCOMPARE(arg1->val.c_str(), "`PORK5_TEST12`");
   }
 
 QTEST_APPLESS_MAIN(RuntimeTest)

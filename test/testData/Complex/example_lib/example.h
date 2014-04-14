@@ -19,3 +19,8 @@ struct test
 
 }
 }
+
+namespace Example
+{
+  
+}

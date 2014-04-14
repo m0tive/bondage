@@ -43,4 +43,9 @@ public:
   std::string val;
 };
 
+inline void quote(String& s)
+  {
+  s.val = "`" + s.val + "`";
+  }
+
 }

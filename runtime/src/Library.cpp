@@ -4,8 +4,10 @@
 namespace bondage
 {
 
-Library::Library(const char *name)
-    : m_name(name)
+Library::Library(const char *name, const Function *fn, std::size_t functionCount)
+    : m_name(name),
+      m_functions(fn),
+      m_functionCount(functionCount)
   {
   }
 
