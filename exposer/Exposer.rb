@@ -14,37 +14,7 @@ class Exposer
     mergeDependencyClasses(@allMetaData, visitor.library)
     @exposedMetaData = TypeDataSet.new()
 
-    visitor.classes.each do |cls|
-      if(canExposeClass(cls))
-
-        # check for parent classes (also updates parentClasses)
-        superClass = findParentClass(cls)
-        data = TypeData.new(cls.name, superClass, :class, visitor.library, cls)
-        data.setFullyExposed()
-
-        if (canDeriveFrom(cls, superClass))
-          data.setDerivable()
-        end
-
-        @exposedMetaData.addType(cls.fullyQualifiedName, data)
-        @allMetaData.addType(cls.fullyQualifiedName, data)
-
-        gatherEnums(cls, visitor.library)
-      else
-        canExpose, superClass = canPartiallyExposeClass(cls)
-        if (canExpose)
-
-          data = TypeData.new(cls.name, superClass, :class, visitor.library, cls)
-
-          if (canDeriveFrom(cls, superClass))
-            data.setDerivable()
-          end
-
-          @exposedMetaData.addType(cls.fullyQualifiedName, data)
-          @allMetaData.addType(cls.fullyQualifiedName, data)
-        end
-      end
-    end
+    gatherClasses(visitor)
 
     # The visitor and library have a root namespace (normally the name of the library)
     # We also try to expose enums from here.
@@ -259,5 +229,46 @@ private
 
     raise "Unable to expose requested class #{cls.name}" if not willExpose
     return willExpose
+  end
+
+  def gatherClasses(visitor)
+    visitor.classes.each do |cls|
+      if(canExposeClass(cls))
+        addExposedClass(visitor, cls)
+      else
+        addPartiallyExposedClass(visitor, cls)
+      end
+    end
+  end
+
+  def addExposedClass(visitor, cls)
+    # check for parent classes (also updates parentClasses)
+    superClass = findParentClass(cls)
+    data = TypeData.new(cls.name, superClass, :class, visitor.library, cls)
+    data.setFullyExposed()
+
+    if (canDeriveFrom(cls, superClass))
+      data.setDerivable()
+    end
+
+    @exposedMetaData.addType(cls.fullyQualifiedName, data)
+    @allMetaData.addType(cls.fullyQualifiedName, data)
+
+    gatherEnums(cls, visitor.library)
+  end
+
+  def addPartiallyExposedClass(visitor, cls)
+    canExpose, superClass = canPartiallyExposeClass(cls)
+    if (canExpose)
+
+      data = TypeData.new(cls.name, superClass, :class, visitor.library, cls)
+
+      if (canDeriveFrom(cls, superClass))
+        data.setDerivable()
+      end
+
+      @exposedMetaData.addType(cls.fullyQualifiedName, data)
+      @allMetaData.addType(cls.fullyQualifiedName, data)
+    end
   end
 end
