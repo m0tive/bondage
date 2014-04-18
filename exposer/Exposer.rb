@@ -14,43 +14,13 @@ class Exposer
     mergeDependencyClasses(@allMetaData, visitor.library)
     @exposedMetaData = TypeDataSet.new()
 
-    visitor.classes.each do |cls|
-      if(canExposeClass(cls))
-
-        # check for parent classes (also updates parentClasses)
-        superClass = findParentClass(cls)
-        data = TypeData.new(cls.name, superClass, :class, cls)
-        data.setFullyExposed()
-
-        if (canDeriveFrom(cls, superClass))
-          data.setDerivable()
-        end
-
-        @exposedMetaData.addType(cls.fullyQualifiedName, data)
-        @allMetaData.addType(cls.fullyQualifiedName, data)
-
-        gatherEnums(cls)
-      else
-        canExpose, superClass = canPartiallyExposeClass(cls)
-        if (canExpose)
-
-          data = TypeData.new(cls.name, superClass, :class, cls)
-
-          if (canDeriveFrom(cls, superClass))
-            data.setDerivable()
-          end
-
-          @exposedMetaData.addType(cls.fullyQualifiedName, data)
-          @allMetaData.addType(cls.fullyQualifiedName, data)
-        end
-      end
-    end
+    gatherClasses(visitor)
 
     # The visitor and library have a root namespace (normally the name of the library)
     # We also try to expose enums from here.
     rootNs = visitor.getExposedNamespace()
     if(rootNs)
-      gatherEnums(rootNs)
+      gatherEnums(rootNs, visitor.library)
     end
 
     @exposedMetaData.export(visitor.library.autogenPath)
@@ -90,7 +60,7 @@ private
   end
 
   # Find all enums on the classable type [classable].
-  def gatherEnums(classable)
+  def gatherEnums(classable, lib)
     enums = []
     classable.enums.each do |name, enum|
       if(canExposeEnum(enum))
@@ -99,7 +69,7 @@ private
     end
 
     enums.each do |enum|
-      data = TypeData.new(enum.name, nil, :enum, enum)
+      data = TypeData.new(enum.name, nil, :enum, lib, enum)
       data.setFullyExposed()
 
       @exposedMetaData.addType(enum.fullyQualifiedName, data)
@@ -112,7 +82,7 @@ private
     lib.dependencies.each do |dep|
       mergeDependencyClasses(dataToMerge, dep)
 
-      metaData = TypeDataSet.import(dep.autogenPath)
+      metaData = TypeDataSet.import(dep.autogenPath, dep)
       dataToMerge.merge(metaData)
     end
   end
@@ -259,5 +229,46 @@ private
 
     raise "Unable to expose requested class #{cls.name}" if not willExpose
     return willExpose
+  end
+
+  def gatherClasses(visitor)
+    visitor.classes.each do |cls|
+      if(canExposeClass(cls))
+        addExposedClass(visitor, cls)
+      else
+        addPartiallyExposedClass(visitor, cls)
+      end
+    end
+  end
+
+  def addExposedClass(visitor, cls)
+    # check for parent classes (also updates parentClasses)
+    superClass = findParentClass(cls)
+    data = TypeData.new(cls.name, superClass, :class, visitor.library, cls)
+    data.setFullyExposed()
+
+    if (canDeriveFrom(cls, superClass))
+      data.setDerivable()
+    end
+
+    @exposedMetaData.addType(cls.fullyQualifiedName, data)
+    @allMetaData.addType(cls.fullyQualifiedName, data)
+
+    gatherEnums(cls, visitor.library)
+  end
+
+  def addPartiallyExposedClass(visitor, cls)
+    canExpose, superClass = canPartiallyExposeClass(cls)
+    if (canExpose)
+
+      data = TypeData.new(cls.name, superClass, :class, visitor.library, cls)
+
+      if (canDeriveFrom(cls, superClass))
+        data.setDerivable()
+      end
+
+      @exposedMetaData.addType(cls.fullyQualifiedName, data)
+      @allMetaData.addType(cls.fullyQualifiedName, data)
+    end
   end
 end

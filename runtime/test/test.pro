@@ -14,13 +14,19 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
+win32-msvc2012 {
+  # needs enabling for msvc2013, which has no mkspec yet...
+  # QMAKE_CXXFLAGS += /FS
+  DEFINES += REFLECT_MACRO_IMPL
+}
 
 SOURCES += \
   RuntimeTest.cpp \
   ../../test/testData/Generator/autogen_Gen/Gen.cpp \
     ../src/Library.cpp \
     ../src/WrappedClass.cpp \
-    ../src/CastHelper.cpp
+    ../src/CastHelper.cpp \
+    ../../test/testData/StringLibrary/autogen_String/String.cpp
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
@@ -41,7 +47,9 @@ INCLUDEPATH += \
   ../include/ \
   ../Reflect/include/ \
   ../../test/testData/ \
-  ../../test/testData/Generator
+  ../../test/testData/Generator \
+  ../../test/testData/StringLibrary \
+  .
 
 macx-clang {
   QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9

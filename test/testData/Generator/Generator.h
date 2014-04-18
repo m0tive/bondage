@@ -5,14 +5,21 @@
 namespace Gen
 {
 
+/// \brief A CLASS!
+///
 /// \expose derivable managed
 class Gen
 {
 public:
   virtual ~Gen() { }
 
-  void test1(int, float, double)
+  /// \brief This funciton is a test
+  /// \param myint This is an int!
+  /// \param myFloat This is a float.
+  void test1(int myint, float myFloat, double)
     {
+    (void)myint;
+    (void)myFloat;
     }
 
   void test2(int, float = 2.0f, double = 4.0)
@@ -34,12 +41,15 @@ public:
     }
 };
 
+/// \expose
 inline int test4(bool a, bool b)
   {
   (void)a;
   (void)b;
   return 3;
   }
+  
+/// \expose
 inline int test5(bool a, bool b, float = 4.3f)
   {
   (void)a;
@@ -64,6 +74,13 @@ public:
 /// \expose
 class InheritTest2 : public InheritTest
 {
+public:
+  enum MyEnum
+  {
+    test,
+    test2 = 2,
+    test3 = 3,
+  };
 };
 
 /// \expose
@@ -75,8 +92,8 @@ public:
   /// \param[in,out] b test param
   void test(int *a = nullptr, float *b = nullptr)
     {
-    (void)a;
-    (void)b;
+    *a = 3;
+    *b = 2;
     }
 
   /// \brief test again
@@ -105,6 +122,12 @@ public:
     {
     (void)i;
     }
+};
+
+enum GlbEnum
+{
+  A,
+  B
 };
 
 }

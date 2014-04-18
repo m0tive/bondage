@@ -5,6 +5,9 @@
 #include "bondage/Library.h"
 #include "CastHelper.Gen_Gen.h"
 
+#include "StringLibrary/StringLibrary.h"
+#include "StringLibrary/autogen_String/String.h"
+
 class RuntimeTest : public QObject
   {
   Q_OBJECT
@@ -13,6 +16,7 @@ private Q_SLOTS:
   void testTypeExistance();
   void testTypeCasting();
   void testFunctionExistance();
+  void testStringLibrary();
   };
 
 template <typename T> struct Helper
@@ -179,7 +183,140 @@ void RuntimeTest::testFunctionExistance()
 
   auto inherit2Gen = classes["InheritTest2"];
   QVERIFY(inherit2Gen->functionCount() == 0);
+  }
 
+template <std::size_t ArgCount> struct Args
+  {
+public:
+  Reflect::example::Object argumentStorage[ArgCount];
+  Reflect::example::Object *argumentStoragePtrs[ArgCount];
+
+  bondage::Builder::Arguments args;
+  bondage::Builder::Boxer *boxer;
+
+  void call(const bondage::Function *f)
+    {
+    f->call(boxer, &args);
+    }
+  };
+
+
+template <> struct Args<0>
+  {
+public:
+  bondage::Builder::Arguments args;
+  bondage::Builder::Boxer *boxer;
+
+  void call(const bondage::Function *f)
+    {
+    f->call(boxer, &args);
+    }
+  };
+
+void createArgs(
+    bondage::Builder::Boxer *boxer,
+    Args<0> &out,
+    Reflect::example::Object *obj)
+  {
+  out.boxer = boxer;
+  out.args.ths = obj;
+  }
+
+template <typename A> void createArgs(
+    bondage::Builder::Boxer *boxer,
+    Args<1> &out,
+    Reflect::example::Object *obj,
+    A a)
+  {
+  Reflect::example::initArgs(boxer, out.argumentStorage, out.argumentStoragePtrs, a);
+  out.boxer = boxer;
+  out.args.args = out.argumentStoragePtrs;
+  out.args.argCount = 1;
+  out.args.ths = obj;
+  }
+
+template <typename A, typename B> void createArgs(
+    bondage::Builder::Boxer *boxer,
+    Args<2> &out,
+    Reflect::example::Object *obj,
+    A a,
+    B b)
+  {
+  Reflect::example::initArgs(boxer, out.argumentStorage, out.argumentStoragePtrs, a, b);
+  out.boxer = boxer;
+  out.args.args = out.argumentStoragePtrs;
+  out.args.argCount = 2;
+  out.args.ths = obj;
+  }
+
+void RuntimeTest::testStringLibrary()
+  {
+  std::map<std::string, const bondage::WrappedClass *> classes;
+  for(auto cls : bondage::ClassWalker(String::bindings()))
+    {
+    classes[cls->type().name()] = cls;
+    }
+
+  QVERIFY(1 == String::bindings().functionCount());
+  auto quote = String::bindings().function(0);
+
+  auto stringClass = classes["String"];
+  QVERIFY(stringClass);
+
+
+  std::map<std::string, const bondage::Function *> functions;
+  for (std::size_t i = 0; i < stringClass->functionCount(); ++i)
+    {
+    functions[stringClass->function(i).name()] = &stringClass->function(i);
+    }
+  QVERIFY(functions["create"]);
+  QVERIFY(functions["toUpper"]);
+
+  bondage::Builder::Boxer boxer;
+
+  Args<1> createStringArgs;
+  createArgs(&boxer, createStringArgs, nullptr, "pork");
+  createStringArgs.call(functions["create"]);
+
+
+  QVERIFY(1 == createStringArgs.args.resultCount);
+  QVERIFY(Reflect::example::Caster<String::String*>::canCast(&boxer, &createStringArgs.args.results[0]));
+  QVERIFY(Reflect::example::Caster<String::String*>::cast(&boxer, &createStringArgs.args.results[0]) != nullptr);
+
+
+  Args<0> toUpperArgs;
+  createArgs(&boxer, toUpperArgs, &createStringArgs.args.results[0]);
+  toUpperArgs.call(functions["toUpper"]);
+  QVERIFY(Reflect::example::Caster<String::String*>::canCast(&boxer, &toUpperArgs.args.results[0]));
+  String::String* upper = Reflect::example::Caster<String::String*>::cast(&boxer, &toUpperArgs.args.results[0]);
+  QVERIFY(upper != nullptr);
+  QCOMPARE(upper->val.c_str(), "PORK");
+
+
+  Args<1> appendIntArgs;
+  createArgs(&boxer, appendIntArgs, &toUpperArgs.args.results[0], 5);
+  appendIntArgs.call(functions["append"]);
+
+  QCOMPARE(upper->val.c_str(), "PORK5");
+
+  Args<1> appendStringArgs;
+  createArgs(&boxer, appendStringArgs, &toUpperArgs.args.results[0], "_TEST");
+  appendStringArgs.call(functions["append"]);
+
+  QCOMPARE(upper->val.c_str(), "PORK5_TEST");
+
+  Args<2> appendIntIntArgs;
+  createArgs(&boxer, appendIntIntArgs, &toUpperArgs.args.results[0], 1, 2);
+  appendIntIntArgs.call(functions["append"]);
+
+  QCOMPARE(upper->val.c_str(), "PORK5_TEST12");
+
+  Args<1> quoteStringArgs;
+  createArgs(&boxer, quoteStringArgs, nullptr, upper);
+  quoteStringArgs.call(&quote);
+
+  String::String* arg1 = Reflect::example::Caster<String::String*>::cast(&boxer, quoteStringArgs.args.args[0]);
+  QCOMPARE(arg1->val.c_str(), "`PORK5_TEST12`");
   }
 
 QTEST_APPLESS_MAIN(RuntimeTest)

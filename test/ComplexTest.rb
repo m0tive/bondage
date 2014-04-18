@@ -5,7 +5,7 @@ require_relative "../parser/Parser.rb"
 require_relative "../exposer/Exposer.rb"
 require_relative "../exposer/ExposeAst.rb"
 require_relative "../generators/CPP/LibraryGenerator.rb"
-require_relative "../generators/LuaGenerator.rb"
+require_relative "../generators/Lua/LibraryGenerator.rb"
 
 require 'test/unit'
 
@@ -39,12 +39,20 @@ class TestComplex < Test::Unit::TestCase
     expose(@test_lib)
   end
 
+  class PathResolver
+    def pathFor(cls)
+      return cls.name
+    end
+  end
+
   def expose(library)
     path = library.autogenPath
 
     exposer, visitor = exposeLibrary(library)
 
-    CPP::LibraryGenerator.new().generate(library, exposer)
-    LuaGenerator.new(library, exposer).generate(path)
+    CPP::LibraryGenerator.new().generate(visitor, exposer)
+    luaGen = Lua::LibraryGenerator.new([], [], "getFunction", PathResolver.new)
+    luaGen.generate(visitor, exposer)
+    luaGen.write( library.autogenPath)
   end
 end

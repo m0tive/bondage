@@ -17,9 +17,10 @@ public:
       : m_function(fn),
         m_name(name)
     {
+    assert(m_function);
     }
 
-  void call(bondage::Builder::Boxer *b, Arguments *a)
+  void call(bondage::Builder::Boxer *b, Arguments *a) const
     {
     m_function(b, a);
     }
@@ -37,23 +38,23 @@ public:
   typedef Function::Call Result;
   typedef Function::CanCall CanCallResult;
 
-  template <typename Function, typename Builder=FunctionCaller> static Result buildCall()
+  template <typename Function, typename Builder> static Result buildCall()
     {
     return call<Function, Builder>;
     }
 
-  template <typename Function, typename Builder=FunctionCaller> static CanCallResult buildCanCall()
+  template <typename Function, typename Builder> static CanCallResult buildCanCall()
     {
     return canCall<Function, Builder>;
     }
 
-  template <typename Fn, typename Builder=FunctionCaller> static void call(Boxer *b, Function::Arguments *data)
+  template <typename Fn, typename Builder> static void call(Boxer *b, Function::Arguments *data)
     {
     Call call = { data, b };
     Fn::template call<Builder>(&call);
     }
 
-  template <typename Fn, typename Builder=FunctionCaller> static bool canCall(Boxer *b, Function::Arguments *data)
+  template <typename Fn, typename Builder> static bool canCall(Boxer *b, Function::Arguments *data)
     {
     Call call = { data, b };
     return Fn::template canCall<Builder>(&call);

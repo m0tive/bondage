@@ -27,6 +27,44 @@ module CPP
       @extraFunctionDecls = nil
     end
 
+    def gatherFunctions(owner, exposer)
+      functions = exposer.findExposedFunctions(owner)
+      
+      methods = []
+      extraMethods = []
+
+      # for each function, work out how best to call it.
+      functions.sort.each do |name, fns|
+        generate(owner, fns)
+
+        methods << bind
+        extraMethods = extraMethods.concat(extraFunctions)
+      end
+
+      return methods, extraMethods
+    end
+
+    def generateFunctionArray(binders, extraMethods, namingHelper)
+      methodsSource = ""
+      if (binders.length > 0)
+        methodsSource = "  " + binders.join(",\n  ")
+      end
+      extraMethodSource = ""
+      if (extraMethods.length > 0)
+        extraMethodSource = "\n" + extraMethods.join("\n\n") + "\n"
+      end
+
+
+      methodsInfo = ""
+      methodsLiteral = "nullptr"
+      if (binders.length > 0)
+        methodsLiteral = namingHelper + "_methods";
+        methodsInfo = "\nconst #{TYPE_NAMESPACE}::Function #{methodsLiteral}[] = {\n#{methodsSource}\n};\n\n"
+      end
+
+      return methodsLiteral, methodsInfo, extraMethodSource
+    end
+
     def generate(owner, functions)
       reset()
 
@@ -57,16 +95,22 @@ module CPP
       argCalls = @calls.map do |num, calls|
         raise "Invalid call" unless calls.length()
 
-        callsJoined = calls.join(",\n#{ovOlLs}")
+        if (calls.length > 1)
+          callsJoined = calls.join(",\n#{ovOlLs}")
 
-        "#{TYPE_NAMESPACE}::FunctionBuilder::buildOverloaded<#{num}, std::tuple<
+        "Reflect::FunctionArgCountSelectorBlock<#{num}, Reflect::FunctionArgumentTypeSelector<
 #{ovOlLs}#{callsJoined}
 #{ovOlLs}> >"
+        else
+          "Reflect::FunctionArgCountSelectorBlock<#{num},
+#{ovOlLs}#{calls[0]}
+#{ovOlLs}>"
+        end
       end
 
       callsJoined = argCalls.join(",\n#{olLs}")
 
-@bind = "#{TYPE_NAMESPACE}::FunctionBuilder::buildArgumentCountOverload< std::tuple<
+@bind = "#{TYPE_NAMESPACE}::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
 #{olLs}#{callsJoined}
 #{olLs}> >(\"#{name}\")"
     end

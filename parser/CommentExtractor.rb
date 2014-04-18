@@ -9,21 +9,55 @@ EXTRA_COMMAND_TYPES = {
   ])
 }
 
+PARAM_EXTRA_COMMAND_TYPES = {
+  "paramtype" => Set.new()
+}
+
 class CommentExtractor
   def initialize()
-    @commandPendingExtra = nil
-    @commandPendingExtraLine = 0
+    @regExpCache = { }
   end
 
   
   # Extract a comment into [toFill] (a Comment), recursing into child comments
-  def self.extract(comment, location)
+  def self.extract(comment, rawText, location)
     extractor = CommentExtractor.new
     toFill = Comment.new
 
     extractor.extractComment(toFill, comment, location)
 
+    extractor.extractExtraData(toFill, rawText)
+
     return toFill
+  end
+
+  def extractExtraData(comment, text)
+    EXTRA_COMMAND_TYPES.each do |cmd, allowedOpts|
+      if (comment.hasCommand(cmd) && allowedOpts.length)
+        commandRegex = @regExpCache[cmd]
+        if (!commandRegex)
+          commandRegex = Regexp.new("\\\\#{cmd} (.*)$")
+          @regExpCache[cmd] = commandRegex
+        end
+
+        match = commandRegex.match(text)
+        if (!match)
+          next
+        end
+
+        options = match.captures[0].split
+
+        options.each do |flag|
+          if (!allowedOpts.include?(flag))
+            comment_error(location, "Invalid flag to command #{@commandPendingExtra.name} - #{flag}")
+          end
+        end
+
+        command = comment.command(cmd)
+
+        command.setArgs(options)
+      end
+    end
   end
 
   def extractComment(toFill, comment, location)
@@ -59,49 +93,27 @@ class CommentExtractor
 
   # Extract a text comment into [toFill]
   def extractTextComment(toFill, comment, location)
-    if (@commandPendingExtra != nil && location.start.line == @commandPendingExtraLine)
-      options = EXTRA_COMMAND_TYPES[@commandPendingExtra.name]
-
-      flags = comment.text.split
-      flags.each do |flag|
-        if (!options.include?(flag))
-          comment_error(location, "Invalid flag to command #{@commandPendingExtra.name} - #{flag}")
-        end
-      end
-
-      @commandPendingExtra.setArgs(flags)
-
-    elsif (toFill.commandText("brief") == "")
+    if (toFill.commandText("brief") == "")
       toFill.addCommand("brief", comment.text)
     end
-    @commandPendingExtra = nil
-    @commandPendingExtraLine = 0
   end
 
   # Extract a block command comment - like /brief
   def extractBlockCommandComment(toFill, comment, location)
-    @commandPendingExtra = nil
-    @commandPendingExtraLine = 0
     toFill.addCommand(comment.name, comment.comment)
   end
 
   # Extract an inline command comment
   def extractInlineCommandComment(toFill, comment, location)
-    @commandPendingExtra = nil
-    @commandPendingExtraLine = 0
     command = toFill.addCommand(comment.name, "")
-
-    if (EXTRA_COMMAND_TYPES[comment.name] != nil)
-      @commandPendingExtra = command
-      @commandPendingExtraLine = location.end.line
-    end
   end
 
   # Extract a param command comment like /param
   def extractParamCommandComment(toFill, comment, location)
     @commandPendingExtra = nil
     if(comment.valid_index?)
-      toFill.addParam(comment.index, comment.comment, comment.direction_explicit?, comment.direction)
+      cmt = comment.comment
+      toFill.addParam(comment.index, cmt, comment.direction_explicit?, comment.direction)
     end
   end
 
