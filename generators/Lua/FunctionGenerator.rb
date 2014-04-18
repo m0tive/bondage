@@ -70,7 +70,7 @@ module Lua
 
       ArgumentVisitor.visitFunction(owner, function, functionIndex, argCount, self)
 
-      @signatures << FunctionSignatureGenerator.generateSignature(owner, function, @arguments, @returnTypes)
+      @signatures << FunctionSignatureGenerator.generate(owner, function, @arguments, @returnTypes)
 
       appendArgumentDataToOverloads(function, @arguments, @returnTypes)
     end

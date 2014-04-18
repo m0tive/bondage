@@ -50,7 +50,7 @@ module Lua
 
       argumentsProcessed = formatArgumentData(arguments, argumentClassifiers)
       
-      returnCount, returns, returnProcessed = foratReturnData(returnTypes, returnClassifiers)
+      returnCount, returns, returnProcessed = formatReturnData(returnTypes, returnClassifiers)
 
       if (returnCount == :unknown || static == :unknown)
         raise "Inconsistent static or return count data for function with classifier #{name}"
