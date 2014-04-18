@@ -22,56 +22,14 @@ module Lua
     # Generate the lua class data for [cls]
     def generate(library, exposer, luaPathResolver, cls, localVarOut)
       parsed = cls.parsed
-      functions = exposer.findExposedFunctions(parsed)
 
-      extraData = []
+      formattedFunctions, extraData = generateFunctions(library, exposer, parsed)
 
-      formattedFunctions = []
-
-      pluginData = { }
-
-      # for each function, work out how best to call it.
-      functions.sort.each do |name, fns|
-        @fnGen.generate(library, parsed, fns)
-
-        bind = @fnGen.bind
-        name = @fnGen.name
-
-        globalData = false
-        @plugins.each do |plugin|
-          if (plugin.interested?(library, parsed, fns))
-            plugin.addData(library, parsed, fns, name)
-            globalData = true
-          end
-        end
-
-        if (@fnGen.wrapper.length != 0)
-          extraData << @fnGen.wrapper
-        end
-
-
-        if (globalData)
-          varName = ""
-          if (@fnGen.bindIsForwarder)
-            varName = bind
-          else
-            varName = "#{parsed.name}_#{name}_fwd"
-            extraData << "local #{varName} = #{bind}"
-          end
-          formattedFunctions << "#{@fnGen.docs}\n#{@lineStart}#{name} = #{varName}"
-        else
-          formattedFunctions << "#{@fnGen.docs}\n#{@lineStart}#{name} = #{bind}"
-        end
-      end
 
       # if [cls] has a parent class, find its data and require path.
       parentInsert = generateClassParentData(exposer, luaPathResolver, cls)
 
-      enumInsert = ""
-      @enumGen.generate(parsed)
-      @enumGen.enums.each do |enum|
-        enumInsert << "\n#{enum},\n"
-      end
+      enumInsert = generateEnums(parsed)
 
       # find a brief comment for [cls]
       brief = parsed.comment.strippedCommand("brief")
@@ -91,6 +49,75 @@ local #{localVarOut} = class \"#{cls.name}\" {
     end
 
   private
+    def generateEnums(parsed)
+      @enumGen.generate(parsed)
+
+      if (@enumGen.enums.length == 0)
+        return ""
+      end
+
+      out = @enumGen.enums.map { |enum|
+         "#{enum}"
+      }.join("\n,\n")
+
+      return "\n#{out},\n"
+    end
+
+    def isPluginInterested(library, parsed, fns)
+      interested = false
+      @plugins.each do |plugin|
+        if (plugin.interested?(library, parsed, fns))
+          interested = true
+        end
+      end
+
+      return interested
+    end
+
+    def generateFunction(library, parsed, name, fns, formattedFunctions, extraData)
+      @fnGen.generate(library, parsed, fns)
+
+      bind = @fnGen.bind
+      name = @fnGen.name
+
+      # Visit the plugins for our class, they may choose
+      # to do something with this function later.
+      pluginInterested = isPluginInterested(library, parsed, fns)
+
+      if (@fnGen.wrapper.length != 0)
+        extraData << @fnGen.wrapper
+      end
+
+      if (pluginInterested)
+        varName = ""
+        if (@fnGen.bindIsForwarder)
+          varName = bind
+        else
+          # someone wants a reference to this function other than the def - store it in a local for passing on
+          varName = "#{parsed.name}_#{name}_fwd"
+          extraData << "local #{varName} = #{bind}"
+        end
+
+        bind = varName
+      end
+
+      formattedFunctions << "#{@fnGen.docs}\n#{@lineStart}#{name} = #{bind}"
+    end
+
+    def generateFunctions(library, exposer, parsed)
+      functions = exposer.findExposedFunctions(parsed) 
+
+      extraData = []
+      formattedFunctions = []
+
+      # for each function, work out how best to call it.
+      functions.sort.each do |name, fns|
+        generateFunction(library, parsed, name, fns, formattedFunctions, extraData)
+      end
+
+      return formattedFunctions, extraData
+    end
+
     def generateClassParentData(exposer, luaPathResolver, cls)
       # if [cls] has a parent class, find its data and require path.
       parentInsert = ""
