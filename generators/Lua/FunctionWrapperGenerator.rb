@@ -27,8 +27,8 @@ module Lua
       output = "#{ls}local #{fwdName} = #{@getter}(\"#{library.name}\", \"#{clsName}\", \"#{@name}\")
 #{ls}local #{name} = function(...)\n#{lsT}local argCount = select(\"#\")\n"
       overloads.each do |argCount, overloadData|
-        returnTypes = getCommonTypeArray(overloadData.returnTypes)
-        arguments = getCommonArgumentArray(overloadData.arguments)
+        returnTypes = getCommonTypeArray(overloadData.returnTypes) { |a| a }
+        arguments = getCommonTypeArray(overloadData.arguments) { |a| a.type }
 
         returnCount = overloadData.returnTypes[0].length
         static = overloadData.static
@@ -79,28 +79,11 @@ module Lua
         array = arrays[i]
 
         array.each_index do |eIdx|
-          if (array[eIdx].name != arrayResult[eIdx].name)
+          if (yeild(array[eIdx]).name != yeild(arrayResult[eIdx]).name)
             raise "non equal return types"
           end
         end
 
-      end
-
-      return arrayResult
-    end
-
-    def getCommonArgumentArray(arrays)
-      arrayResult = arrays[0]
-      raise "No arguments passed" unless arrayResult
-
-      1..arrays.length do |i|
-        array = arrays[i]
-
-        array.each_index do |eIdx|
-          if (array[eIdx].name != arrayResult[eIdx].name)
-            raise "non equal argument types"
-          end
-        end
       end
 
       return arrayResult
