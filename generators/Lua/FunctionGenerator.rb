@@ -1,5 +1,6 @@
 require_relative "FunctionWrapperGenerator.rb"
 require_relative "FunctionSignatureGenerator.rb"
+require_relative "FunctionDocumentationGenerator.rb"
 
 module Lua
 
@@ -44,7 +45,7 @@ module Lua
         clsName = cls.name
       end
 
-      generateDocs()
+      @docs = FunctionDocumentationGenerator.generate(@lineStart, @signatures, @brief, @returnComment, @namedArgs)
 
       # If any classifiers are used, we need to generate a wrapper
       if (@anyClassifiersUsed)
@@ -73,26 +74,6 @@ module Lua
       @signatures << FunctionSignatureGenerator.generate(owner, function, @arguments, @returnTypes)
 
       appendArgumentDataToOverloads(function, @arguments, @returnTypes)
-    end
-
-    def generateDocs()
-      # format the signatures with the param comments to form the preable for a funtion.
-      comment = @signatures.map{ |sig| "#{@lineStart}-- #{sig}" }.join("\n")
-
-      commentLine = "\n#{@lineStart}-- "
-
-      comment += "#{commentLine}\\brief #{@brief}"
-      @namedArgs.to_a.sort.each do |argName, argBrief|
-        if(!argName.empty? && !argBrief.empty?) 
-          comment += "#{commentLine}\\param #{argName} #{argBrief.strip}"
-        end
-      end
-
-      if(!@returnComment.empty?)
-        comment += "#{commentLine}\\return #{@returnComment}"
-      end
-
-      @docs = comment
     end
 
     def argumentClassifier(i)
