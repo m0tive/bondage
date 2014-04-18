@@ -1,4 +1,5 @@
 require_relative "FunctionWrapperGenerator.rb"
+require_relative "FunctionSignatureGenerator.rb"
 
 module Lua
 
@@ -69,7 +70,7 @@ module Lua
 
       ArgumentVisitor.visitFunction(owner, function, functionIndex, argCount, self)
 
-      @signatures << generateSignature(owner, function, @arguments, @returnTypes)
+      @signatures << FunctionSignatureGenerator.generateSignature(owner, function, @arguments, @returnTypes)
 
       appendArgumentDataToOverloads(function, @arguments, @returnTypes)
     end
@@ -92,58 +93,6 @@ module Lua
       end
 
       @docs = comment
-    end
-
-    def generateSignature(cls, fn, args, returnTypes)
-      # Find the list of arguments with type then name, comma separated
-      argString = args.length.times.map{ |i|
-        arg = args[i]
-        argName = arg.name.length != 0 ? arg.name : "arg#{i+1}"
-
-        next "#{formatType(arg.type)} #{argName}"
-      }.join(", ")
-
-      # Find a list of return types, comma separated
-      retString = returnTypes.map{ |t| formatType(t) }.join(", ")
-
-      if (retString.length == 0)
-        retString = "nil"
-      end
-
-      # Extract signature
-      callConv = fn.static ? "." : ":"
-
-      return "#{retString} #{cls.name}#{callConv}#{fn.name}(#{argString})"
-    end
-
-    # Format [type], a Type instance, in a way lua users can understand
-    def formatType(type)
-      # void maps to nil
-      if(!type || type.isVoid())
-        return "nil"
-      end
-
-      # char pointers map to string
-      if(type.isStringLiteral())
-        return "string"
-      end
-
-      # pointers and references are stripped (after strings!)
-      if(type.isPointer() || type.isLValueReference() || type.isLValueReference())
-        return formatType(type.pointeeType())
-      end
-
-      # bool is boolean
-      if(type.isBoolean())
-        return "boolean"
-      end
-
-      # all int/float/double types are numbers
-      if(type.isInteger() || type.isFloatingPoint())
-        return "number"
-      end
-
-      return "#{type.name}"
     end
 
     def argumentClassifier(i)
