@@ -32,53 +32,25 @@ class FunctionExposer
         return
       end
 
-      access = false
-      returnType = false
-      arguments = false
-
-      # methods must be public to expose
-      access = fn.accessSpecifier == :public || fn.accessSpecifier == :invalid
-      if (!@debug && (!access && !mustExpose))
-        return false
-      end
-
-      notOverride = !fn.isOverride
-      if (!@debug && (!notOverride && !mustExpose))
-        return false
-      end
-
-      # methods must have a partially exposed return type (it or a derived class)
-      returnType = (fn.returnType == nil || @typeExposer.canExposeType(fn.returnType, true))
-      if (!@debug && (!returnType && !mustExpose))
-        return false
-      end
-      
-      # methods arguments must all be exposed fully.
-      arguments = true
-      fn.arguments.each do |arg|
-        if (!arg.hasDefault && !canExposeArgument(arg))
-          arguments = false
-          break
-        end
-      end
-      if (!@debug && (!arguments && !mustExpose))
-        return false
-      end
-
-      canExpose = access && notOverride && returnType && arguments
+      canExpose = 
+        isFunctionAccessible(fn) &&
+        isFunctionNotOverride(fn) &&
+        isReturnTypeExposed(fn) &&
+        areAllArgumentTypesExposable(fn)
 
       if(@debug || (!canExpose && mustExpose))
         puts "- #{owner.fullyQualifiedName}::#{fn.name}"
-        puts " - accessible: #{access}"
-        puts " - not override: #{notOverride}"
-        puts " - return type: #{returnType}"
-        puts " - arg types: #{arguments}"
+        puts " - accessible: #{isFunctionAccessible(fn)}"
+        puts " - not override: #{isFunctionNotOverride(fn)}"
+        puts " - return type: #{isReturnTypeExposed(fn)}"
+        puts " - arg types: #{areAllArgumentTypesExposable(fn)}"
         puts " - combined: #{canExpose}"
-
-        if (!canExpose && mustExpose)
-          raise "Unable to expose required method #{owner.fullyQualifiedName}::#{fn.name}" 
-        end
       end
+
+      if (!canExpose && mustExpose)
+        raise "Unable to expose required method #{owner.fullyQualifiedName}::#{fn.name}" 
+      end
+
 
       fn.setExposed(canExpose)
     end
@@ -114,6 +86,31 @@ class FunctionExposer
     end
 
     return true
+  end
+
+private
+
+  def isFunctionAccessible(fn)
+    return fn.accessSpecifier == :public || fn.accessSpecifier == :invalid
+  end
+
+  def isFunctionNotOverride(fn)
+    return !fn.isOverride
+  end
+
+  def isReturnTypeExposed(fn)
+    return fn.returnType == nil || @typeExposer.canExposeType(fn.returnType, true)
+  end
+
+  def areAllArgumentTypesExposable(fn)
+    arguments = true
+    fn.arguments.each do |arg|
+      if (!arg.hasDefault && !canExposeArgument(arg))
+        arguments = false
+        break
+      end
+    end
+    return arguments
   end
 
 end
