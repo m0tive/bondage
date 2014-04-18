@@ -10,7 +10,7 @@ module Lua
       reset()
     end
 
-    attr_reader :docs, :bind, :wrapper, :overloads
+    attr_reader :docs, :name, :bind, :wrapper, :overloads, :bindIsForwarder
 
     def reset
       @bind = ""
@@ -26,8 +26,11 @@ module Lua
       @anyClassifiersUsed = false
       @arguments = []
       @returnTypes = []
+      @bindIsForwarder = false
     end
 
+    # Generate the function, takes a [library], the owner [cls],
+    # and a list of functions to generate for [fns]
     def generate(library, cls, fns)
       reset()
 
@@ -42,12 +45,14 @@ module Lua
 
       generateDocs()
 
+      # If any classifiers are used, we need to generate a wrapper
       if (@anyClassifiersUsed)
         localName = "#{clsName}_#{@name}_wrapper"
-        @bind = "#{@name} = #{localName}"
+        @bind = localName
+        @bindIsForwarder = true
         @wrapper = @wrapperGenerator.generate(localName, library, clsName, @overloads, @argumentClassifiers, @returnClassifiers)
       else
-        @bind = "#{@name} = #{@getter}(\"#{library.name}\", \"#{clsName}\", \"#{@name}\")"
+        @bind = "#{@getter}(\"#{library.name}\", \"#{clsName}\", \"#{@name}\")"
         @wrapper = ""
       end
     end
@@ -60,33 +65,13 @@ module Lua
       @arguments = []
       @returnTypes = []
 
-      if (function.returnType)
-        type, brief = extractArgumentClassifier(function.returnBrief, @returnClassifiers, 0)
-
-        if (@returnComment.empty?)
-          @returnComment = brief.strip
-        end
-
-        @returnTypes << function.returnType
-      end
+      extractReturnData(function)
 
       ArgumentVisitor.visitFunction(owner, function, functionIndex, argCount, self)
 
       @signatures << generateSignature(owner, function, @arguments, @returnTypes)
 
-      overload = @overloads[@arguments.length]
-      if (!overload)
-        overload = FunctionWrapperGenerator::ArgumentOverload.new
-        overload.static = function.static
-        @overloads[@arguments.length] = overload
-      else
-        if (overload.static != function.static)
-          overload.static = :unknown
-        end
-      end
-
-      overload.returnTypes << @returnTypes
-      overload.arguments << @arguments
+      appendArgumentDataToOverloads(function, @arguments, @returnTypes)
     end
 
     def generateDocs()
@@ -110,29 +95,25 @@ module Lua
     end
 
     def generateSignature(cls, fn, args, returnTypes)
-      name = fn.name
-
-      # extract signature
-      callConv = fn.static ? "." : ":"
-
+      # Find the list of arguments with type then name, comma separated
       argString = args.length.times.map{ |i|
         arg = args[i]
-        type = arg.type
-        argName = arg.name
-        if (arg.name.length == 0)
-          argName = "arg#{i+1}"
-        end
-        "#{formatType(type)} #{argName}"
+        argName = arg.name.length != 0 ? arg.name : "arg#{i+1}"
+
+        next "#{formatType(arg.type)} #{argName}"
       }.join(", ")
 
-      retString = returnTypes.map{ |type|
-        formatType(type)
-      }.join(", ")
+      # Find a list of return types, comma separated
+      retString = returnTypes.map{ |t| formatType(t) }.join(", ")
+
       if (retString.length == 0)
         retString = "nil"
       end
 
-      return "#{retString} #{cls.name}#{callConv}#{name}(#{argString})"
+      # Extract signature
+      callConv = fn.static ? "." : ":"
+
+      return "#{retString} #{cls.name}#{callConv}#{fn.name}(#{argString})"
     end
 
     # Format [type], a Type instance, in a way lua users can understand
@@ -173,6 +154,34 @@ module Lua
       end
 
       return type
+    end
+
+    def extractReturnData(function)
+      if (function.returnType)
+        type, brief = extractArgumentClassifier(function.returnBrief, @returnClassifiers, 0)
+
+        if (@returnComment.empty?)
+          @returnComment = brief.strip
+        end
+
+        @returnTypes << function.returnType
+      end
+    end
+
+    def appendArgumentDataToOverloads(function, arguments, returnTypes)
+      overload = @overloads[arguments.length]
+      if (!overload)
+        overload = FunctionWrapperGenerator::ArgumentOverload.new
+        overload.static = function.static
+        @overloads[@arguments.length] = overload
+      else
+        if (overload.static != function.static)
+          overload.static = :unknown
+        end
+      end
+
+      overload.returnTypes << returnTypes
+      overload.arguments << arguments
     end
 
     def returnClassifier(i)

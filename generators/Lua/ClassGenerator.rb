@@ -6,8 +6,9 @@ module Lua
 
   # Generate lua exposing code for C++ classes
   class ClassGenerator
-    def initialize(classifiers, lineStart, getter)
+    def initialize(classPlugins, classifiers, lineStart, getter)
       @lineStart = lineStart
+      @plugins = classPlugins
       @fnGen = FunctionGenerator.new(classifiers, @lineStart, getter)
       @enumGen = Lua::EnumGenerator.new(@lineStart)
     end
@@ -23,13 +24,44 @@ module Lua
       parsed = cls.parsed
       functions = exposer.findExposedFunctions(parsed)
 
+      extraData = []
+
       formattedFunctions = []
+
+      pluginData = { }
 
       # for each function, work out how best to call it.
       functions.sort.each do |name, fns|
         @fnGen.generate(library, parsed, fns)
 
-        formattedFunctions << "#{@fnGen.docs}\n#{@lineStart}#{@fnGen.bind}"
+        bind = @fnGen.bind
+        name = @fnGen.name
+
+        globalData = false
+        @plugins.each do |plugin|
+          if (plugin.interested?(library, parsed, fns))
+            plugin.addData(library, parsed, fns, name)
+            globalData = true
+          end
+        end
+
+        if (@fnGen.wrapper.length != 0)
+          extraData << @fnGen.wrapper
+        end
+
+
+        if (globalData)
+          varName = ""
+          if (@fnGen.bindIsForwarder)
+            varName = bind
+          else
+            varName = "#{parsed.name}_#{name}_fwd"
+            extraData << "local #{varName} = #{bind}"
+          end
+          formattedFunctions << "#{@fnGen.docs}\n#{@lineStart}#{name} = #{varName}"
+        else
+          formattedFunctions << "#{@fnGen.docs}\n#{@lineStart}#{name} = #{bind}"
+        end
       end
 
       # if [cls] has a parent class, find its data and require path.
@@ -44,8 +76,13 @@ module Lua
       # find a brief comment for [cls]
       brief = parsed.comment.strippedCommand("brief")
 
+      extraDatas = ""
+      if (extraData.length != 0)
+        extraDatas = extraData.join("\n\n") + "\n\n"
+      end
+
       # generate class output.
-      @classDefinition = "-- \\brief #{brief}
+      @classDefinition = "#{extraDatas}-- \\brief #{brief}
 --
 local #{localVarOut} = class \"#{cls.name}\" {
 #{parentInsert}#{enumInsert}

@@ -87,7 +87,7 @@ class TestGenerator < Test::Unit::TestCase
 -- \\brief This funciton is a test
 -- \\param myFloat This is a float.
 -- \\param myint This is an int!", fnGen.docs
-    assert_equal "test1 = getFunction(\"Gen\", \"Gen\", \"test1\")", fnGen.bind
+    assert_equal "getFunction(\"Gen\", \"Gen\", \"test1\")", fnGen.bind
   end
 
   def test_stringLibGeneratorLua
@@ -98,7 +98,7 @@ class TestGenerator < Test::Unit::TestCase
 
     exposer, lib = exposeLibrary(stringLibrary)
 
-    libGen = Lua::LibraryGenerator.new(nil, "getFunction", TestPathResolver.new)
+    libGen = Lua::LibraryGenerator.new([], [], "getFunction", TestPathResolver.new)
 
     libGen.generate(lib, exposer)
 
@@ -130,7 +130,7 @@ class TestGenerator < Test::Unit::TestCase
   def test_genTest
     exposer, lib = exposeLibrary(@gen)
 
-    libGen = Lua::LibraryGenerator.new(nil, "getFunction", TestPathResolver.new)
+    libGen = Lua::LibraryGenerator.new([], [], "getFunction", TestPathResolver.new)
 
     libGen.generate(lib, exposer)
 
@@ -254,7 +254,8 @@ return Gen"
   def test_luaIndexedFunctionGeneration
     exposer, lib = exposeLibrary(@luaFuncs)
 
-    cls = exposer.exposedMetaData.findClass("::LuaFunctions::TestClass").parsed
+    clsMetaData = exposer.exposedMetaData.findClass("::LuaFunctions::TestClass")
+    cls = clsMetaData.parsed
     assert_not_nil cls
 
     rootNs = lib.getExposedNamespace()
@@ -266,10 +267,12 @@ return Gen"
     fnGen = Lua::FunctionGenerator.new(Lua::DEFAULT_CLASSIFIERS, "", "get")
 
     fnGen.generate(lib.library, cls, cls.functions)
-    assert_equal "luaSample = get(\"LuaFunctions\", \"TestClass\", \"luaSample\")", fnGen.bind
+    assert_equal "get(\"LuaFunctions\", \"TestClass\", \"luaSample\")", fnGen.bind
     fnGen.generate(lib.library, rootNs, rootNs.functions)
 
-    cls2 = exposer.exposedMetaData.findClass("::LuaFunctions::TestClassIndexed").parsed
+
+    clsMetaData2 = exposer.exposedMetaData.findClass("::LuaFunctions::TestClassIndexed")
+    cls2 = clsMetaData2.parsed
     assert_not_nil cls2
 
     firstGroup = [ cls2.functions[0], cls2.functions[1], cls2.functions[2], cls2.functions[3] ]
@@ -355,6 +358,68 @@ end", fnGen.wrapper
 -- \\brief ", fnGen.docs
 
     assert_equal "", fnGen.wrapper
+
+    clsGen = Lua::ClassGenerator.new([], Lua::DEFAULT_CLASSIFIERS, "", "get")
+
+    clsGen.generate(lib.library, exposer, TestPathResolver.new, clsMetaData, "var")
+
+    assert_equal %{-- \\brief 
+--
+local var = class "TestClass" {
+
+-- nil TestClass:luaSample()
+-- nil TestClass:luaSample(number arg1)
+-- nil TestClass:luaSample(number arg1)
+-- nil TestClass:luaSample(number arg1, number arg2)
+-- \\brief 
+luaSample = get("LuaFunctions", "TestClass", "luaSample")
+}}, clsGen.classDefinition
+
+    clsGen.generate(lib.library, exposer, TestPathResolver.new, clsMetaData2, "var")
+
+    assert_equal %{local TestClassIndexed_luaSample_wrapper_fwd = get("LuaFunctions", "TestClassIndexed", "")
+local TestClassIndexed_luaSample_wrapper = function(...)
+  local argCount = select("#")
+  if 1 == argCount then
+    local ret0 = fwdName()
+    return (ret0-1)
+  end
+  if 2 == argCount then
+    local ret0 = fwdName((select(0, ...)-1))
+    return (ret0-1)
+  end
+  if 3 == argCount then
+    local ret0 = fwdName((select(0, ...)-1),
+      select(1, ...))
+    return (ret0-1)
+  end
+end
+
+local TestClassIndexed_luaSample2_wrapper_fwd = get("LuaFunctions", "TestClassIndexed", "")
+local TestClassIndexed_luaSample2_wrapper = function(...)
+  local argCount = select("#")
+  if 1 == argCount then
+    local ret0 = fwdName()
+    return from_native(ret0)
+  end
+end
+
+-- \\brief 
+--
+local var = class "TestClassIndexed" {
+
+-- number TestClassIndexed:luaSample()
+-- number TestClassIndexed:luaSample(number idx)
+-- number TestClassIndexed:luaSample(number idx, number arg2)
+-- \\brief sample
+-- \\param idx the Index
+luaSample = TestClassIndexed_luaSample_wrapper,
+
+-- LuaFunctions::TestClassIndexed TestClassIndexed:luaSample2()
+-- \\brief [index]
+luaSample2 = TestClassIndexed_luaSample2_wrapper
+}}, clsGen.classDefinition
+
   end
 end
 
