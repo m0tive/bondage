@@ -62,7 +62,7 @@ module Lua
 
       data = @classes.map{ |cls, data| "#{ls}#{cls.name} = require(\"#{@pathResolver.pathFor(cls)}\")" }
 
-      enumGen = Lua::EnumGenerator.new(@lineStart)
+      enumGen = EnumGenerator.new(@lineStart)
 
       enumGen.generate(rootNs)
       enumGen.enums.each do |enum|
@@ -72,7 +72,7 @@ module Lua
       extraData = []
 
       # for each function, work out how best to call it.
-      fnGen = FunctionGenerator.new(@classifiers, @lineStart, @getter)
+      fnGen = Function::Generator.new(@classifiers, @lineStart, @getter)
       functions.sort.each do |name, fns|
         fnGen.generate(library, rootNs, fns)
 

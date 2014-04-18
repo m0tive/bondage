@@ -1,7 +1,7 @@
 # indexes in methods
 require_relative 'TestUtils.rb'
 require_relative "../generators/Lua/LibraryGenerator.rb"
-require_relative "../generators/Lua/FunctionGenerator.rb"
+require_relative "../generators/Lua/Function/Generator.rb"
 require_relative "../generators/Lua/EnumGenerator.rb"
 require_relative "../generators/Lua/ArgumentClassifiers/Classifiers.rb"
 
@@ -38,7 +38,7 @@ class TestGenerator < Test::Unit::TestCase
   def test_luaFunctionGenerator
     exposer, lib = exposeLibrary(@gen)
 
-    fnGen = Lua::FunctionGenerator.new(nil, "", "getFunction")
+    fnGen = Lua::Function::Generator.new(nil, "", "getFunction")
 
     cls = exposer.exposedMetaData.findClass("::Gen::Gen").parsed
     assert_not_nil cls
@@ -264,7 +264,7 @@ return Gen"
     assert_equal 4, cls.functions.length
     assert_equal 1, rootNs.functions.length
 
-    fnGen = Lua::FunctionGenerator.new(Lua::DEFAULT_CLASSIFIERS, "", "get")
+    fnGen = Lua::Function::Generator.new(Lua::DEFAULT_CLASSIFIERS, "", "get")
 
     fnGen.generate(lib.library, cls, cls.functions)
     assert_equal "get(\"LuaFunctions\", \"TestClass\", \"luaSample\")", fnGen.bind

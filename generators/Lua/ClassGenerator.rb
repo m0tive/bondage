@@ -1,5 +1,5 @@
 require_relative "../../exposer/ExposeAst.rb"
-require_relative "FunctionGenerator.rb"
+require_relative "Function/Generator.rb"
 require_relative "EnumGenerator.rb"
 
 module Lua
@@ -9,7 +9,7 @@ module Lua
     def initialize(classPlugins, classifiers, lineStart, getter)
       @lineStart = lineStart
       @plugins = classPlugins
-      @fnGen = FunctionGenerator.new(classifiers, @lineStart, getter)
+      @fnGen = Function::Generator.new(classifiers, @lineStart, getter)
       @enumGen = Lua::EnumGenerator.new(@lineStart)
     end
 
