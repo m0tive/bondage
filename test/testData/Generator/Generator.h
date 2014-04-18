@@ -16,7 +16,6 @@ public:
   /// \brief This funciton is a test
   /// \param myint This is an int!
   /// \param myFloat This is a float.
-  /// \return Returns NOTHING.
   void test1(int myint, float myFloat, double)
     {
     (void)myint;

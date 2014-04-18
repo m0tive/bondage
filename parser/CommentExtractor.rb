@@ -9,6 +9,10 @@ EXTRA_COMMAND_TYPES = {
   ])
 }
 
+PARAM_EXTRA_COMMAND_TYPES = {
+  "paramtype" => Set.new()
+}
+
 class CommentExtractor
   def initialize()
     @regExpCache = { }
@@ -92,7 +96,7 @@ class CommentExtractor
     if (toFill.commandText("brief") == "")
       toFill.addCommand("brief", comment.text)
     end
-    end
+  end
 
   # Extract a block command comment - like /brief
   def extractBlockCommandComment(toFill, comment, location)
@@ -108,7 +112,8 @@ class CommentExtractor
   def extractParamCommandComment(toFill, comment, location)
     @commandPendingExtra = nil
     if(comment.valid_index?)
-      toFill.addParam(comment.index, comment.comment, comment.direction_explicit?, comment.direction)
+      cmt = comment.comment
+      toFill.addParam(comment.index, cmt, comment.direction_explicit?, comment.direction)
     end
   end
 

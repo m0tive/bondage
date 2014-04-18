@@ -6,9 +6,9 @@ module Lua
 
   # Generate lua exposing code for C++ classes
   class ClassGenerator
-    def initialize(lineStart, getter)
+    def initialize(classifiers, lineStart, getter)
       @lineStart = lineStart
-      @fnGen = FunctionGenerator.new(@lineStart, getter)
+      @fnGen = FunctionGenerator.new(classifiers, @lineStart, getter)
       @enumGen = Lua::EnumGenerator.new(@lineStart)
     end
 
@@ -27,9 +27,9 @@ module Lua
 
       # for each function, work out how best to call it.
       functions.sort.each do |name, fns|
-        @fnGen.generate(library, cls, fns)
+        @fnGen.generate(library, parsed, fns)
 
-        formattedFunctions << "#{@fnGen.docs}\n#{@lineStart}#{@fnGen.classDefinition}"
+        formattedFunctions << "#{@fnGen.docs}\n#{@lineStart}#{@fnGen.bind}"
       end
 
       # if [cls] has a parent class, find its data and require path.

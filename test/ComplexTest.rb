@@ -51,7 +51,7 @@ class TestComplex < Test::Unit::TestCase
     exposer, visitor = exposeLibrary(library)
 
     CPP::LibraryGenerator.new().generate(visitor, exposer)
-    luaGen = Lua::LibraryGenerator.new("getFunction", PathResolver.new)
+    luaGen = Lua::LibraryGenerator.new(nil, "getFunction", PathResolver.new)
     luaGen.generate(visitor, exposer)
     luaGen.write( library.autogenPath)
   end

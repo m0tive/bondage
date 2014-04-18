@@ -7,11 +7,12 @@ module Lua
   # Generate lua exposing code for C++ classes
   class LibraryGenerator
     # create a lua generator for a [library], and a given [exposer].
-    def initialize(getter, resolver)
+    def initialize(classifiers, getter, resolver)
       @lineStart = "  "
       @pathResolver = resolver
       @getter = getter
-      @clsGen = ClassGenerator.new(@lineStart, getter)
+      @classifiers = classifiers
+      @clsGen = ClassGenerator.new(classifiers, @lineStart, getter)
     end
 
     # Generate lua classes into [dir]
@@ -70,11 +71,11 @@ module Lua
 
 
       # for each function, work out how best to call it.
-      fnGen = FunctionGenerator.new(@lineStart, @getter)
+      fnGen = FunctionGenerator.new(@classifiers, @lineStart, @getter)
       functions.sort.each do |name, fns|
         fnGen.generate(library, rootNs, fns)
 
-        data << "#{fnGen.docs}\n#{@lineStart}#{fnGen.classDefinition}"
+        data << "#{fnGen.docs}\n#{@lineStart}#{fnGen.bind}"
       end
 
       fileData = data.join(",\n\n")
