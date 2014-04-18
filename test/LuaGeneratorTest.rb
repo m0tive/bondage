@@ -320,15 +320,11 @@ local TestClassIndexed_luaSample_wrapper = function(...)
     return (ret0-1)
   end
   if 3 == argCount then
-    local ret0 = fwdName((select(0, ...)-1),
-      select(1, ...))
+    local ret0 = fwdName((select(0, ...)-1), select(1, ...))
     return (ret0-1)
   end
   if 4 == argCount then
-    local ret0, ret1 = fwdName((select(0, ...)-1),
-      select(1, ...),
-      select(2, ...),
-      (select(3, ...)-1))
+    local ret0, ret1 = fwdName((select(0, ...)-1), select(1, ...), select(2, ...), (select(3, ...)-1))
     return (ret0-1), (ret1-1)
   end
 end", fnGen.wrapper
@@ -389,8 +385,7 @@ local TestClassIndexed_luaSample_wrapper = function(...)
     return (ret0-1)
   end
   if 3 == argCount then
-    local ret0 = fwdName((select(0, ...)-1),
-      select(1, ...))
+    local ret0 = fwdName((select(0, ...)-1), select(1, ...))
     return (ret0-1)
   end
 end

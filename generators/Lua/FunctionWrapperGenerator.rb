@@ -19,41 +19,19 @@ module Lua
     def generate(name, library, clsName, overloads, argumentClassifiers, returnClassifiers)
       ls = @lineStart
       lsT = ls + "  "
-      lsT2 = lsT + "  "
-      lsT3 = lsT2 + "  "
 
       fwdName = "#{name}_fwd"
 
       output = "#{ls}local #{fwdName} = #{@getter}(\"#{library.name}\", \"#{clsName}\", \"#{@name}\")
 #{ls}local #{name} = function(...)\n#{lsT}local argCount = select(\"#\")\n"
+
       overloads.each do |argCount, overloadData|
-        returnTypes = getCommonTypeArray(overloadData.returnTypes) { |a| a }
-        arguments = getCommonTypeArray(overloadData.arguments) { |a| a.type }
 
-        returnCount = overloadData.returnTypes[0].length
-        static = overloadData.static
-
-        if (returnCount == :unknown || static == :unknown)
-          raise "Inconsistent static or return count data for function with classifier #{name}"
-        end
-
-        expectedArgCount = (static ? 0 : 1) + argCount
-
-        returns = returnCount.times.map{ |i| "ret#{i}" }.join(", ")
-
-        argumentsProcessed = argCount.times.map{ |i| 
-          processArgument("select(#{i}, ...)", argumentClassifiers[i], arguments[i].type, :param)
-        }.join(",\n#{lsT3}")
-        
-        returnProcessed = returnCount.times.map{ |i| 
-          processArgument("ret#{i}", returnClassifiers[i], returnTypes[i], :return)
-        }.join(", ")
-
-        output += "#{lsT}if #{expectedArgCount} == argCount then
-#{lsT2}local #{returns} = fwdName(#{argumentsProcessed})
-#{lsT2}return #{returnProcessed}
-#{lsT}end
-"
+        output += generateOverloadCall(
+          argCount,
+          overloadData,
+          argumentClassifiers,
+          returnClassifiers)
       end
 
       output += "#{ls}end"
@@ -62,6 +40,51 @@ module Lua
     end
 
   private
+    def generateOverloadCall(argCount, overloadData, argumentClassifiers, returnClassifiers)
+      returnTypes = getCommonTypeArray(overloadData.returnTypes) { |a| a }
+      arguments = getCommonTypeArray(overloadData.arguments) { |a| a.type }
+
+      static = overloadData.static
+
+      expectedArgCount = (static ? 0 : 1) + argCount
+
+      argumentsProcessed = formatArgumentData(arguments, argumentClassifiers)
+      
+      returnCount, returns, returnProcessed = foratReturnData(returnTypes, returnClassifiers)
+
+      if (returnCount == :unknown || static == :unknown)
+        raise "Inconsistent static or return count data for function with classifier #{name}"
+      end
+
+      return "#{@lineStart}  if #{expectedArgCount} == argCount then
+#{@lineStart}    local #{returns} = fwdName(#{argumentsProcessed})
+#{@lineStart}    return #{returnProcessed}
+#{@lineStart}  end
+"
+    end
+
+    def formatArgumentData(arguments, argumentClassifiers)
+      return arguments.length.times.map{ |i| 
+        processArgument(
+          "select(#{i}, ...)",
+          argumentClassifiers[i],
+          arguments[i].type,
+          :param)
+      }.join(", ")
+    end
+
+    def formatReturnData(returnTypes, returnClassifiers)
+      returnCount = returnTypes.length
+
+      returnNames = returnCount.times.map{ |i| "ret#{i}" }
+      returns = returnNames.join(", ")
+
+      returnProcessed = returnCount.times.map{ |i| 
+        processArgument(returnNames[i], returnClassifiers[i], returnTypes[i], :return)
+      }.join(", ")
+
+      return returnCount, returns, returnProcessed
+    end
 
     def processArgument(arg, classifier, type, mode)
       if (classifier == nil || classifier == :none)
