@@ -41,16 +41,7 @@ module CPP
       library = visitor.library
       rootNs = visitor.getExposedNamespace()
       setLibrary(library)
-
-      @header = filePreamble("//") + "\n\n" 
-      @source = filePreamble("//") + "\n"
-      @source += generateInclude(headerPath(library))
-      sourcefiles = [ TYPE_NAMESPACE + "/RuntimeHelpersImpl.h", "utility", "tuple" ]
-
-      library.dependencies.each{ |l| sourcefiles << headerPath(l) }
-
-      @source += "\n" + sourcefiles.map{ |f| "#include \"#{f}\"" }.join("\n") + "\n\n\n"
-
+      
 
       files = Set.new
       derivedClasses = Set.new
@@ -62,16 +53,35 @@ module CPP
         derivedClasses,
         libraryName)
 
-      generateLibraryHeader(libraryName, library, exposer, rootNs, files)
-      generateLibrarySource(libraryName, library, exposer, rootNs, files)
+      @header = filePreamble("//") + "\n\n" +
+        generateLibraryHeader(libraryName, library, exposer, rootNs, files) +
+        "\n\n" + classHeaders.join("\n") + "\n"
 
-      @header += classHeaders.join("\n") + "\n"
-      @source += "\n\n\n" + classSources.join("\n\n\n")
-
-      @source += "\n\n" + generateDerivedCasts(clsGen, derivedClasses)
+      @source = filePreamble("//") + "\n" +
+        includes(library) + 
+        generateLibrarySource(libraryName, library, exposer, rootNs, files) +
+        "\n\n\n" + classSources.join("\n\n\n") +
+        "\n\n" + generateDerivedCasts(clsGen, derivedClasses)
     end
 
   private
+    def generateInclude(libraryfile)
+      path = Pathname.new(libraryfile).relative_path_from(@libraryPath).cleanpath
+      return "#include \"#{path}\""
+    end
+
+    def coreIncludeFiles(library)
+      sourcefiles = [ TYPE_NAMESPACE + "/RuntimeHelpersImpl.h", "utility", "tuple" ]
+
+      library.dependencies.each{ |l| sourcefiles << headerPath(l) }
+      return sourcefiles
+    end
+
+    def includes(library)
+      return generateInclude(headerPath(library)) + "\n" +
+       coreIncludeFiles(library).map{ |f| "#include \"#{f}\"" }.join("\n") + "\n\n\n"
+    end
+
     def generateClasses(exposer, files, derivedClasses, libraryName)
       clsGen = ClassGenerator.new
 
@@ -80,34 +90,59 @@ module CPP
 
       exposer.exposedMetaData.types.each do |path, cls|
         if (cls.type == :class && cls.fullyExposed)
-          clsGen.reset()
-          clsGen.generate(exposer, cls, libraryName)
-          classHeaders << clsGen.interface
-          classSources << clsGen.implementation
 
-          files << cls.parsed.fileLocation
-
-          if (cls.parentClass)
-            rootPath, distance = clsGen.findRootClass(cls)
-
-            derivedClasses << DerivedClass.new(clsGen.wrapperName, path, rootPath, distance)
-          end
+          generateClass(
+            clsGen, 
+            path, 
+            cls, 
+            classHeaders, 
+            classSources, 
+            exposer, 
+            files, 
+            derivedClasses, 
+            libraryName)
         end
       end
 
       return classHeaders, classSources, clsGen
     end
 
+    def generateClass(
+        clsGen, 
+        path, 
+        cls, 
+        classHeaders, 
+        classSources, 
+        exposer, 
+        files, 
+        derivedClasses, 
+        libraryName)
+
+      clsGen.reset()
+      clsGen.generate(exposer, cls, libraryName)
+      classHeaders << clsGen.interface
+      classSources << clsGen.implementation
+
+      files << cls.parsed.fileLocation
+
+      if (cls.parentClass)
+        rootPath, distance = clsGen.findRootClass(cls)
+
+        derivedClasses << DerivedClass.new(clsGen.wrapperName, path, rootPath, distance)
+      end
+    end
+
     def generateLibraryHeader(libraryName, library, exposer, rootNs, files)
       raise "Invalid root namespace for #{library.name}." unless rootNs
 
-      @header += files.map{ |path| generateInclude(path) }.join("\n")
-      @header += "\n#include \"#{TYPE_NAMESPACE}/RuntimeHelpers.h\"\n\n"
+      includes = files.map{ |path| generateInclude(path) }.join("\n")
 
-      @header += "namespace #{library.name}
+      return "#{includes}\n#include \"#{TYPE_NAMESPACE}/RuntimeHelpers.h\"
+
+namespace #{library.name}
 {
 #{library.exportMacro} const bondage::Library &bindings();
-}\n\n"
+}"
     end
 
     def generateLibrarySource(libraryName, library, exposer, rootNs, files)
@@ -116,7 +151,7 @@ module CPP
 
       methodsLiteral, methodsArray, extraMethodSource = fnGen.generateFunctionArray(methods, extraMethods, libraryName)
 
-      @source += "#{extraMethodSource}#{methodsArray}
+      return "#{extraMethodSource}#{methodsArray}
 bondage::Library #{libraryName}(
   \"#{library.name}\",
   #{methodsLiteral},
@@ -128,13 +163,8 @@ const bondage::Library &bindings()
   return #{libraryName};
 }
 }"
-
     end
 
-    def generateInclude(libraryfile)
-      path = Pathname.new(libraryfile).relative_path_from(@libraryPath).cleanpath
-      return "#include \"#{path}\""
-    end
 
     def generateDerivedCasts(clsGen, clss)
       byRoots = { }
