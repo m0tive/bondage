@@ -23,6 +23,8 @@ module Lua
     def generate(library, exposer, luaPathResolver, cls, localVarOut)
       parsed = cls.parsed
 
+      @plugins.each { |n, plugin| plugin.beginClass(library, parsed) }
+
       formattedFunctions, extraData = generateFunctions(library, exposer, parsed)
 
 
@@ -63,10 +65,10 @@ local #{localVarOut} = class \"#{cls.name}\" {
       return "\n#{out},\n"
     end
 
-    def isPluginInterested(library, parsed, fns)
+    def isPluginInterested(name, fns)
       interested = false
-      @plugins.each do |plugin|
-        if (plugin.interested?(library, parsed, fns))
+      @plugins.each do |pluginName, plugin|
+        if (plugin.interestedInFunctions?(name, fns))
           interested = true
         end
       end
@@ -82,7 +84,7 @@ local #{localVarOut} = class \"#{cls.name}\" {
 
       # Visit the plugins for our class, they may choose
       # to do something with this function later.
-      pluginInterested = isPluginInterested(library, parsed, fns)
+      pluginInterested = isPluginInterested(name, fns)
 
       if (@fnGen.wrapper.length != 0)
         extraData << @fnGen.wrapper

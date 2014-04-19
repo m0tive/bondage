@@ -4,6 +4,7 @@ require_relative "../generators/Lua/LibraryGenerator.rb"
 require_relative "../generators/Lua/Function/Generator.rb"
 require_relative "../generators/Lua/EnumGenerator.rb"
 require_relative "../generators/Lua/ArgumentClassifiers/Classifiers.rb"
+require_relative "../generators/Lua/Plugins/Plugins.rb"
 
 require 'test/unit'
 
@@ -425,7 +426,19 @@ luaSample2 = TestClassIndexed_luaSample2_wrapper
 
 
   def test_properties
-    exposer, lib = exposeLibrary(@props, true)
+    exposer, lib = exposeLibrary(@props)
+
+    clsGen = Lua::ClassGenerator.new(
+      Lua::DEFAULT_PLUGINS,
+      Lua::DEFAULT_CLASSIFIERS,
+      "",
+      "get")
+
+    clsMetaData = exposer.exposedMetaData.findClass("::Properties::PropertyClass")
+    cls2 = clsMetaData.parsed
+    assert_not_nil cls2
+
+    clsGen.generate(lib.library, exposer, TestPathResolver.new, clsMetaData, "var")
 
   end
 end
