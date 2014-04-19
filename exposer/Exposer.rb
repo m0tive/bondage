@@ -135,42 +135,29 @@ private
   def canPartiallyExposeClass(cls)
     hasNoExposeComment = cls.comment.hasCommand("noexpose")
     if (hasNoExposeComment)
-      if(@debugOutput)
-        puts "N\t#{cls.name} (requested not to)"
-      end
-      
-      return false
+      return exposeMsg(:no, cls, "requested not to")
     end
 
     if (@allMetaData.partiallyExposed?(cls.fullyQualifiedName()))
-      if(@debugOutput)
-        puts "N\t#{cls.name} (already exposed)"
-      end
-
-      return false
+      return exposeMsg(:no, cls, "already exposed")
     end
     
     # classes without super classes cannot be pushed at all.
-    if (cls.accessSpecifier != :invalid && cls.accessSpecifier != :public)
-      if(@debugOutput)
-        puts "N\t#{cls.name} (not public)"
-      end
-
-      return false
+    if (!isAccessible(cls))
+      return exposeMsg(:no, cls, "not public")
     end
 
     if (cls.superClasses.empty?)
-      if (@debugOutput)
-        puts "N\t#{cls.name} (no parent classes)"
-      end
-      return false
+      return exposeMsg(:no, cls, "no parent classes")
     end
 
     parent = findParentClass(cls)
-    if(@debugOutput)
-      puts "#{parent != nil ? " Y p" : "N"}\t#{cls.name} (no derivable parent)"
+    if (parent == nil)
+      return exposeMsg(:no, cls, "no derivable parent")
     end
-    return parent != nil, parent
+
+    exposeMsg(:partial, cls, "yes")
+    return true, parent
   end
 
   # find if a class can be exposed
@@ -179,34 +166,24 @@ private
       # exposed classes must opt in.
       hasExposeComment = cls.comment.hasCommand("expose")
       hasNoExposeComment = cls.comment.hasCommand("noexpose")
-      if (hasNoExposeComment)
-        if(@debugOutput)
-          puts "N\t#{cls.name} (requested not to)"
-        end
 
+      if (hasNoExposeComment)
         raise "Exposed and not exposed class #{cls.fullyQualifiedName}" if hasExposeComment
-        return false
+
+        return exposeMsg(:no, cls, "requested not to")
       end
 
       if (!hasExposeComment)
         cls.setExposed(false)
-        if(@debugOutput)
-          puts "N\t#{cls.name} (not requested)"
-        end
-
-        return false
+        return exposeMsg(:no, cls, "not requested")
       end
 
       if(@allMetaData.partiallyExposed?(cls.fullyQualifiedName()))
-        if(@debugOutput)
-          puts "N\t#{cls.name} (already exposed)"
-        end
-        return false
+        return exposeMsg(:no, cls, "already exposed")
       end
 
-      if(@debugOutput)
-        puts "#{hasExposeComment ? " Y" : "N"}\t#{cls.name}"
-      end
+      exposeMsg(:yes, cls, "yes")
+
       verifyAbleToExposeClass(cls)
       cls.setExposed(true)
     end
@@ -225,7 +202,7 @@ private
     willExpose =
       !cls.isTemplated &&
       !cls.name.empty? &&
-      (cls.accessSpecifier == :public || cls.accessSpecifier == :invalid)
+      isAccessible(cls)
 
     raise "Unable to expose requested class #{cls.name}" if not willExpose
     return willExpose
@@ -271,4 +248,21 @@ private
       @allMetaData.addType(cls.fullyQualifiedName, data)
     end
   end
+
+  def isAccessible(cls)
+    return cls.accessSpecifier == :invalid || cls.accessSpecifier == :public
+  end
+
+  def exposeMsg(result, cls, msg)
+    if (@debugOutput)
+      res = result == :yes ? 'Y' :
+            result == :partial ? 'Y p' : 
+            'N'
+
+      puts "#{result ? 'Y' : 'N'}\t#{cls.name} (#{msg})"
+    end
+
+    return result == :no ? false : true
+  end
+
 end
