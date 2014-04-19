@@ -163,32 +163,35 @@ private
   # find if a class can be exposed
   def canExposeClass(cls)
     if(cls.isExposed == nil)
-      # exposed classes must opt in.
-      hasExposeComment = cls.comment.hasCommand("expose")
-      hasNoExposeComment = cls.comment.hasCommand("noexpose")
-
-      if (hasNoExposeComment)
-        raise "Exposed and not exposed class #{cls.fullyQualifiedName}" if hasExposeComment
-
-        return exposeMsg(:no, cls, "requested not to")
-      end
-
-      if (!hasExposeComment)
-        cls.setExposed(false)
-        return exposeMsg(:no, cls, "not requested")
-      end
-
-      if(@allMetaData.partiallyExposed?(cls.fullyQualifiedName()))
-        return exposeMsg(:no, cls, "already exposed")
-      end
-
-      exposeMsg(:yes, cls, "yes")
-
-      verifyAbleToExposeClass(cls)
-      cls.setExposed(true)
+      cls.setExposed(calculateExposed(cls))
     end
 
     return cls.isExposed
+  end
+
+  def calculateExposed(cls)
+    # exposed classes must opt in.
+    hasExposeComment = cls.comment.hasCommand("expose")
+    hasNoExposeComment = cls.comment.hasCommand("noexpose")
+
+    if (hasNoExposeComment)
+      raise "Exposed and not exposed class #{cls.fullyQualifiedName}" if hasExposeComment
+
+      return exposeMsg(:no, cls, "requested not to")
+    end
+
+    if (!hasExposeComment)
+      return exposeMsg(:no, cls, "not requested")
+    end
+
+    if(@allMetaData.partiallyExposed?(cls.fullyQualifiedName()))
+      return exposeMsg(:no, cls, "already exposed")
+    end
+
+    exposeMsg(:yes, cls, "yes")
+
+    verifyAbleToExposeClass(cls)
+    return true
   end
 
   # classes must meet some requirements to be exposed, this method checks [cls meets these.]
