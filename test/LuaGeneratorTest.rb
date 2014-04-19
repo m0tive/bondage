@@ -4,6 +4,7 @@ require_relative "../generators/Lua/LibraryGenerator.rb"
 require_relative "../generators/Lua/Function/Generator.rb"
 require_relative "../generators/Lua/EnumGenerator.rb"
 require_relative "../generators/Lua/ArgumentClassifiers/Classifiers.rb"
+require_relative "../generators/Lua/Plugins/Plugins.rb"
 
 require 'test/unit'
 
@@ -25,12 +26,18 @@ class TestGenerator < Test::Unit::TestCase
     @luaFuncs = Library.new("LuaFunctions", "test/testData/LuaFunctions")
     @luaFuncs.addIncludePath(".")
     @luaFuncs.addFile("LuaFunctions.h")
+
+    @props = Library.new("Properties", "test/testData/Properties")
+    @props.addIncludePath(".")
+    @props.addFile("Properties.h")
     
     setupLibrary(@gen)
     setupLibrary(@luaFuncs)
+    setupLibrary(@props)
   end
 
   def teardown
+    cleanLibrary(@props)
     cleanLibrary(@luaFuncs)
     cleanLibrary(@gen)
   end
@@ -413,6 +420,75 @@ luaSample = TestClassIndexed_luaSample_wrapper,
 -- LuaFunctions::TestClassIndexed TestClassIndexed:luaSample2()
 -- \\brief [index]
 luaSample2 = TestClassIndexed_luaSample2_wrapper
+}}, clsGen.classDefinition
+
+  end
+
+
+  def test_properties
+    exposer, lib = exposeLibrary(@props)
+
+    clsGen = Lua::ClassGenerator.new(
+      Lua::DEFAULT_PLUGINS,
+      Lua::DEFAULT_CLASSIFIERS,
+      "",
+      "get")
+
+    clsMetaData = exposer.exposedMetaData.findClass("::Properties::PropertyClass")
+    cls2 = clsMetaData.parsed
+    assert_not_nil cls2
+
+    clsGen.generate(lib.library, exposer, TestPathResolver.new, clsMetaData, "var")
+
+    assert_equal %{local PropertyClass_getInstance_fwd = get("Properties", "PropertyClass", "getInstance")
+
+local PropertyClass_getPork_fwd = get("Properties", "PropertyClass", "getPork")
+
+local PropertyClass_setPie_fwd = get("Properties", "PropertyClass", "setPie")
+
+local PropertyClass_setPork_fwd = get("Properties", "PropertyClass", "setPork")
+
+-- \\brief 
+--
+local var = class "PropertyClass" {
+
+properties = {
+  "instance",
+  "pie",
+  "pork"
+},
+
+-- \\sa getInstance
+instance = property(PropertyClass_getInstance_fwd, nil),
+-- \\sa setPie
+pie = property(nil, PropertyClass_setPie_fwd),
+-- \\sa getPork setPork
+pork = property(PropertyClass_getPork_fwd, PropertyClass_setPork_fwd),
+
+-- number PropertyClass:bar()
+-- \\brief 
+bar = get("Properties", "PropertyClass", "bar"),
+
+-- nil PropertyClass:foo()
+-- \\brief 
+foo = get("Properties", "PropertyClass", "foo"),
+
+-- Properties::PropertyClass PropertyClass:getInstance()
+-- \\brief Get some other instance
+getInstance = PropertyClass_getInstance_fwd,
+
+-- number PropertyClass:getPork()
+-- \\brief Get the pork
+getPork = PropertyClass_getPork_fwd,
+
+-- nil PropertyClass:setPie(number f)
+-- \\brief Set the pie
+setPie = PropertyClass_setPie_fwd,
+
+-- nil PropertyClass:setPork(number f)
+-- nil PropertyClass:setPork(number d)
+-- \\brief Set the pork
+setPork = PropertyClass_setPork_fwd
 }}, clsGen.classDefinition
 
   end

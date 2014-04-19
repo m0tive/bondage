@@ -1,18 +1,25 @@
 class Command
   def initialize(name, text)
     @name = name
-    @text = text
-    @args = nil
+    @args = [ text ]
   end
 
-  attr_reader :name, :text, :args
+  attr_reader :name, :args
+
+  def setText(text)
+    @args[0] = text
+  end
 
   def setArgs(args)
     @args = args
   end
 
   def hasArg(arg)
-    return args ? args.include?(arg) : false
+    return @args.include?(arg)
+  end
+
+  def text
+    return @args[0]
   end
 end
 

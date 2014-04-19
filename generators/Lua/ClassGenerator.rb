@@ -23,6 +23,8 @@ module Lua
     def generate(library, exposer, luaPathResolver, cls, localVarOut)
       parsed = cls.parsed
 
+      @plugins.each { |n, plugin| plugin.beginClass(library, parsed) }
+
       formattedFunctions, extraData = generateFunctions(library, exposer, parsed)
 
 
@@ -39,11 +41,17 @@ module Lua
         extraDatas = extraData.join("\n\n") + "\n\n"
       end
 
+      pluginInsert = ""
+      pluginInsertData = @plugins.map { |n, plugin| plugin.endClass(@lineStart) }
+      if (pluginInsertData.length != 0)
+        pluginInsert = "\n" + pluginInsertData.join(",\n\n") + ",\n"
+      end
+
       # generate class output.
       @classDefinition = "#{extraDatas}-- \\brief #{brief}
 --
 local #{localVarOut} = class \"#{cls.name}\" {
-#{parentInsert}#{enumInsert}
+#{parentInsert}#{pluginInsert}#{enumInsert}
 #{formattedFunctions.join(",\n\n")}
 }"
     end
@@ -63,15 +71,15 @@ local #{localVarOut} = class \"#{cls.name}\" {
       return "\n#{out},\n"
     end
 
-    def isPluginInterested(library, parsed, fns)
-      interested = false
-      @plugins.each do |plugin|
-        if (plugin.interested?(library, parsed, fns))
-          interested = true
+    def isPluginInterested(name, fns)
+      interested = []
+      @plugins.each do |pluginName, plugin|
+        if (plugin.interestedInFunctions?(name, fns))
+          interested << plugin
         end
       end
 
-      return interested
+      return interested.length > 0 ? interested : nil
     end
 
     def generateFunction(library, parsed, name, fns, formattedFunctions, extraData)
@@ -82,7 +90,7 @@ local #{localVarOut} = class \"#{cls.name}\" {
 
       # Visit the plugins for our class, they may choose
       # to do something with this function later.
-      pluginInterested = isPluginInterested(library, parsed, fns)
+      pluginInterested = isPluginInterested(name, fns)
 
       if (@fnGen.wrapper.length != 0)
         extraData << @fnGen.wrapper
@@ -99,6 +107,8 @@ local #{localVarOut} = class \"#{cls.name}\" {
         end
 
         bind = varName
+        
+        pluginInterested.each{ |p| p.addFunctions(name, fns, bind) }
       end
 
       formattedFunctions << "#{@fnGen.docs}\n#{@lineStart}#{name} = #{bind}"

@@ -1,70 +1,41 @@
 require_relative "../GeneratorHelper.rb"
+require_relative "FunctionWrapperGeneratorHelper.rb"
+require_relative "FunctionWrapperArgumentHelper.rb"
 
 module CPP
 
   class FunctionWrapperGenerator
-    class WrapperArg
-      def initialize(type, source, inoutExtra=nil, accessor="")
-        @source = source
-        @type = type
-        @inoutSource = inoutExtra
-        @inputType = accessor
-      end
-
-      attr_reader :type, :source, :inoutSource
-
-      def callAccessor
-        if (@inputType == :pointer)
-          return "&"
-        end
-        return ""
-      end
-
-      def dataAccessor
-        if (@inputType == :pointer)
-          return "*"
-        end
-        return ""
-      end
-    end
-
-    class OutputArg
-      def initialize(type, name)
-        @type = type
-        @name = name
-      end
-
-      attr_reader :type, :name
-    end
-
-    def generateCall(ls, owner, function, functionIndex, argCount, calls, extraFunctions)
+    def initialize(ls)
       @lineStart = ls
+      @argumentHelper = ArgumentHelper.new
+    end
+
+    def reset(owner, function, functionIndex, argCount)
       @constructor = function.isConstructor
       @static = function.static || @constructor
-      @needsWrapper = argCount != function.arguments.length || @constructor
       @functionWrapper = nil
-      @callArgs = []
       @owner = owner
       @function = function
       @functionIndex = functionIndex
       @name = function.name
-      @inputArguments = []
-      @outputArguments = []
 
+      @argumentHelper.reset(argCount != function.arguments.length || @constructor)
+    end
+
+    def generateCall(owner, function, functionIndex, argCount, calls, extraFunctions)
+      reset(owner, function, functionIndex, argCount)
+      
       if (!@static)
-        @inputArguments << "#{owner.fullyQualifiedName} &"
+        @argumentHelper.inputs << "#{owner.fullyQualifiedName} &"
       end
 
-      if (@constructor)
-        @outputArguments << OutputArg.new(:pointer, "#{owner.fullyQualifiedName} *")
-      elsif (function.returnType)
-        @outputArguments << OutputArg.new(argType(function.returnType), function.returnType.name)
-      end
+      addConstructorOutputArgument(owner)
+      addReturnTypeOutputArgument(function)
 
       # visit arguments of function.
-      ArgumentVisitor.visitFunction(owner, function, functionIndex, argCount, self)
+      ArgumentVisitor.visitFunction(owner, function, functionIndex, argCount, @argumentHelper)
 
-      if (@needsWrapper)
+      if (@argumentHelper.needsWrapper)
         generateWrapper(calls, extraFunctions)
       else
         sig = signature()
@@ -73,129 +44,92 @@ module CPP
     end
 
     def generateWrapper(calls, extraFunctions)
-      ret = returnType()
+      ret, resVar, inArgs, callArgs, initArgs, call = generateCallData()
+
       extraFnName = literalName()
-      resVar = resultName()
+      calls << generateCallForwarder(extraFnName)
 
-      inArgs = @inputArguments.each_with_index.map{ |arg, i| "#{arg} #{inputArgName(i)}" }.join(', ')
-
-      hasReturnType = @constructor || @function.returnType
-
-      initArgs = []
-      if (@outputArguments.length > 1 || (@outputArguments.length > 0 && !hasReturnType))
-        initArgs << "#{ret} #{resVar};"
-      end
-
-      ls = @lineStart
-      olLs = @lineStart + "  "
-
-      call = @callArgs.map do |arg|
-        if (arg.type == :input)
-          next arg.callAccessor + inputArgPassThrough(arg.source)
-        elsif (arg.type == :output)
-          next arg.callAccessor + outputArgReference(arg.source)
-        elsif (arg.type == :inout)
-          input = inputArgPassThrough(arg.inoutSource)
-          output = outputArgReference(arg.source)
-          initArgs << "#{output} = #{arg.dataAccessor} #{input};"
-          next arg.callAccessor + output
-        else
-          raise "invalid arg type #{arg.type}"
-        end
-      end
-
-      args = call.join(', ')
-      call = ""
-      if (@constructor)
-        call = "#{TYPE_NAMESPACE}::WrappedClassHelper< #{@owner.fullyQualifiedName} >::create(#{args})"
-      else
-        accessor = functionAccessor()
-        call = "#{accessor}(#{args})"
-      end
-
-      if (hasReturnType)
-        if (@outputArguments.length > 1)
-          call = "#{outputArgReference(0)} = #{call}"
-        else
-          type = "auto"
-          if (@outputArguments[0].type == :reference)
-            type = "auto &&"
-          end
-          call = "#{type} #{resVar} = #{call}"
-        end
-      end
-
-      returnExtra = ""
-      if (@outputArguments.length > 0)
-        returnExtra = "\n#{olLs}return #{resVar};"
-      end
-
-      sig = signature()
-      callType = @static ? "buildCall" : "buildMemberStandinCall"
-      calls << "#{TYPE_NAMESPACE}::FunctionBuilder::#{callType}< #{sig}, &#{extraFnName} >"
-
-      extra = ""
-      if (initArgs.length != 0)
-        extra = initArgs.join("\n#{olLs}") + "\n\n#{olLs}"
-      end
-
-      extraFunctions << 
-"#{ls}#{ret} #{extraFnName}(#{inArgs})
-#{ls}{
-#{olLs}#{extra}#{call};#{returnExtra}
-#{ls}}"
-    end
-
-    def visitInputOutputArgument(fn, idx, cnt, arg)
-      outIdx, access = addOutputArgumentHelper(arg)
-
-      inIdx = @inputArguments.length
-      @inputArguments << arg.type.name
-      @callArgs << WrapperArg.new(:inout, outIdx, inIdx, access)
-      @needsWrapper = true
-    end
-    
-    def visitInputArgument(fn, idx, cnt, arg)
-      inIdx = @inputArguments.length
-      @inputArguments << arg.type.name
-      @callArgs << WrapperArg.new(:input, inIdx)
-    end
-
-    def visitOutputArgument(fn, idx, cnt, arg)
-      outIdx, access = addOutputArgumentHelper(arg)
-
-      @callArgs << WrapperArg.new(:output, outIdx, nil, access)
-      @needsWrapper = true
+      extraFunctions << Helpers::generateWrapperText(
+        @lineStart,
+        extraFnName,
+        inArgs,
+        initArgs,
+        call,
+        ret,
+        @argumentHelper.outputs.length > 0 ? resVar : nil)
     end
 
   private
-    def addOutputArgumentHelper(arg)
-      outIdx = @outputArguments.length
-      name = arg.type.name
-      accessor = argType(arg.type)
+    def generateCallData()
+      ret = returnType()
+      resVar = @argumentHelper.resultName()
 
-      if (arg.type.isPointer)
-        name = arg.type.pointeeType().name
-      elsif (arg.type.isLValueReference)
-        name = arg.type.pointeeType().name
-      elsif (arg.type.isRValueReference)
-        raise "R value reference as an output? this needs some thought."
-      end
-      @outputArguments << OutputArg.new(accessor, name)
+      # Input args contains the arguments to the function
+      inArgs = @argumentHelper.gatherInputArguments().join(', ')
 
-      return outIdx, accessor
+      # Gather the arguments to pass to the function, and add any local copies required to the initArgs.
+      # Init args is a list of local copies of variables to init in the function
+      callArgs, initArgs = gatherArgumentsAndInitialisedArguments(ret, resVar)
+      callArgs = callArgs.join(', ')
+
+      call, returnVal = constructCall(
+        callArgs,
+        resVar,
+        @argumentHelper.outputs)
+
+      return ret, resVar, inArgs, callArgs, initArgs, call
     end
 
-    def argType(arg)
-      type = :value
+    def addConstructorOutputArgument(owner)
+      if (@constructor)
+        @argumentHelper.outputs << Helpers::OutputArg.new(:pointer, "#{owner.fullyQualifiedName} *")
+      end
+    end
 
-      if (arg.isPointer)
-        type = :pointer
-      elsif (arg.isLValueReference)
-        type = :reference
+    def addReturnTypeOutputArgument(function)
+      if (function.returnType)
+        @argumentHelper.outputs << Helpers::OutputArg.new(Helpers::argType(function.returnType), function.returnType.name)
+      end
+    end
+
+    def gatherArgumentsAndInitialisedArguments(ret, resVar)
+      initArgs = []
+
+      # If we are returning more than one argument (or the one argument
+      # is an output, not a return - we need to store it in a local)
+      if (@argumentHelper.outputs.length > 1 || 
+        (@argumentHelper.outputs.length > 0 && !hasReturnType()))
+        initArgs << "#{ret} #{resVar};"
       end
 
-      return type
+      call = @argumentHelper.callArguments.map do |arg|
+        generateArgAccessor(arg, initArgs)
+      end
+
+      return call, initArgs
+    end
+
+    def generateArgAccessor(arg, initArgs)
+      if (arg.type == :input)
+        return arg.callAccessor + @argumentHelper.inputArgPassThrough(arg.source)
+
+      elsif (arg.type == :output)
+        return arg.callAccessor + @argumentHelper.outputArgReference(arg.source)
+        
+      elsif (arg.type == :inout)
+        input = @argumentHelper.inputArgPassThrough(arg.inoutSource)
+        output = @argumentHelper.outputArgReference(arg.source)
+        initArgs << "#{output} = #{arg.dataAccessor} #{input};"
+        return arg.callAccessor + output
+      end
+        
+      raise "invalid arg type #{arg.type}"
+    end
+
+    def generateCallForwarder(name)
+      sig = signature()
+      callType = @static ? "buildCall" : "buildMemberStandinCall"
+      return "#{TYPE_NAMESPACE}::FunctionBuilder::#{callType}< #{sig}, &#{name} >"
     end
 
     def signature()
@@ -203,8 +137,8 @@ module CPP
 
       ptrType = "(*)"
       types = nil
-      if (@needsWrapper)
-        types = @inputArguments.join(", ")
+      if (@argumentHelper.needsWrapper)
+        types = @argumentHelper.inputs.join(", ")
       else
         types = @function.arguments.map{ |arg| arg.type.name }.join(", ")
         if (!@static)
@@ -215,46 +149,52 @@ module CPP
       return "#{result}#{ptrType}(#{types})"
     end
 
-    def inputArgName(i)
-      return "inputArg#{i}"
-    end
+    def constructCall(args, resVar, returns)
+      # function accessor finds a way to call this function
+      # depending on constructor, static or member calls.
+      call = "#{functionAccessor()}(#{args})"
 
-    def inputArgPassThrough(i)
-      type = @inputArguments[i]
-      return "std::forward<#{type}>(#{inputArgName(i)})"
-    end
-
-    def outputArgReference(i)
-      if (@outputArguments.length > 1)
-        return "std::get<#{i}>(#{resultName()})"
+      # [hasReturnType] is only true for functions returning something
+      # not for functions which have outputs.
+      if (hasReturnType())
+        if (returns.length > 1)
+          call = "#{@argumentHelper.outputArgReference(0)} = #{call}"
+        else
+          type = "auto"
+          if (returns[0].type == :reference)
+            type = "auto &&"
+          end
+          call = "#{type} #{resVar} = #{call}"
+        end
       end
 
-      return resultName()
-    end
-
-    def resultName
-      return "result"
+      return call
     end
 
     def functionAccessor
       if (@constructor)
-        return "#{@owner.fullyQualifiedName}"
+        return "#{TYPE_NAMESPACE}::WrappedClassHelper< #{@owner.fullyQualifiedName} >::create"
       end
 
       if (!@function.static)
-        return "#{inputArgName(0)}.#{@function.name}"
+        return "#{@argumentHelper.inputArgName(0)}.#{@function.name}"
       end
 
       return @function.fullyQualifiedName
     end
+
+    def hasReturnType()
+      return @constructor || @function.returnType
+    end
+
     def returnType
-      if (@outputArguments.length == 0)
+      if (@argumentHelper.outputs.length == 0)
         return "void"
-      elsif (@outputArguments.length == 1)
-        return @outputArguments[0].name
+      elsif (@argumentHelper.outputs.length == 1)
+        return @argumentHelper.outputs[0].name
       end
 
-      args = @outputArguments.map{ |a| a.name }
+      args = @argumentHelper.outputs.map{ |a| a.name }
 
       return "std::tuple< #{args.join(', ')} >"
     end

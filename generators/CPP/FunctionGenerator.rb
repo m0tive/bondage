@@ -7,7 +7,7 @@ module CPP
       @lineStart = lineStart
       @extraFunctionLineStart = extraFnLineStart
       reset()
-      @wrapperGenerator = FunctionWrapperGenerator.new
+      @wrapperGenerator = FunctionWrapperGenerator.new(@extraFunctionLineStart)
     end
 
     attr_reader :bind, :extraFunctions
@@ -123,7 +123,6 @@ module CPP
       end
 
       @wrapperGenerator.generateCall(
-        @extraFunctionLineStart,
         owner,
         function,
         functionIndex,
