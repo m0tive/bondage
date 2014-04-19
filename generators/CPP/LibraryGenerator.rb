@@ -41,7 +41,7 @@ module CPP
       library = visitor.library
       rootNs = visitor.getExposedNamespace()
       setLibrary(library)
-      
+
 
       files = Set.new
       derivedClasses = Set.new
@@ -53,18 +53,40 @@ module CPP
         derivedClasses,
         libraryName)
 
+      generateFiles(
+        libraryName,
+        library,
+        exposer,
+        rootNs,
+        files,
+        classHeaders,
+        classSources,
+        clsGen,
+        derivedClasses)
+    end
+
+  private
+    def generateFiles(
+        libraryName,
+        library,
+        exposer,
+        rootNs,
+        files,
+        clsHead,
+        clsSrc,
+        clsGen,
+        derivedClasses)
       @header = filePreamble("//") + "\n\n" +
         generateLibraryHeader(libraryName, library, exposer, rootNs, files) +
-        "\n\n" + classHeaders.join("\n") + "\n"
+        "\n\n" + clsHead.join("\n") + "\n"
 
       @source = filePreamble("//") + "\n" +
         includes(library) + 
         generateLibrarySource(libraryName, library, exposer, rootNs, files) +
-        "\n\n\n" + classSources.join("\n\n\n") +
+        "\n\n\n" + clsSrc.join("\n\n\n") +
         "\n\n" + generateDerivedCasts(clsGen, derivedClasses)
     end
 
-  private
     def generateInclude(libraryfile)
       path = Pathname.new(libraryfile).relative_path_from(@libraryPath).cleanpath
       return "#include \"#{path}\""
