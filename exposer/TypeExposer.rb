@@ -22,22 +22,29 @@ class TypeExposer
     # Pointer and reference types can be exposed if their pointed type can be exposed,
     # and they arent pointers to pointers.
     if(type.isPointer() || type.isLValueReference() || type.isRValueReference())
-      pointed = type.pointeeType()
-      if(pointed.isPointer())
-        return false
-      end
-
-      if(pointed.isVoid() ||
-         pointed.isBoolean() ||
-         pointed.isCharacter() ||
-         pointed.isInteger() ||
-         pointed.isFloatingPoint())
-        return false
-      end
-
-      return canExposeType(pointed, partialOk)
+      return canExposePointerType(type.pointeeType(), partialOk)
     end
 
+    return canExposeComplexType(type, partialOk)
+  end
+
+  def canExposePointerType(pointed, partialOk)
+    if(pointed.isPointer())
+      return false
+    end
+
+    if(pointed.isVoid() ||
+       pointed.isBoolean() ||
+       pointed.isCharacter() ||
+       pointed.isInteger() ||
+       pointed.isFloatingPoint())
+      return false
+    end
+
+    return canExposeType(pointed, partialOk)
+  end
+
+  def canExposeComplexType(type, partialOk)
     # otherwise, find the fully qualified type name, and find out if its exposed.
     fullName = type.fullyQualifiedName
 
