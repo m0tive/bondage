@@ -33,36 +33,45 @@ class CommentExtractor
   def extractExtraData(comment, text, location)
     EXTRA_COMMAND_TYPES.each do |cmd, allowedOpts|
       if (comment.hasCommand(cmd) && allowedOpts)
-        commandRegex = @regExpCache[cmd]
-        if (!commandRegex)
-          commandRegex = /\\#{cmd} (.*)$/
-          @regExpCache[cmd] = commandRegex
-        end
 
-        match = commandRegex.match(text)
-        if (!match)
+        options = extractExtraCommandWithOptions(text, cmd, allowedOpts)
+        if (!options)
           next
         end
 
-        if (@debug)
-          puts "#{debugPadd}SPECIAL\t#{cmd}"
-        end
-
-        options = match.captures[0].split
-
-        if (allowedOpts)
-          options.each do |flag|
-            if (!allowedOpts.include?(flag))
-              comment_error(location, "Invalid flag to command #{cmd} - #{flag}")
-            end
-          end
-        end
-
         command = comment.command(cmd)
-
         command.setArgs(options)
       end
     end
+  end
+
+  def extractExtraCommandWithOptions(text, cmd, allowedOpts)
+    commandRegex = @regExpCache[cmd]
+    if (!commandRegex)
+      commandRegex = /\\#{cmd} (.*)$/
+      @regExpCache[cmd] = commandRegex
+    end
+
+    match = commandRegex.match(text)
+    if (!match)
+      return nil
+    end
+
+    if (@debug)
+      puts "#{debugPadd}SPECIAL\t#{cmd}"
+    end
+
+    options = match.captures[0].split
+
+    if (allowedOpts)
+      options.each do |flag|
+        if (!allowedOpts.include?(flag))
+          comment_error(location, "Invalid flag to command #{cmd} - #{flag}")
+        end
+      end
+    end
+
+    return options
   end
 
   def extractComment(toFill, comment, location)
@@ -86,6 +95,14 @@ class CommentExtractor
       return
     end
 
+    extractCommandData(toFill, comment, location)
+
+    extractChildComments(toFill, comment, location)
+
+    return comment
+  end
+
+  def extractCommandData(toFill, comment, location)
     if (comment.kind_of?(FFI::Clang::TextComment) ||
         comment.kind_of?(FFI::Clang::ParagraphComment))
       extractTextComment(toFill, comment, location)
@@ -102,7 +119,9 @@ class CommentExtractor
     elsif (comment.kind_of?(FFI::Clang::ParamCommandComment))
       extractParamCommandComment(toFill, comment, location)
     end
+  end
 
+  def extractChildComments(toFill, comment, location)
     @level += 1
     index = 1
     comment.each do |child|
@@ -113,8 +132,6 @@ class CommentExtractor
       index += 1
     end
     @level -= 1
-
-    return comment
   end
 
   # Extract a text comment into [toFill]
