@@ -49,6 +49,8 @@ class Parser
     @translator = @index.parse_translation_unit(nil, args, [ unsaved ], [ :detailed_preprocessing_record, :include_brief_comments_in_code_completion, :skip_function_bodies ])
   end
 
+  attr_reader :debug
+
   def parse(visitor)
     cursor = @translator.cursor
 
@@ -112,7 +114,7 @@ private
         next :continue
       end
 
-      enterChildren = newState.enter(states, data, cursor)
+      enterChildren = newState.enter(self, states, data, cursor)
 
       if(enterChildren)
         @depth += 1
@@ -120,7 +122,7 @@ private
         @depth -= 1
       end
 
-      newState.exit(states, data)
+      newState.exit(self, states, data)
 
       next :continue
     end

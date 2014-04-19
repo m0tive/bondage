@@ -25,12 +25,18 @@ class TestGenerator < Test::Unit::TestCase
     @luaFuncs = Library.new("LuaFunctions", "test/testData/LuaFunctions")
     @luaFuncs.addIncludePath(".")
     @luaFuncs.addFile("LuaFunctions.h")
+
+    @props = Library.new("Properties", "test/testData/Properties")
+    @props.addIncludePath(".")
+    @props.addFile("Properties.h")
     
     setupLibrary(@gen)
     setupLibrary(@luaFuncs)
+    setupLibrary(@props)
   end
 
   def teardown
+    cleanLibrary(@props)
     cleanLibrary(@luaFuncs)
     cleanLibrary(@gen)
   end
@@ -414,6 +420,12 @@ luaSample = TestClassIndexed_luaSample_wrapper,
 -- \\brief [index]
 luaSample2 = TestClassIndexed_luaSample2_wrapper
 }}, clsGen.classDefinition
+
+  end
+
+
+  def test_properties
+    exposer, lib = exposeLibrary(@props, true)
 
   end
 end

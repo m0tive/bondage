@@ -354,7 +354,8 @@ end
 # and is the owner of a single parse operation
 class ExposeAstVisitor < Visitor
   # Create a visitor from a library
-  def initialize(library)
+  def initialize(library, debug=false)
+    @debugging = debug
     @library = library
     @rootItem = NamespaceItem.new(self, { :name => "" })
     @classes = []

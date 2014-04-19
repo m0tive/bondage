@@ -8,10 +8,10 @@ class ParserStateItem
     @onEnter = enter
   end
 
-  def enter(states, data, cursor)
+  def enter(parser, states, data, cursor)
     states << @type
 
-    newInfo = buildData(cursor)
+    newInfo = buildData(parser, cursor)
 
     newData = nil
     if (@onEnter && data[-1])
@@ -23,16 +23,20 @@ class ParserStateItem
     return newData != nil
   end
 
-  def exit(states, data)
+  def exit(parser, states, data)
     states.pop()
     data.pop()
   end
 
 private
-  def buildData(cursor)
+  def buildData(parser, cursor)
     comment = EMPTY_COMMENT
     if(cursor.comment_range.start.file != nil)
-      comment = CommentExtractor.extract(cursor.comment, cursor.raw_comment_text, cursor.comment_range)
+      comment = CommentExtractor.extract(
+        cursor.comment,
+        cursor.raw_comment_text,
+        cursor.comment_range,
+        parser.debug)
     end
 
     type = nil
