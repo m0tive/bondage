@@ -1,85 +1,8 @@
 require_relative "../GeneratorHelper.rb"
 require_relative "FunctionWrapperGeneratorHelper.rb"
+require_relative "FunctionWrapperArgumentHelper.rb"
 
 module CPP
-
-  class ArgumentHelper
-    def reset(forceWrapper)
-      @inputs = []
-      @outputs = []
-      @callArguments = []
-      @needsWrapper = forceWrapper
-    end
-
-    attr_accessor :inputs, :outputs, :callArguments, :needsWrapper
-
-    def visitInputOutputArgument(fn, idx, cnt, arg)
-      outIdx, access = addOutputArgumentHelper(arg)
-
-      inIdx = @inputs.length
-      @inputs << arg.type.name
-      @callArguments << Helpers::WrapperArg.new(:inout, outIdx, inIdx, access)
-      @needsWrapper = true
-    end
-    
-    def visitInputArgument(fn, idx, cnt, arg)
-      inIdx = @inputs.length
-      @inputs << arg.type.name
-      @callArguments << Helpers::WrapperArg.new(:input, inIdx)
-    end
-
-    def visitOutputArgument(fn, idx, cnt, arg)
-      outIdx, access = addOutputArgumentHelper(arg)
-
-      @callArguments << Helpers::WrapperArg.new(:output, outIdx, nil, access)
-      @needsWrapper = true
-    end
-
-    def inputArgPassThrough(i)
-      type = @inputs[i]
-      return "std::forward<#{type}>(#{inputArgName(i)})"
-    end
-
-    def inputArgName(i)
-      return "inputArg#{i}"
-    end
-
-    def resultName
-      return "result"
-    end
-
-    def gatherInputArguments()
-      return @inputs.each_with_index.map do |arg, i|
-        "#{arg} #{inputArgName(i)}"
-      end
-    end
-
-    def outputArgReference(i)
-      if (@outputs.length > 1)
-        return "std::get<#{i}>(#{resultName()})"
-      end
-
-      return resultName()
-    end
-
-  private
-    def addOutputArgumentHelper(arg)
-      outIdx = @outputs.length
-      name = arg.type.name
-      accessor = Helpers::argType(arg.type)
-
-      if (arg.type.isPointer)
-        name = arg.type.pointeeType().name
-      elsif (arg.type.isLValueReference)
-        name = arg.type.pointeeType().name
-      elsif (arg.type.isRValueReference)
-        raise "R value reference as an output? this needs some thought."
-      end
-      @outputs << Helpers::OutputArg.new(accessor, name)
-
-      return outIdx, accessor
-    end
-  end
 
   class FunctionWrapperGenerator
     def initialize(ls)
@@ -95,7 +18,7 @@ module CPP
       @function = function
       @functionIndex = functionIndex
       @name = function.name
-      
+
       @argumentHelper.reset(argCount != function.arguments.length || @constructor)
     end
 
@@ -121,24 +44,7 @@ module CPP
     end
 
     def generateWrapper(calls, extraFunctions)
-      ret = returnType()
-      resVar = @argumentHelper.resultName()
-
-      hasReturnType = @constructor || @function.returnType
-
-      # Input args contains the arguments to the function
-      inArgs = @argumentHelper.gatherInputArguments().join(', ')
-
-      # Gather the arguments to pass to the function, and add any local copies required to the initArgs.
-      # Init args is a list of local copies of variables to init in the function
-      args, initArgs = gatherArgumentsAndInitialisedArguments(hasReturnType, ret, resVar)
-      args = args.join(', ')
-
-      call, returnVal = constructCall(
-        args,
-        hasReturnType,
-        resVar,
-        @argumentHelper.outputs)
+      ret, resVar, inArgs, callArgs, initArgs, call = generateCallData()
 
       extraFnName = literalName()
       calls << generateCallForwarder(extraFnName)
@@ -154,6 +60,25 @@ module CPP
     end
 
   private
+    def generateCallData()
+      ret = returnType()
+      resVar = @argumentHelper.resultName()
+
+      # Input args contains the arguments to the function
+      inArgs = @argumentHelper.gatherInputArguments().join(', ')
+
+      # Gather the arguments to pass to the function, and add any local copies required to the initArgs.
+      # Init args is a list of local copies of variables to init in the function
+      callArgs, initArgs = gatherArgumentsAndInitialisedArguments(ret, resVar)
+      callArgs = callArgs.join(', ')
+
+      call, returnVal = constructCall(
+        callArgs,
+        resVar,
+        @argumentHelper.outputs)
+
+      return ret, resVar, inArgs, callArgs, initArgs, call
+    end
 
     def addConstructorOutputArgument(owner)
       if (@constructor)
@@ -167,32 +92,38 @@ module CPP
       end
     end
 
-    def gatherArgumentsAndInitialisedArguments(hasReturnType, ret, resVar)
+    def gatherArgumentsAndInitialisedArguments(ret, resVar)
       initArgs = []
 
       # If we are returning more than one argument (or the one argument
       # is an output, not a return - we need to store it in a local)
       if (@argumentHelper.outputs.length > 1 || 
-        (@argumentHelper.outputs.length > 0 && !hasReturnType))
+        (@argumentHelper.outputs.length > 0 && !hasReturnType()))
         initArgs << "#{ret} #{resVar};"
       end
 
       call = @argumentHelper.callArguments.map do |arg|
-        if (arg.type == :input)
-          next arg.callAccessor + @argumentHelper.inputArgPassThrough(arg.source)
-        elsif (arg.type == :output)
-          next arg.callAccessor + @argumentHelper.outputArgReference(arg.source)
-        elsif (arg.type == :inout)
-          input = @argumentHelper.inputArgPassThrough(arg.inoutSource)
-          output = @argumentHelper.outputArgReference(arg.source)
-          initArgs << "#{output} = #{arg.dataAccessor} #{input};"
-          next arg.callAccessor + output
-        else
-          raise "invalid arg type #{arg.type}"
-        end
+        generateArgAccessor(arg, initArgs)
       end
 
       return call, initArgs
+    end
+
+    def generateArgAccessor(arg, initArgs)
+      if (arg.type == :input)
+        return arg.callAccessor + @argumentHelper.inputArgPassThrough(arg.source)
+
+      elsif (arg.type == :output)
+        return arg.callAccessor + @argumentHelper.outputArgReference(arg.source)
+        
+      elsif (arg.type == :inout)
+        input = @argumentHelper.inputArgPassThrough(arg.inoutSource)
+        output = @argumentHelper.outputArgReference(arg.source)
+        initArgs << "#{output} = #{arg.dataAccessor} #{input};"
+        return arg.callAccessor + output
+      end
+        
+      raise "invalid arg type #{arg.type}"
     end
 
     def generateCallForwarder(name)
@@ -218,14 +149,14 @@ module CPP
       return "#{result}#{ptrType}(#{types})"
     end
 
-    def constructCall(args, hasReturnType, resVar, returns)
+    def constructCall(args, resVar, returns)
       # function accessor finds a way to call this function
       # depending on constructor, static or member calls.
       call = "#{functionAccessor()}(#{args})"
 
       # [hasReturnType] is only true for functions returning something
       # not for functions which have outputs.
-      if (hasReturnType)
+      if (hasReturnType())
         if (returns.length > 1)
           call = "#{@argumentHelper.outputArgReference(0)} = #{call}"
         else
@@ -250,6 +181,10 @@ module CPP
       end
 
       return @function.fullyQualifiedName
+    end
+
+    def hasReturnType()
+      return @constructor || @function.returnType
     end
 
     def returnType

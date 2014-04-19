@@ -48,6 +48,10 @@ module Lua
 
       raise "Invalid property #{@library.name}::#{@cls.name}::#{name}" unless (name && (getter or setter))
 
+      addProperty(propName, name, bind, getter, setter)
+    end
+
+    def addProperty(propName, name, bind, getter, setter)
       source = @properties[propName]
       if (!source)
         source = []
