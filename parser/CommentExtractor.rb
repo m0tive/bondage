@@ -7,8 +7,7 @@ EXTRA_COMMAND_TYPES = {
     "managed",
     "unmanaged"
   ]),
-  "property" => Set.new(
-  ),
+  "property" => nil,
 }
 
 class CommentExtractor
@@ -26,14 +25,14 @@ class CommentExtractor
 
     extractor.extractComment(toFill, comment, location)
 
-    extractor.extractExtraData(toFill, rawText)
+    extractor.extractExtraData(toFill, rawText, location)
 
     return toFill
   end
 
-  def extractExtraData(comment, text)
+  def extractExtraData(comment, text, location)
     EXTRA_COMMAND_TYPES.each do |cmd, allowedOpts|
-      if (comment.hasCommand(cmd) && allowedOpts.length)
+      if (comment.hasCommand(cmd) && allowedOpts)
         commandRegex = @regExpCache[cmd]
         if (!commandRegex)
           commandRegex = /\\#{cmd} (.*)$/
@@ -51,9 +50,11 @@ class CommentExtractor
 
         options = match.captures[0].split
 
-        options.each do |flag|
-          if (!allowedOpts.include?(flag))
-            comment_error(location, "Invalid flag to command #{@commandPendingExtra.name} - #{flag}")
+        if (allowedOpts)
+          options.each do |flag|
+            if (!allowedOpts.include?(flag))
+              comment_error(location, "Invalid flag to command #{cmd} - #{flag}")
+            end
           end
         end
 
@@ -88,6 +89,9 @@ class CommentExtractor
     if (comment.kind_of?(FFI::Clang::TextComment) ||
         comment.kind_of?(FFI::Clang::ParagraphComment))
       extractTextComment(toFill, comment, location)
+
+    elsif (comment.kind_of?(FFI::Clang::VerbatimLine))
+      extractVerbatimLineComment(toFill, comment, location)
 
     elsif (comment.kind_of?(FFI::Clang::BlockCommandComment))
       extractBlockCommandComment(toFill, comment, location)
@@ -138,6 +142,15 @@ class CommentExtractor
       puts "#{debugPadd(1)}INLINE\t#{comment.name.strip}"
     end
     command = toFill.addCommand(comment.name, "")
+  end
+
+  def extractVerbatimLineComment(toFill, comment, location)
+
+    if (@debug)
+      puts "#{debugPadd(1)}VERBATIM\t#{comment.name} - #{comment.text.strip}"
+    end
+
+    command = toFill.addCommand(comment.name, comment.text)
   end
 
   # Extract a param command comment like /param
