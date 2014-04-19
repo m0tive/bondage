@@ -440,6 +440,57 @@ luaSample2 = TestClassIndexed_luaSample2_wrapper
 
     clsGen.generate(lib.library, exposer, TestPathResolver.new, clsMetaData, "var")
 
+    assert_equal %{local PropertyClass_getInstance_fwd = get("Properties", "PropertyClass", "getInstance")
+
+local PropertyClass_getPork_fwd = get("Properties", "PropertyClass", "getPork")
+
+local PropertyClass_setPie_fwd = get("Properties", "PropertyClass", "setPie")
+
+local PropertyClass_setPork_fwd = get("Properties", "PropertyClass", "setPork")
+
+-- \\brief 
+--
+local var = class "PropertyClass" {
+
+properties = {
+  "instance",
+  "pie",
+  "pork"
+},
+
+-- \\sa getInstance
+instance = property(PropertyClass_getInstance_fwd, nil),
+-- \\sa setPie
+pie = property(nil, PropertyClass_setPie_fwd),
+-- \\sa getPork setPork
+pork = property(PropertyClass_getPork_fwd, PropertyClass_setPork_fwd),
+
+-- number PropertyClass:bar()
+-- \\brief 
+bar = get("Properties", "PropertyClass", "bar"),
+
+-- nil PropertyClass:foo()
+-- \\brief 
+foo = get("Properties", "PropertyClass", "foo"),
+
+-- Properties::PropertyClass PropertyClass:getInstance()
+-- \\brief Get some other instance
+getInstance = PropertyClass_getInstance_fwd,
+
+-- number PropertyClass:getPork()
+-- \\brief Get the pork
+getPork = PropertyClass_getPork_fwd,
+
+-- nil PropertyClass:setPie(number f)
+-- \\brief Set the pie
+setPie = PropertyClass_setPie_fwd,
+
+-- nil PropertyClass:setPork(number f)
+-- nil PropertyClass:setPork(number d)
+-- \\brief Set the pork
+setPork = PropertyClass_setPork_fwd
+}}, clsGen.classDefinition
+
   end
 end
 

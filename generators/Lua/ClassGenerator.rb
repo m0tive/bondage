@@ -41,11 +41,17 @@ module Lua
         extraDatas = extraData.join("\n\n") + "\n\n"
       end
 
+      pluginInsert = ""
+      pluginInsertData = @plugins.map { |n, plugin| plugin.endClass(@lineStart) }
+      if (pluginInsertData.length != 0)
+        pluginInsert = "\n" + pluginInsertData.join(",\n\n") + ",\n"
+      end
+
       # generate class output.
       @classDefinition = "#{extraDatas}-- \\brief #{brief}
 --
 local #{localVarOut} = class \"#{cls.name}\" {
-#{parentInsert}#{enumInsert}
+#{parentInsert}#{pluginInsert}#{enumInsert}
 #{formattedFunctions.join(",\n\n")}
 }"
     end
@@ -66,14 +72,14 @@ local #{localVarOut} = class \"#{cls.name}\" {
     end
 
     def isPluginInterested(name, fns)
-      interested = false
+      interested = []
       @plugins.each do |pluginName, plugin|
         if (plugin.interestedInFunctions?(name, fns))
-          interested = true
+          interested << plugin
         end
       end
 
-      return interested
+      return interested.length > 0 ? interested : nil
     end
 
     def generateFunction(library, parsed, name, fns, formattedFunctions, extraData)
@@ -101,6 +107,8 @@ local #{localVarOut} = class \"#{cls.name}\" {
         end
 
         bind = varName
+        
+        pluginInterested.each{ |p| p.addFunctions(name, fns, bind) }
       end
 
       formattedFunctions << "#{@fnGen.docs}\n#{@lineStart}#{name} = #{bind}"
