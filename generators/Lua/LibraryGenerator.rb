@@ -54,31 +54,17 @@ module Lua
     end
 
     def generateLibrary(exposer, library, classes, rootNs)
-      functions = exposer.findExposedFunctions(rootNs)
-
       formattedFunctions = []
 
       ls = "#{@lineStart}"
 
       data = @classes.map{ |cls, data| "#{ls}#{cls.name} = require(\"#{@pathResolver.pathFor(cls)}\")" }
 
-      enumGen = EnumGenerator.new(@lineStart)
+      appendEnums(library, rootNs, data)
 
-      enumGen.generate(rootNs)
-      enumGen.enums.each do |enum|
-        data << "#{enum}"
-      end
+      appendFunctions(library, exposer, rootNs, data)
 
       extraData = []
-
-      # for each function, work out how best to call it.
-      fnGen = Function::Generator.new(@classifiers, @lineStart, @getter)
-      functions.sort.each do |name, fns|
-        fnGen.generate(library, rootNs, fns)
-
-        data << "#{fnGen.docs}\n#{@lineStart}#{fnGen.name} = #{fnGen.bind}"
-      end
-
       extraDatas = ""
       if (extraData.length != 0)
         extraDatas = extraData.join("\n\n") + "\n\n"
@@ -87,6 +73,27 @@ module Lua
       fileData = data.join(",\n\n")
 
       @libraryDef = "#{extraDatas}local #{@libraryName} = {\n#{fileData}\n}\n\nreturn #{@libraryName}"
+    end
+
+    def appendEnums(library, rootNs, data)
+      enumGen = EnumGenerator.new(@lineStart)
+
+      enumGen.generate(rootNs)
+      enumGen.enums.each do |enum|
+        data << "#{enum}"
+      end
+    end
+
+    def appendFunctions(library, exposer, rootNs, data)
+      functions = exposer.findExposedFunctions(rootNs)
+
+      # for each function, work out how best to call it.
+      fnGen = Function::Generator.new(@classifiers, @lineStart, @getter)
+      functions.sort.each do |name, fns|
+        fnGen.generate(library, rootNs, fns)
+
+        data << "#{fnGen.docs}\n#{@lineStart}#{fnGen.name} = #{fnGen.bind}"
+      end
     end
 
   end

@@ -51,22 +51,39 @@ module CPP
 
       @source += "\n" + sourcefiles.map{ |f| "#include \"#{f}\"" }.join("\n") + "\n\n\n"
 
-      clsGen = ClassGenerator.new
 
       files = Set.new
       derivedClasses = Set.new
+      libraryName = "g_bondage_library_#{library.name}"
 
-      libraryName = "g_bondage_library_#{library.name}";
+      classHeaders, classSources, clsGen = generateClasses(
+        exposer,
+        files,
+        derivedClasses,
+        libraryName)
 
-      classHeader = ""
-      classSource = ""
+      generateLibraryHeader(libraryName, library, exposer, rootNs, files)
+      generateLibrarySource(libraryName, library, exposer, rootNs, files)
+
+      @header += classHeaders.join("\n") + "\n"
+      @source += "\n\n\n" + classSources.join("\n\n\n")
+
+      @source += "\n\n" + generateDerivedCasts(clsGen, derivedClasses)
+    end
+
+  private
+    def generateClasses(exposer, files, derivedClasses, libraryName)
+      clsGen = ClassGenerator.new
+
+      classHeaders = []
+      classSources = []
 
       exposer.exposedMetaData.types.each do |path, cls|
         if (cls.type == :class && cls.fullyExposed)
           clsGen.reset()
           clsGen.generate(exposer, cls, libraryName)
-          classHeader += "#{clsGen.interface}\n"
-          classSource += "\n\n\n#{clsGen.implementation}"
+          classHeaders << clsGen.interface
+          classSources << clsGen.implementation
 
           files << cls.parsed.fileLocation
 
@@ -78,16 +95,10 @@ module CPP
         end
       end
 
-      generateLibrary(libraryName, library, exposer, rootNs, files)
-
-      @header += classHeader
-      @source += classSource
-
-      @source += "\n\n" + generateDerivedCasts(clsGen, derivedClasses)
+      return classHeaders, classSources, clsGen
     end
 
-  private
-    def generateLibrary(libraryName, library, exposer, rootNs, files)
+    def generateLibraryHeader(libraryName, library, exposer, rootNs, files)
       raise "Invalid root namespace for #{library.name}." unless rootNs
 
       @header += files.map{ |path| generateInclude(path) }.join("\n")
@@ -97,7 +108,9 @@ module CPP
 {
 #{library.exportMacro} const bondage::Library &bindings();
 }\n\n"
+    end
 
+    def generateLibrarySource(libraryName, library, exposer, rootNs, files)
       fnGen = CPP::FunctionGenerator.new("", "  ")
       methods, extraMethods = fnGen.gatherFunctions(rootNs, exposer)
 
