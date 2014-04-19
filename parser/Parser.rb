@@ -79,6 +79,10 @@ private
     end
 
     toFind = Pathname.new(file).cleanpath.to_s
+    return isLibraryFile(toFind)
+  end
+
+  def isLibraryFile(toFind)
     if(@library.files.any?{ |path|
         norm = Pathname.new(path).cleanpath.to_s
         next toFind[-norm.length, toFind.length] == norm
@@ -114,21 +118,26 @@ private
         next :continue
       end
 
-      enterChildren = newState.enter(self, states, data, cursor)
-
-      if(enterChildren)
-        @depth += 1
-        visitChildren(cursor, visitor, states, data)
-        @depth -= 1
-      end
-
-      newState.exit(self, states, data)
+      visitChild(newState, cursor, visitor, states, data)
 
       next :continue
     end
 
-    def formatParseError(cursor, desc)
-      return "\n\n" + sourceErrorDesc(cursor, desc)
+  end
+
+  def visitChild(newState, cursor, visitor, states, data)
+    enterChildren = newState.enter(self, states, data, cursor)
+
+    if(enterChildren)
+      @depth += 1
+      visitChildren(cursor, visitor, states, data)
+      @depth -= 1
     end
+
+    newState.exit(self, states, data)
+  end
+
+  def formatParseError(cursor, desc)
+    return "\n\n" + sourceErrorDesc(cursor, desc)
   end
 end

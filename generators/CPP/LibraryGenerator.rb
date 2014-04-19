@@ -42,68 +42,138 @@ module CPP
       rootNs = visitor.getExposedNamespace()
       setLibrary(library)
 
-      @header = filePreamble("//") + "\n\n" 
-      @source = filePreamble("//") + "\n"
-      @source += generateInclude(headerPath(library))
-      sourcefiles = [ TYPE_NAMESPACE + "/RuntimeHelpersImpl.h", "utility", "tuple" ]
-
-      library.dependencies.each{ |l| sourcefiles << headerPath(l) }
-
-      @source += "\n" + sourcefiles.map{ |f| "#include \"#{f}\"" }.join("\n") + "\n\n\n"
-
-      clsGen = ClassGenerator.new
 
       files = Set.new
       derivedClasses = Set.new
+      libraryName = "g_bondage_library_#{library.name}"
 
-      libraryName = "g_bondage_library_#{library.name}";
+      classHeaders, classSources, clsGen = generateClasses(
+        exposer,
+        files,
+        derivedClasses,
+        libraryName)
 
-      classHeader = ""
-      classSource = ""
-
-      exposer.exposedMetaData.types.each do |path, cls|
-        if (cls.type == :class && cls.fullyExposed)
-          clsGen.reset()
-          clsGen.generate(exposer, cls, libraryName)
-          classHeader += "#{clsGen.interface}\n"
-          classSource += "\n\n\n#{clsGen.implementation}"
-
-          files << cls.parsed.fileLocation
-
-          if (cls.parentClass)
-            rootPath, distance = clsGen.findRootClass(cls)
-
-            derivedClasses << DerivedClass.new(clsGen.wrapperName, path, rootPath, distance)
-          end
-        end
-      end
-
-      generateLibrary(libraryName, library, exposer, rootNs, files)
-
-      @header += classHeader
-      @source += classSource
-
-      @source += "\n\n" + generateDerivedCasts(clsGen, derivedClasses)
+      generateFiles(
+        libraryName,
+        library,
+        exposer,
+        rootNs,
+        files,
+        classHeaders,
+        classSources,
+        clsGen,
+        derivedClasses)
     end
 
   private
-    def generateLibrary(libraryName, library, exposer, rootNs, files)
+    def generateFiles(
+        libraryName,
+        library,
+        exposer,
+        rootNs,
+        files,
+        clsHead,
+        clsSrc,
+        clsGen,
+        derivedClasses)
+      @header = filePreamble("//") + "\n\n" +
+        generateLibraryHeader(libraryName, library, exposer, rootNs, files) +
+        "\n\n" + clsHead.join("\n") + "\n"
+
+      @source = filePreamble("//") + "\n" +
+        includes(library) + 
+        generateLibrarySource(libraryName, library, exposer, rootNs, files) +
+        "\n\n\n" + clsSrc.join("\n\n\n") +
+        "\n\n" + generateDerivedCasts(clsGen, derivedClasses)
+    end
+
+    def generateInclude(libraryfile)
+      path = Pathname.new(libraryfile).relative_path_from(@libraryPath).cleanpath
+      return "#include \"#{path}\""
+    end
+
+    def coreIncludeFiles(library)
+      sourcefiles = [ TYPE_NAMESPACE + "/RuntimeHelpersImpl.h", "utility", "tuple" ]
+
+      library.dependencies.each{ |l| sourcefiles << headerPath(l) }
+      return sourcefiles
+    end
+
+    def includes(library)
+      return generateInclude(headerPath(library)) + "\n" +
+       coreIncludeFiles(library).map{ |f| "#include \"#{f}\"" }.join("\n") + "\n\n\n"
+    end
+
+    def generateClasses(exposer, files, derivedClasses, libraryName)
+      clsGen = ClassGenerator.new
+
+      classHeaders = []
+      classSources = []
+
+      exposer.exposedMetaData.types.each do |path, cls|
+        if (cls.type == :class && cls.fullyExposed)
+
+          generateClass(
+            clsGen, 
+            path, 
+            cls, 
+            classHeaders, 
+            classSources, 
+            exposer, 
+            files, 
+            derivedClasses, 
+            libraryName)
+        end
+      end
+
+      return classHeaders, classSources, clsGen
+    end
+
+    def generateClass(
+        clsGen, 
+        path, 
+        cls, 
+        classHeaders, 
+        classSources, 
+        exposer, 
+        files, 
+        derivedClasses, 
+        libraryName)
+
+      clsGen.reset()
+      clsGen.generate(exposer, cls, libraryName)
+      classHeaders << clsGen.interface
+      classSources << clsGen.implementation
+
+      files << cls.parsed.fileLocation
+
+      if (cls.parentClass)
+        rootPath, distance = clsGen.findRootClass(cls)
+
+        derivedClasses << DerivedClass.new(clsGen.wrapperName, path, rootPath, distance)
+      end
+    end
+
+    def generateLibraryHeader(libraryName, library, exposer, rootNs, files)
       raise "Invalid root namespace for #{library.name}." unless rootNs
 
-      @header += files.map{ |path| generateInclude(path) }.join("\n")
-      @header += "\n#include \"#{TYPE_NAMESPACE}/RuntimeHelpers.h\"\n\n"
+      includes = files.map{ |path| generateInclude(path) }.join("\n")
 
-      @header += "namespace #{library.name}
+      return "#{includes}\n#include \"#{TYPE_NAMESPACE}/RuntimeHelpers.h\"
+
+namespace #{library.name}
 {
 #{library.exportMacro} const bondage::Library &bindings();
-}\n\n"
+}"
+    end
 
+    def generateLibrarySource(libraryName, library, exposer, rootNs, files)
       fnGen = CPP::FunctionGenerator.new("", "  ")
       methods, extraMethods = fnGen.gatherFunctions(rootNs, exposer)
 
       methodsLiteral, methodsArray, extraMethodSource = fnGen.generateFunctionArray(methods, extraMethods, libraryName)
 
-      @source += "#{extraMethodSource}#{methodsArray}
+      return "#{extraMethodSource}#{methodsArray}
 bondage::Library #{libraryName}(
   \"#{library.name}\",
   #{methodsLiteral},
@@ -115,13 +185,8 @@ const bondage::Library &bindings()
   return #{libraryName};
 }
 }"
-
     end
 
-    def generateInclude(libraryfile)
-      path = Pathname.new(libraryfile).relative_path_from(@libraryPath).cleanpath
-      return "#include \"#{path}\""
-    end
 
     def generateDerivedCasts(clsGen, clss)
       byRoots = { }

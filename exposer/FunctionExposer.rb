@@ -14,21 +14,10 @@ class FunctionExposer
   def canExposeMethod(owner, fn)
     if(fn.isExposed == nil)
       exposeFlag = fn.comment.hasCommand("expose")
-      cantExpose = fn.comment.hasCommand("noexpose")
       mustExpose = exposeFlag
-      shouldExpose = exposeFlag || !owner.kind_of?(NamespaceItem)
-
-      if (mustExpose && cantExpose)
-        raise "Cannot require and refuse exposure for a single type #{owner.fullyQualifiedName}::#{fn.name}"
-      end
 
       fn.setExposed(false)
-      if (cantExpose || !shouldExpose)
-        if (@debug)
-          puts "- #{owner.fullyQualifiedName}::#{fn.name}"
-          puts " - asked to expose #{exposeFlag} automatically expose #{shouldExpose}"
-          puts " - requested not to."
-        end
+      if (shouldntExposeFunction(owner, fn, exposeFlag))
         return
       end
 
@@ -39,12 +28,7 @@ class FunctionExposer
         areAllArgumentTypesExposable(fn)
 
       if(@debug || (!canExpose && mustExpose))
-        puts "- #{owner.fullyQualifiedName}::#{fn.name}"
-        puts " - accessible: #{isFunctionAccessible(fn)}"
-        puts " - not override: #{isFunctionNotOverride(fn)}"
-        puts " - return type: #{isReturnTypeExposed(fn)}"
-        puts " - arg types: #{areAllArgumentTypesExposable(fn)}"
-        puts " - combined: #{canExpose}"
+        putsExposeDetails(owner, fn, canExpose)
       end
 
       if (!canExpose && mustExpose)
@@ -56,6 +40,33 @@ class FunctionExposer
     end
 
     return fn.isExposed
+  end
+
+  def shouldntExposeFunction(owner, fn, exposeRequested)
+    cantExpose = fn.comment.hasCommand("noexpose")
+    shouldExpose = exposeRequested || !owner.kind_of?(NamespaceItem)
+
+    if (exposeRequested && cantExpose)
+      raise "Cannot require and refuse exposure for a single type #{owner.fullyQualifiedName}::#{fn.name}"
+    end
+
+    if (cantExpose || !shouldExpose)
+      if (@debug)
+        puts "- #{owner.fullyQualifiedName}::#{fn.name}"
+        puts " - asked to expose #{exposeFlag} automatically expose #{shouldExpose}"
+        puts " - requested not to."
+      end
+      return
+    end
+  end
+
+  def putsExposeDetails(owner, fn, canExpose)
+    puts "- #{owner.fullyQualifiedName}::#{fn.name}"
+    puts " - accessible: #{isFunctionAccessible(fn)}"
+    puts " - not override: #{isFunctionNotOverride(fn)}"
+    puts " - return type: #{isReturnTypeExposed(fn)}"
+    puts " - arg types: #{areAllArgumentTypesExposable(fn)}"
+    puts " - combined: #{canExpose}"
   end
 
   # find if an argument [obj], an ArgumentItem can be exposed.
