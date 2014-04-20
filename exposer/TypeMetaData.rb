@@ -1,4 +1,4 @@
-require_relative "Exposer.rb"
+require_relative "ClassExposer.rb"
 require_relative "ParsedLibrary.rb"
 require "json"
 

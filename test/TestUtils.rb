@@ -45,7 +45,7 @@ def exposeLibrary(lib, dbg = false)
   raise "Invalid library #{lib}" unless lib
   visitor = ParsedLibrary.parse(lib, PLATFORM_INCLUDES, [], DEBUGGING || dbg)
 
-  return Exposer.new(visitor, DEBUGGING || dbg), visitor
+  return ClassExposer.new(visitor, DEBUGGING || dbg), visitor
 end
 
 def cleanLibrary(library)

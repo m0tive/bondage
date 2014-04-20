@@ -62,19 +62,12 @@ lib.addFile("Generator.h")
 
 C++ bindings can then be generated using:
 ```ruby
-# Create a parser to parse the data (passing it our library)
-# the empty array specifies system includes
-parser = Parser.new(lib, [])
-
-# Create a visitor for the parser to interact with
-visitor = ExposeAstVisitor.new(lib)
-
 # Parse the library. This fills visitor with the data from our C++ files.
-parser.parse(visitor)
+visitor = ParsedLibrary.parse(lib)
 
 # Create an exposer, this visits all classes in the C++, checks 
 # if they should be exposed (either implicitly, or if asked - using the /// \expose command)
-exposer = Exposer.new(visitor)
+exposer = ClassExposer.new(visitor)
 
 # Now we have all the data to write the bindings
 libGen = CPP::LibraryGenerator.new()

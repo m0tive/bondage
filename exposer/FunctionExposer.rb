@@ -2,7 +2,7 @@
 # FunctionExposer helps decide if a function can be exposed, 
 # given a set of types which are exposable.
 #
-# Not directly usable - use Exposer instead
+# Not directly usable - use ClassExposer instead
 #
 class FunctionExposer
   def initialize(typeExposer, debug=false)
