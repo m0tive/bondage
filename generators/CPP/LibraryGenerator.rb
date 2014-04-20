@@ -1,4 +1,4 @@
-require_relative "../../exposer/ExposeAst.rb"
+require_relative "../../exposer/ParsedLibrary.rb"
 require_relative "../GeneratorHelper.rb"
 require_relative "../../exposer/FunctionVisitor.rb"
 

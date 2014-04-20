@@ -1,7 +1,7 @@
 
 # TypeExposer helps decide if a type can be exposed, given a set of types which are exposable.
 #
-# Not directly usable - use Exposer instead
+# Not directly usable - use ClassExposer instead
 #
 class TypeExposer
   def initialize(metaData)

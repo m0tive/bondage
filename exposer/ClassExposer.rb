@@ -1,11 +1,11 @@
-require_relative "ExposeAst.rb"
+require_relative "ParsedLibrary.rb"
 require_relative "TypeMetaData.rb"
 require_relative "TypeExposer.rb"
 require_relative "FunctionExposer.rb"
 require "set"
 
 # Decides what classes and functions can be exposed, using data from the current parse, and dependency parses.
-class Exposer
+class ClassExposer
   # Create an exposed from a [visitor] derived class, which links to the library to expose
   def initialize(visitor, debug=false)
     @debugOutput = debug

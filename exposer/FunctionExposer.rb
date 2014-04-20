@@ -2,7 +2,7 @@
 # FunctionExposer helps decide if a function can be exposed, 
 # given a set of types which are exposable.
 #
-# Not directly usable - use Exposer instead
+# Not directly usable - use ClassExposer instead
 #
 class FunctionExposer
   def initialize(typeExposer, debug=false)
@@ -44,7 +44,7 @@ class FunctionExposer
 
   def shouldntExposeFunction(owner, fn, exposeRequested)
     cantExpose = fn.comment.hasCommand("noexpose")
-    shouldExpose = exposeRequested || !owner.kind_of?(NamespaceItem)
+    shouldExpose = exposeRequested || !owner.kind_of?(AST::NamespaceItem)
 
     if (exposeRequested && cantExpose)
       raise "Cannot require and refuse exposure for a single type #{owner.fullyQualifiedName}::#{fn.name}"

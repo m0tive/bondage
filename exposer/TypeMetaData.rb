@@ -1,5 +1,5 @@
-require_relative "Exposer.rb"
-require_relative "ExposeAst.rb"
+require_relative "ClassExposer.rb"
+require_relative "ParsedLibrary.rb"
 require "json"
 
 # A serialisable class which is exposed in a library.

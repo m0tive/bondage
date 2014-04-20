@@ -2,7 +2,7 @@ require_relative 'TestUtils.rb'
 
 require_relative "../parser/Library.rb"
 require_relative "../parser/Parser.rb"
-require_relative "../exposer/ExposeAst.rb"
+require_relative "../exposer/ParsedLibrary.rb"
 
 require 'test/unit'
 
@@ -21,10 +21,7 @@ class TestAst < Test::Unit::TestCase
   end
 
   def test_ast
-    parser = Parser.new(@astTest)
-
-    visitor = ExposeAstVisitor.new(@astTest)
-    parser.parse(visitor)
+    visitor = ParsedLibrary.parse(@astTest)
 
     assert_equal 1, visitor.classes.length
     cls = visitor.classes[0]
