@@ -77,7 +77,9 @@ module Lua
 
       fileData = data.join(",\n\n")
 
-      @library = "#{generateIncludes(requiredClasses)}#{extraDatas}local #{@libraryName} = {\n#{fileData}\n}\n\nreturn #{@libraryName}"
+      inc = generateIncludes(exposer, requiredClasses)
+
+      @library = "#{inc}#{extraDatas}local #{@libraryName} = {\n#{fileData}\n}\n\nreturn #{@libraryName}"
     end
 
     def appendEnums(library, exposer, rootNs, data)
@@ -105,12 +107,15 @@ module Lua
       end
     end
 
-    def generateIncludes(clss)
+    def generateIncludes(exposer, clss)
       if (clss.length == 0)
         return ""
       end
 
-      return clss.map{ |cls| "require \"#{@pathResolver.pathFor(cls)}\"" }.join("\n") + "\n\n"
+      return clss.map{ |clsName|
+        cls = exposer.allMetaData.findClass(clsName)
+        "require \"#{@pathResolver.pathFor(cls)}\""
+        }.join("\n") + "\n\n"
     end
 
   end

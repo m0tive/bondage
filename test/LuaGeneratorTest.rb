@@ -550,11 +550,13 @@ local HelperThing_cls = class "HelperThing" {
     cls2 = clsMetaData2.parsed
     assert_not_nil cls2
 
-    assert_equal %{local NamedClass_doAPork_wrapper_fwd = getFunction("Named", "NamedClass", "")
+    assert_equal %{require \"Named.HelperThing\"
+
+local NamedClass_doAPork_wrapper_fwd = getFunction("Named", "NamedClass", "")
 local NamedClass_doAPork_wrapper = function(...)
   local argCount = select("#")
   if 2 == argCount then
-    return fwdName(select(0, ...))
+    return fwdName(from_named(select(0, ...)))
   end
 end
 
@@ -568,11 +570,13 @@ local NamedClass_cls = class "NamedClass" {
   doAPork = NamedClass_doAPork_wrapper
 }}, libGen.classes[clsMetaData2]
 
-  assert_equal %{local _doMorePork_wrapper_fwd = getFunction("Named", "", "")
+  assert_equal %{require \"Named.HelperThing\"
+
+local _doMorePork_wrapper_fwd = getFunction("Named", "", "")
 local _doMorePork_wrapper = function(...)
   local argCount = select("#")
   if 1 == argCount then
-    return fwdName(select(0, ...))
+    return fwdName(from_named(select(0, ...)))
   end
 end
 
@@ -590,7 +594,3 @@ return Named}, libGen.library
   end
 end
 
-#todo
-#- named fns
-#- properties
-#- signals?

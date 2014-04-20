@@ -55,8 +55,10 @@ module Lua
         pluginInsert = "\n" + pluginInsertData.join(",\n\n") + ",\n"
       end
 
+      inc = generateIncludes(exposer, requiredClasses)
+
       # generate class output.
-      @classDefinition = "#{generateIncludes(requiredClasses)}#{extraDatas}-- \\brief #{brief}
+      @classDefinition = "#{inc}#{extraDatas}-- \\brief #{brief}
 --
 local #{localVarOut} = class \"#{cls.name}\" {
 #{parentInsert}#{pluginInsert}#{enumInsert}
@@ -65,12 +67,15 @@ local #{localVarOut} = class \"#{cls.name}\" {
     end
 
   private
-    def generateIncludes(clss)
+    def generateIncludes(exposer, clss)
       if (clss.length == 0)
         return ""
       end
 
-      return clss.map{ |cls| "require \"#{@resolver.pathFor(cls)}\"" }.join("\n") + "\n\n"
+      return clss.map{ |clsName| 
+        cls = exposer.allMetaData.findClass(clsName)
+        "require \"#{@resolver.pathFor(cls)}\""
+        }.join("\n") + "\n\n"
     end
 
     def generateEnums(parsed, exposer)
