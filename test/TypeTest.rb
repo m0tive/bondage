@@ -2,7 +2,7 @@ require_relative 'TestUtils.rb'
 
 require_relative "../parser/Library.rb"
 require_relative "../parser/Parser.rb"
-require_relative "../exposer/ExposeAst.rb"
+require_relative "../exposer/ParsedLibrary.rb"
 require_relative "../exposer/Exposer.rb"
 
 require 'test/unit'
@@ -22,11 +22,7 @@ class TestPod < Test::Unit::TestCase
   end
 
   def test_pod
-
-    parser = Parser.new(@podTest)
-
-    visitor = ExposeAstVisitor.new(@podTest)
-    parser.parse(visitor)
+    visitor = ParsedLibrary.parse(@podTest)
 
     assert_equal 1, visitor.classes.length
     cls = visitor.classes[0]

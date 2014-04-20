@@ -1,4 +1,4 @@
-require_relative "ExposeAst.rb"
+require_relative "ParsedLibrary.rb"
 require_relative "TypeMetaData.rb"
 require_relative "TypeExposer.rb"
 require_relative "FunctionExposer.rb"

@@ -1,7 +1,6 @@
 require "ffi/clang.rb"
 
 require_relative "Library.rb"
-require_relative "Visitor.rb"
 require_relative "Comment.rb"
 require_relative "Type.rb"
 require_relative "ParserData.rb"
@@ -17,7 +16,8 @@ def sourceErrorDesc(cursor, desc)
   return "#{sourceError(cursor)}\n  #{desc}"
 end
 
-
+# Parser extracts data from the files in library,
+# and pastes them into the visitor passed
 class Parser
   def initialize(library, coreIncludes=[], extraArgs=[], dbg=false)
     @debug = dbg

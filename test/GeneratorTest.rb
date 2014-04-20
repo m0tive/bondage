@@ -2,7 +2,7 @@ require_relative 'TestUtils.rb'
 
 require_relative "../parser/Library.rb"
 require_relative "../parser/Parser.rb"
-require_relative "../exposer/ExposeAst.rb"
+require_relative "../exposer/ParsedLibrary.rb"
 require_relative "../generators/CPP/LibraryGenerator.rb"
 
 require 'test/unit'

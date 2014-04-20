@@ -43,13 +43,8 @@ end
 
 def exposeLibrary(lib, dbg = false)
   raise "Invalid library #{lib}" unless lib
-  parser = Parser.new(lib, PLATFORM_INCLUDES, [], DEBUGGING || dbg)
-  visitor = ExposeAstVisitor.new(lib, DEBUGGING || dbg)
-  parser.parse(visitor)
+  visitor = ParsedLibrary.parse(lib, PLATFORM_INCLUDES, [], DEBUGGING || dbg)
 
-  if (dbg)
-    parser.displayDiagnostics
-  end
   return Exposer.new(visitor, DEBUGGING || dbg), visitor
 end
 

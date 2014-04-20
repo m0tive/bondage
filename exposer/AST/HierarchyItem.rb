@@ -27,7 +27,7 @@ module AST
         return @fullyQualified
       end
 
-      if(@parent && !parent.kind_of?(Visitor))
+      if(@parent && parent.kind_of?(HierarchyItem))
         @fullyQualified = "#{@parent.fullyQualifiedName()}::#{self.name()}"
       else
         @fullyQualified = ""
