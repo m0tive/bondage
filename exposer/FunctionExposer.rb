@@ -44,7 +44,7 @@ class FunctionExposer
 
   def shouldntExposeFunction(owner, fn, exposeRequested)
     cantExpose = fn.comment.hasCommand("noexpose")
-    shouldExpose = exposeRequested || !owner.kind_of?(NamespaceItem)
+    shouldExpose = exposeRequested || !owner.kind_of?(AST::NamespaceItem)
 
     if (exposeRequested && cantExpose)
       raise "Cannot require and refuse exposure for a single type #{owner.fullyQualifiedName}::#{fn.name}"

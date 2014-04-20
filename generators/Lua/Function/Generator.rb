@@ -43,7 +43,7 @@ module Lua
         @name = fns[0].name
 
         clsName = ""
-        if (cls.kind_of?(ClassItem))
+        if (cls.kind_of?(AST::ClassItem))
           clsName = cls.name
         end
 
