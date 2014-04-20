@@ -362,9 +362,9 @@ end", fnGen.wrapper
 
     assert_equal "", fnGen.wrapper
 
-    clsGen = Lua::ClassGenerator.new([], Lua::DEFAULT_CLASSIFIERS, "", "get")
+    clsGen = Lua::ClassGenerator.new([], Lua::DEFAULT_CLASSIFIERS, "", "get", TestPathResolver.new)
 
-    clsGen.generate(lib.library, exposer, TestPathResolver.new, clsMetaData, "var")
+    clsGen.generate(lib.library, exposer, clsMetaData, "var")
 
     assert_equal %{-- \\brief 
 --
@@ -378,7 +378,7 @@ local var = class "TestClass" {
 luaSample = get("LuaFunctions", "TestClass", "luaSample")
 }}, clsGen.classDefinition
 
-    clsGen.generate(lib.library, exposer, TestPathResolver.new, clsMetaData2, "var")
+    clsGen.generate(lib.library, exposer, clsMetaData2, "var")
 
     assert_equal %{local TestClassIndexed_luaSample_wrapper_fwd = get("LuaFunctions", "TestClassIndexed", "")
 local TestClassIndexed_luaSample_wrapper = function(...)
@@ -432,13 +432,14 @@ luaSample2 = TestClassIndexed_luaSample2_wrapper
       Lua::DEFAULT_PLUGINS,
       Lua::DEFAULT_CLASSIFIERS,
       "",
-      "get")
+      "get",
+      TestPathResolver.new)
 
     clsMetaData = exposer.exposedMetaData.findClass("::Properties::PropertyClass")
     cls2 = clsMetaData.parsed
     assert_not_nil cls2
 
-    clsGen.generate(lib.library, exposer, TestPathResolver.new, clsMetaData, "var")
+    clsGen.generate(lib.library, exposer, clsMetaData, "var")
 
     assert_equal %{local PropertyClass_getInstance_fwd = get("Properties", "PropertyClass", "getInstance")
 

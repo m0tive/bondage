@@ -12,7 +12,7 @@ module Lua
       @pathResolver = resolver
       @getter = getter
       @classifiers = classifiers
-      @clsGen = ClassGenerator.new(classPlugins, classifiers, @lineStart, getter)
+      @clsGen = ClassGenerator.new(classPlugins, classifiers, @lineStart, getter, resolver)
     end
 
     # Generate lua classes into [dir]
@@ -25,7 +25,7 @@ module Lua
       # for each fully exposed class, we write a file containing the classes methods and data.
       exposer.exposedMetaData.fullTypes.each do |path, cls|
         if(cls.type == :class)
-          @clsGen.generate(library, exposer, @pathResolver, cls, localName(cls))
+          @clsGen.generate(library, exposer, cls, localName(cls))
 
           @classes[cls] = @clsGen.classDefinition
         end

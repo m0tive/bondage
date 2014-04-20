@@ -6,11 +6,12 @@ module Lua
 
   # Generate lua exposing code for C++ classes
   class ClassGenerator
-    def initialize(classPlugins, classifiers, lineStart, getter)
+    def initialize(classPlugins, classifiers, lineStart, getter, resolver)
       @lineStart = lineStart
       @plugins = classPlugins
       @fnGen = Function::Generator.new(classifiers, @lineStart, getter)
       @enumGen = Lua::EnumGenerator.new(@lineStart)
+      @resolver = resolver
     end
 
     attr_reader :classDefinition
@@ -20,7 +21,7 @@ module Lua
     end
 
     # Generate the lua class data for [cls]
-    def generate(library, exposer, luaPathResolver, cls, localVarOut)
+    def generate(library, exposer, cls, localVarOut)
       parsed = cls.parsed
 
       @plugins.each { |n, plugin| plugin.beginClass(library, parsed) }
@@ -29,7 +30,7 @@ module Lua
 
 
       # if [cls] has a parent class, find its data and require path.
-      parentInsert = generateClassParentData(exposer, luaPathResolver, cls)
+      parentInsert = generateClassParentData(exposer, cls)
 
       enumInsert = generateEnums(parsed)
 
@@ -128,7 +129,7 @@ local #{localVarOut} = class \"#{cls.name}\" {
       return formattedFunctions, extraData
     end
 
-    def generateClassParentData(exposer, luaPathResolver, cls)
+    def generateClassParentData(exposer, cls)
       # if [cls] has a parent class, find its data and require path.
       parentInsert = ""
       if(cls.parentClass)
@@ -137,7 +138,7 @@ local #{localVarOut} = class \"#{cls.name}\" {
 
         parentName = "#{parent.name}_cls"
 
-        parentRequirePath = luaPathResolver.pathFor(parent)
+        parentRequirePath = @resolver.pathFor(parent)
 
         parentInsert = "  super = require \"#{parentRequirePath}\",\n"
       end
