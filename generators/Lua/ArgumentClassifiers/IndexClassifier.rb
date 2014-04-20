@@ -2,7 +2,7 @@
 module Lua
 
   class IndexClassifier
-    def processArgument(arg, type, mode)
+    def processArgument(arg, type, mode, requiredClasses)
 
       baseType = type
       if (type.isPointer || type.isLValueReference)

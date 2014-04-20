@@ -75,6 +75,7 @@ public:
 class InheritTest2 : public InheritTest
 {
 public:
+  /// \expose
   enum MyEnum
   {
     test,
@@ -124,6 +125,7 @@ public:
     }
 };
 
+  /// \expose
 enum GlbEnum
 {
   A,

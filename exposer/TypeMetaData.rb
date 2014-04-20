@@ -132,6 +132,15 @@ class TypeDataSet
     return types.include?(cls)
   end
 
+  def isExposedEnum?(enum)
+    cls = findClass(enum)
+    if (!cls)
+      return false
+    end
+
+    return cls.type == :enum
+  end
+
   def canDeriveFrom?(cls)
     type = types[cls]
     if (!type)

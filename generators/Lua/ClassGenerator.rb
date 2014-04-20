@@ -1,16 +1,18 @@
 require_relative "../../exposer/ExposeAst.rb"
 require_relative "Function/Generator.rb"
+require_relative "RequireHelper.rb"
 require_relative "EnumGenerator.rb"
 
 module Lua
 
   # Generate lua exposing code for C++ classes
   class ClassGenerator
-    def initialize(classPlugins, classifiers, lineStart, getter)
+    def initialize(classPlugins, classifiers, externalLine, lineStart, getter, resolver)
       @lineStart = lineStart
       @plugins = classPlugins
-      @fnGen = Function::Generator.new(classifiers, @lineStart, getter)
+      @fnGen = Function::Generator.new(classifiers, externalLine, @lineStart, getter)
       @enumGen = Lua::EnumGenerator.new(@lineStart)
+      @resolver = resolver
     end
 
     attr_reader :classDefinition
@@ -20,18 +22,19 @@ module Lua
     end
 
     # Generate the lua class data for [cls]
-    def generate(library, exposer, luaPathResolver, cls, localVarOut)
+    def generate(library, exposer, cls, localVarOut)
       parsed = cls.parsed
 
       @plugins.each { |n, plugin| plugin.beginClass(library, parsed) }
 
-      formattedFunctions, extraData = generateFunctions(library, exposer, parsed)
+      requiredClasses = Set.new
+      formattedFunctions, extraData = generateFunctions(library, exposer, parsed, requiredClasses)
 
 
       # if [cls] has a parent class, find its data and require path.
-      parentInsert = generateClassParentData(exposer, luaPathResolver, cls)
+      parentInsert = generateClassParentData(exposer, cls)
 
-      enumInsert = generateEnums(parsed)
+      enumInsert = generateEnums(parsed, exposer)
 
       # find a brief comment for [cls]
       brief = parsed.comment.strippedCommand("brief")
@@ -41,14 +44,13 @@ module Lua
         extraDatas = extraData.join("\n\n") + "\n\n"
       end
 
-      pluginInsert = ""
-      pluginInsertData = @plugins.map { |n, plugin| plugin.endClass(@lineStart) }
-      if (pluginInsertData.length != 0)
-        pluginInsert = "\n" + pluginInsertData.join(",\n\n") + ",\n"
-      end
+
+      pluginInsert = generatePluginData(requiredClasses)
+
+      inc = Helper::generateRequires(@resolver, exposer, requiredClasses)
 
       # generate class output.
-      @classDefinition = "#{extraDatas}-- \\brief #{brief}
+      @classDefinition = "#{inc}#{extraDatas}-- \\brief #{brief}
 --
 local #{localVarOut} = class \"#{cls.name}\" {
 #{parentInsert}#{pluginInsert}#{enumInsert}
@@ -57,8 +59,22 @@ local #{localVarOut} = class \"#{cls.name}\" {
     end
 
   private
-    def generateEnums(parsed)
-      @enumGen.generate(parsed)
+    def generatePluginData(requiredClasses)
+      pluginInsertData = @plugins.map { |n, plugin|
+        plugin.endClass(@lineStart, requiredClasses)
+      }.select{ |r|
+        r != nil && !r.empty?
+      }
+
+      if (pluginInsertData.length == 0)
+        return ""
+      end
+
+      return "\n" + pluginInsertData.join(",\n\n") + ",\n"
+    end
+
+    def generateEnums(parsed, exposer)
+      @enumGen.generate(parsed, exposer)
 
       if (@enumGen.enums.length == 0)
         return ""
@@ -82,8 +98,8 @@ local #{localVarOut} = class \"#{cls.name}\" {
       return interested.length > 0 ? interested : nil
     end
 
-    def generateFunction(library, parsed, name, fns, formattedFunctions, extraData)
-      @fnGen.generate(library, parsed, fns)
+    def generateFunction(library, parsed, name, fns, formattedFunctions, extraData, requiredClasses)
+      @fnGen.generate(library, parsed, fns, requiredClasses)
 
       bind = @fnGen.bind
       name = @fnGen.name
@@ -114,7 +130,7 @@ local #{localVarOut} = class \"#{cls.name}\" {
       formattedFunctions << "#{@fnGen.docs}\n#{@lineStart}#{name} = #{bind}"
     end
 
-    def generateFunctions(library, exposer, parsed)
+    def generateFunctions(library, exposer, parsed, requiredClasses)
       functions = exposer.findExposedFunctions(parsed) 
 
       extraData = []
@@ -122,13 +138,13 @@ local #{localVarOut} = class \"#{cls.name}\" {
 
       # for each function, work out how best to call it.
       functions.sort.each do |name, fns|
-        generateFunction(library, parsed, name, fns, formattedFunctions, extraData)
+        generateFunction(library, parsed, name, fns, formattedFunctions, extraData, requiredClasses)
       end
 
       return formattedFunctions, extraData
     end
 
-    def generateClassParentData(exposer, luaPathResolver, cls)
+    def generateClassParentData(exposer, cls)
       # if [cls] has a parent class, find its data and require path.
       parentInsert = ""
       if(cls.parentClass)
@@ -137,7 +153,7 @@ local #{localVarOut} = class \"#{cls.name}\" {
 
         parentName = "#{parent.name}_cls"
 
-        parentRequirePath = luaPathResolver.pathFor(parent)
+        parentRequirePath = @resolver.pathFor(parent)
 
         parentInsert = "  super = require \"#{parentRequirePath}\",\n"
       end

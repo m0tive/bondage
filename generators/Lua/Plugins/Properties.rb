@@ -16,7 +16,7 @@ module Lua
     PROPERTY_COMMAND = "property"
 
     def interestedInFunctions?(name, fns)
-
+      
       fns.each do |fn|
         if (fn.comment.hasCommand(PROPERTY_COMMAND))
           return true
@@ -48,10 +48,10 @@ module Lua
 
       raise "Invalid property #{@library.name}::#{@cls.name}::#{name}" unless (name && (getter or setter))
 
-      addProperty(propName, name, bind, getter, setter)
+      addPropertyMember(propName, name, bind, getter, setter)
     end
 
-    def addProperty(propName, name, bind, getter, setter)
+    def addPropertyMember(propName, name, bind, getter, setter)
       source = @properties[propName]
       if (!source)
         source = []
@@ -77,7 +77,10 @@ module Lua
       return el
     end
 
-    def endClass(ls)
+    def endClass(ls, requiredClasses)
+      if (@properties.length == 0)
+        return ""
+      end
 
       orderedProperties = @properties.keys.sort
 
@@ -86,9 +89,9 @@ module Lua
 
         srcTag = "#{ls}-- \\sa " + sources.join(" ")
 
-        "#{srcTag}\n#{name} = property(#{formatAccess(@getters, name)}, #{formatAccess(@setters, name)})"
+        "#{srcTag}\n#{ls}#{name} = property(#{formatAccess(@getters, name)}, #{formatAccess(@setters, name)})"
       end
-      propAccessorsJoined = propAccessors.join(",\n#{ls}")
+      propAccessorsJoined = propAccessors.join(",\n")
 
       propNames = orderedProperties.map{ |p| "\"#{p}\"" }.join(",\n#{ls}  ")
       return "#{ls}properties = {

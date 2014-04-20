@@ -30,13 +30,19 @@ class TestGenerator < Test::Unit::TestCase
     @props = Library.new("Properties", "test/testData/Properties")
     @props.addIncludePath(".")
     @props.addFile("Properties.h")
+
+    @named = Library.new("Named", "test/testData/Named")
+    @named.addIncludePath(".")
+    @named.addFile("Named.h")
     
     setupLibrary(@gen)
     setupLibrary(@luaFuncs)
     setupLibrary(@props)
+    setupLibrary(@named)
   end
 
   def teardown
+    cleanLibrary(@named)
     cleanLibrary(@props)
     cleanLibrary(@luaFuncs)
     cleanLibrary(@gen)
@@ -45,7 +51,7 @@ class TestGenerator < Test::Unit::TestCase
   def test_luaFunctionGenerator
     exposer, lib = exposeLibrary(@gen)
 
-    fnGen = Lua::Function::Generator.new(nil, "", "getFunction")
+    fnGen = Lua::Function::Generator.new(nil, "", "", "getFunction")
 
     cls = exposer.exposedMetaData.findClass("::Gen::Gen").parsed
     assert_not_nil cls
@@ -85,7 +91,7 @@ class TestGenerator < Test::Unit::TestCase
     assert_not_nil(fn6)
     assert_equal "test5", fn6.name
 
-    fnGen.generate(lib.library, cls, [ fn1, fn2 ])
+    fnGen.generate(lib.library, cls, [ fn1, fn2 ], Set.new)
 
     assert_equal "-- nil Gen:test1(number myint, number myFloat, number arg3)
 -- nil Gen:test2(number arg1)
@@ -127,7 +133,7 @@ class TestGenerator < Test::Unit::TestCase
   
     enumGen = Lua::EnumGenerator.new("")
 
-    enumGen.generate(cls)
+    enumGen.generate(cls, exposer)
 
     assert_equal 1, enumGen.enums.length
 
@@ -271,11 +277,11 @@ return Gen"
     assert_equal 4, cls.functions.length
     assert_equal 1, rootNs.functions.length
 
-    fnGen = Lua::Function::Generator.new(Lua::DEFAULT_CLASSIFIERS, "", "get")
+    fnGen = Lua::Function::Generator.new(Lua::DEFAULT_CLASSIFIERS, "", "", "get")
 
-    fnGen.generate(lib.library, cls, cls.functions)
+    fnGen.generate(lib.library, cls, cls.functions, nil)
     assert_equal "get(\"LuaFunctions\", \"TestClass\", \"luaSample\")", fnGen.bind
-    fnGen.generate(lib.library, rootNs, rootNs.functions)
+    fnGen.generate(lib.library, rootNs, rootNs.functions, Set.new)
 
 
     clsMetaData2 = exposer.exposedMetaData.findClass("::LuaFunctions::TestClassIndexed")
@@ -283,7 +289,7 @@ return Gen"
     assert_not_nil cls2
 
     firstGroup = [ cls2.functions[0], cls2.functions[1], cls2.functions[2], cls2.functions[3] ]
-    fnGen.generate(lib.library, cls2, firstGroup)
+    fnGen.generate(lib.library, cls2, firstGroup, Set.new)
     assert_equal :index, fnGen.returnClassifier(0)
     assert_equal :index, fnGen.returnClassifier(1)
     assert_equal :index, fnGen.argumentClassifier(0)
@@ -338,7 +344,7 @@ end", fnGen.wrapper
 
 
     secondGroup = [ cls2.functions[4] ]
-    fnGen.generate(lib.library, cls2, secondGroup)
+    fnGen.generate(lib.library, cls2, secondGroup, Set.new)
     assert_equal :index, fnGen.returnClassifier(0)
 
     assert_equal "-- LuaFunctions::TestClassIndexed TestClassIndexed:luaSample2()
@@ -354,7 +360,7 @@ local TestClassIndexed_luaSample2_wrapper = function(...)
 end", fnGen.wrapper
 
     nsGroup = [ rootNs.functions[0] ]
-    fnGen.generate(lib.library, rootNs, nsGroup)
+    fnGen.generate(lib.library, rootNs, nsGroup, Set.new)
     assert_equal :none, fnGen.returnClassifier(0)
 
     assert_equal "-- nil LuaFunctions.testFunction()
@@ -362,9 +368,9 @@ end", fnGen.wrapper
 
     assert_equal "", fnGen.wrapper
 
-    clsGen = Lua::ClassGenerator.new([], Lua::DEFAULT_CLASSIFIERS, "", "get")
+    clsGen = Lua::ClassGenerator.new([], Lua::DEFAULT_CLASSIFIERS, "", "", "get", TestPathResolver.new)
 
-    clsGen.generate(lib.library, exposer, TestPathResolver.new, clsMetaData, "var")
+    clsGen.generate(lib.library, exposer, clsMetaData, "var")
 
     assert_equal %{-- \\brief 
 --
@@ -378,7 +384,7 @@ local var = class "TestClass" {
 luaSample = get("LuaFunctions", "TestClass", "luaSample")
 }}, clsGen.classDefinition
 
-    clsGen.generate(lib.library, exposer, TestPathResolver.new, clsMetaData2, "var")
+    clsGen.generate(lib.library, exposer, clsMetaData2, "var")
 
     assert_equal %{local TestClassIndexed_luaSample_wrapper_fwd = get("LuaFunctions", "TestClassIndexed", "")
 local TestClassIndexed_luaSample_wrapper = function(...)
@@ -432,13 +438,15 @@ luaSample2 = TestClassIndexed_luaSample2_wrapper
       Lua::DEFAULT_PLUGINS,
       Lua::DEFAULT_CLASSIFIERS,
       "",
-      "get")
+      "",
+      "get",
+      TestPathResolver.new)
 
     clsMetaData = exposer.exposedMetaData.findClass("::Properties::PropertyClass")
     cls2 = clsMetaData.parsed
     assert_not_nil cls2
 
-    clsGen.generate(lib.library, exposer, TestPathResolver.new, clsMetaData, "var")
+    clsGen.generate(lib.library, exposer, clsMetaData, "var")
 
     assert_equal %{local PropertyClass_getInstance_fwd = get("Properties", "PropertyClass", "getInstance")
 
@@ -492,9 +500,97 @@ setPork = PropertyClass_setPork_fwd
 }}, clsGen.classDefinition
 
   end
+
+  def test_namedInvocation
+    exposer, lib = exposeLibrary(@named)
+
+    libGen = Lua::LibraryGenerator.new(
+      Lua::DEFAULT_PLUGINS,
+      Lua::DEFAULT_CLASSIFIERS,
+      "getFunction", TestPathResolver.new)
+
+    clsMetaData = exposer.exposedMetaData.findClass("::Named::HelperThing")
+    cls2 = clsMetaData.parsed
+    assert_not_nil cls2
+
+    libGen.generate(lib, exposer)
+
+    assert_equal %{local HelperThing_setBar_fwd = getFunction("Named", "HelperThing", "setBar")
+
+local HelperThing_setFoo_fwd = getFunction("Named", "HelperThing", "setFoo")
+
+-- \\brief 
+--
+local HelperThing_cls = class "HelperThing" {
+
+  properties = {
+    "bar",
+    "foo"
+  },
+
+  -- \\sa setBar
+  bar = property(nil, HelperThing_setBar_fwd),
+  -- \\sa setFoo
+  foo = property(nil, HelperThing_setFoo_fwd),
+
+  TestTypes = {
+    TestA = 0,
+  },
+
+  -- nil HelperThing:setBar(number a)
+  -- \\brief set the bar
+  setBar = HelperThing_setBar_fwd,
+
+  -- nil HelperThing:setFoo(Named::HelperThing::TestTypes a)
+  -- \\brief set the foo
+  setFoo = HelperThing_setFoo_fwd
+}}, libGen.classes[clsMetaData]
+
+    clsMetaData2 = exposer.exposedMetaData.findClass("::Named::NamedClass")
+    cls2 = clsMetaData2.parsed
+    assert_not_nil cls2
+
+    assert_equal %{local HelperThing = require \"Named.HelperThing\"
+
+local NamedClass_doAPork_wrapper_fwd = getFunction("Named", "NamedClass", "")
+local NamedClass_doAPork_wrapper = function(...)
+  local argCount = select("#")
+  if 2 == argCount then
+    return fwdName(from_named(select(0, ...), HelperThing))
+  end
 end
 
-#todo
-#- named fns
-#- properties
-#- signals?
+-- \\brief 
+--
+local NamedClass_cls = class "NamedClass" {
+
+  -- nil NamedClass:doAPork(Named::HelperThing data)
+  -- \\brief do a pork
+  -- \\param data The pork to do.
+  doAPork = NamedClass_doAPork_wrapper
+}}, libGen.classes[clsMetaData2]
+
+  assert_equal %{local HelperThing = require \"Named.HelperThing\"
+
+local _doMorePork_wrapper_fwd = getFunction("Named", "", "")
+local _doMorePork_wrapper = function(...)
+  local argCount = select("#")
+  if 1 == argCount then
+    return fwdName(from_named(select(0, ...), HelperThing))
+  end
+end
+
+local Named = {
+  HelperThing = require("Named.HelperThing"),
+
+  NamedClass = require("Named.NamedClass"),
+
+  -- nil Named.doMorePork(Named::HelperThing t)
+  -- \\brief Extra pork function
+  doMorePork = _doMorePork_wrapper
+}
+
+return Named}, libGen.library
+  end
+end
+

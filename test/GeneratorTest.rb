@@ -25,7 +25,7 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen = CPP::FunctionGenerator.new("", "")
 
-    assert_equal 5, exposer.exposedMetaData.fullTypes.length
+    assert_equal 7, exposer.exposedMetaData.fullTypes.length
 
     rootNs = lib.getExposedNamespace()
     assert_not_nil rootNs
@@ -149,7 +149,7 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen = CPP::FunctionGenerator.new("", "")
 
-    assert_equal 5, exposer.exposedMetaData.fullTypes.length
+    assert_equal 7, exposer.exposedMetaData.fullTypes.length
 
     multiReturnCls = exposer.exposedMetaData.findClass("::Gen::MultipleReturnGen").parsed
     assert_not_nil multiReturnCls
@@ -185,7 +185,7 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen = CPP::FunctionGenerator.new("", "")
 
-    assert_equal 5, exposer.exposedMetaData.fullTypes.length
+    assert_equal 7, exposer.exposedMetaData.fullTypes.length
 
     rootNs = lib.getExposedNamespace()
     assert_not_nil rootNs

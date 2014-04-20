@@ -1,5 +1,6 @@
 require_relative "../../exposer/ExposeAst.rb"
 require_relative "../GeneratorHelper.rb"
+require_relative "RequireHelper.rb"
 require_relative "ClassGenerator.rb"
 
 module Lua
@@ -10,10 +11,13 @@ module Lua
     def initialize(classPlugins, classifiers, getter, resolver)
       @lineStart = "  "
       @pathResolver = resolver
+      @classes = { }
       @getter = getter
       @classifiers = classifiers
-      @clsGen = ClassGenerator.new(classPlugins, classifiers, @lineStart, getter)
+      @clsGen = ClassGenerator.new(classPlugins, classifiers, "", @lineStart, getter, resolver)
     end
+
+    attr_reader :classes, :library
 
     # Generate lua classes into [dir]
     def generate(visitor, exposer)
@@ -25,7 +29,7 @@ module Lua
       # for each fully exposed class, we write a file containing the classes methods and data.
       exposer.exposedMetaData.fullTypes.each do |path, cls|
         if(cls.type == :class)
-          @clsGen.generate(library, exposer, @pathResolver, cls, localName(cls))
+          @clsGen.generate(library, exposer, cls, localName(cls))
 
           @classes[cls] = @clsGen.classDefinition
         end
@@ -45,7 +49,7 @@ module Lua
 
       File.open(dir + "/#{@libraryName}Library.lua", 'w') do |file|
         file.write(filePreamble("--") + "\n\n")
-        file.write(@libraryDef)
+        file.write(@library)
       end
     end
 
@@ -60,11 +64,13 @@ module Lua
 
       data = @classes.map{ |cls, data| "#{ls}#{cls.name} = require(\"#{@pathResolver.pathFor(cls)}\")" }
 
-      appendEnums(library, rootNs, data)
+      requiredClasses = Set.new
 
-      appendFunctions(library, exposer, rootNs, data)
+      appendEnums(library, exposer, rootNs, data)
 
       extraData = []
+      appendFunctions(library, exposer, rootNs, data, extraData, requiredClasses)
+
       extraDatas = ""
       if (extraData.length != 0)
         extraDatas = extraData.join("\n\n") + "\n\n"
@@ -72,30 +78,35 @@ module Lua
 
       fileData = data.join(",\n\n")
 
-      @libraryDef = "#{extraDatas}local #{@libraryName} = {\n#{fileData}\n}\n\nreturn #{@libraryName}"
+      inc = Helper::generateRequires(@pathResolver, exposer, requiredClasses)
+
+      @library = "#{inc}#{extraDatas}local #{@libraryName} = {\n#{fileData}\n}\n\nreturn #{@libraryName}"
     end
 
-    def appendEnums(library, rootNs, data)
+    def appendEnums(library, exposer, rootNs, data)
       enumGen = EnumGenerator.new(@lineStart)
 
-      enumGen.generate(rootNs)
+      enumGen.generate(rootNs, exposer)
       enumGen.enums.each do |enum|
         data << "#{enum}"
       end
     end
 
-    def appendFunctions(library, exposer, rootNs, data)
+    def appendFunctions(library, exposer, rootNs, data, extraData, requiredClasses)
       functions = exposer.findExposedFunctions(rootNs)
 
       # for each function, work out how best to call it.
-      fnGen = Function::Generator.new(@classifiers, @lineStart, @getter)
+      fnGen = Function::Generator.new(@classifiers, "", @lineStart, @getter)
       functions.sort.each do |name, fns|
-        fnGen.generate(library, rootNs, fns)
+        fnGen.generate(library, rootNs, fns, requiredClasses)
+
+        if (fnGen.wrapper.length > 0)
+          extraData << fnGen.wrapper
+        end
 
         data << "#{fnGen.docs}\n#{@lineStart}#{fnGen.name} = #{fnGen.bind}"
       end
     end
-
   end
 
 end

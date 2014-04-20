@@ -34,7 +34,7 @@ class CommentExtractor
     EXTRA_COMMAND_TYPES.each do |cmd, allowedOpts|
       if (comment.hasCommand(cmd) && allowedOpts)
 
-        options = extractExtraCommandWithOptions(text, cmd, allowedOpts)
+        options = extractExtraCommandWithOptions(text, cmd, allowedOpts, location)
         if (!options)
           next
         end
@@ -45,7 +45,7 @@ class CommentExtractor
     end
   end
 
-  def extractExtraCommandWithOptions(text, cmd, allowedOpts)
+  def extractExtraCommandWithOptions(text, cmd, allowedOpts, location)
     commandRegex = @regExpCache[cmd]
     if (!commandRegex)
       commandRegex = /\\#{cmd} (.*)$/
