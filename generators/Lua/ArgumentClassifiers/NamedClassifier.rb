@@ -10,7 +10,7 @@ module Lua
 
       requiredClasses << requiredClass.fullyQualifiedName
 
-      return "from_named(#{arg})"
+      return "from_named(#{arg}, #{requiredClass.shortName})"
     end
   end
 
