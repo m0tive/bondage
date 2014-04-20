@@ -1,5 +1,6 @@
 require_relative "../../exposer/ExposeAst.rb"
 require_relative "../GeneratorHelper.rb"
+require_relative "RequireHelper.rb"
 require_relative "ClassGenerator.rb"
 
 module Lua
@@ -77,7 +78,7 @@ module Lua
 
       fileData = data.join(",\n\n")
 
-      inc = generateIncludes(exposer, requiredClasses)
+      inc = Helper::generateRequires(@pathResolver, exposer, requiredClasses)
 
       @library = "#{inc}#{extraDatas}local #{@libraryName} = {\n#{fileData}\n}\n\nreturn #{@libraryName}"
     end
@@ -106,18 +107,6 @@ module Lua
         data << "#{fnGen.docs}\n#{@lineStart}#{fnGen.name} = #{fnGen.bind}"
       end
     end
-
-    def generateIncludes(exposer, clss)
-      if (clss.length == 0)
-        return ""
-      end
-
-      return clss.map{ |clsName|
-        cls = exposer.allMetaData.findClass(clsName)
-        "require \"#{@pathResolver.pathFor(cls)}\""
-        }.join("\n") + "\n\n"
-    end
-
   end
 
 end

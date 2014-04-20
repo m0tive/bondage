@@ -1,5 +1,6 @@
 require_relative "../../exposer/ExposeAst.rb"
 require_relative "Function/Generator.rb"
+require_relative "RequireHelper.rb"
 require_relative "EnumGenerator.rb"
 
 module Lua
@@ -44,18 +45,9 @@ module Lua
       end
 
 
-      pluginInsert = ""
-      pluginInsertData = @plugins.map { |n, plugin|
-        plugin.endClass(@lineStart, requiredClasses)
-      }.select{ |r|
-        r != nil && !r.empty?
-      }
+      pluginInsert = generatePluginData(requiredClasses)
 
-      if (pluginInsertData.length != 0)
-        pluginInsert = "\n" + pluginInsertData.join(",\n\n") + ",\n"
-      end
-
-      inc = generateIncludes(exposer, requiredClasses)
+      inc = Helper::generateRequires(@resolver, exposer, requiredClasses)
 
       # generate class output.
       @classDefinition = "#{inc}#{extraDatas}-- \\brief #{brief}
@@ -67,15 +59,18 @@ local #{localVarOut} = class \"#{cls.name}\" {
     end
 
   private
-    def generateIncludes(exposer, clss)
-      if (clss.length == 0)
+    def generatePluginData(requiredClasses)
+      pluginInsertData = @plugins.map { |n, plugin|
+        plugin.endClass(@lineStart, requiredClasses)
+      }.select{ |r|
+        r != nil && !r.empty?
+      }
+
+      if (pluginInsertData.length == 0)
         return ""
       end
 
-      return clss.map{ |clsName| 
-        cls = exposer.allMetaData.findClass(clsName)
-        "require \"#{@resolver.pathFor(cls)}\""
-        }.join("\n") + "\n\n"
+      return "\n" + pluginInsertData.join(",\n\n") + ",\n"
     end
 
     def generateEnums(parsed, exposer)
