@@ -18,7 +18,14 @@ module Lua
         @classifiers = classifiers
       end
 
-      def generate(name, library, clsName, overloads, argumentClassifiers, returnClassifiers)
+      def generate(
+          name,
+          library,
+          clsName,
+          overloads,
+          argumentClassifiers,
+          returnClassifiers,
+          requiredClasses)
         ls = @lineStart
         lsT = ls + "  "
 
@@ -33,7 +40,8 @@ module Lua
             argCount,
             overloadData,
             argumentClassifiers,
-            returnClassifiers)
+            returnClassifiers,
+            requiredClasses)
         end
 
         output += "#{ls}end"
@@ -42,58 +50,72 @@ module Lua
       end
 
     private
-      def generateOverloadCall(argCount, overloadData, argumentClassifiers, returnClassifiers)
+      def generateOverloadCall(argCount, overloadData, argumentClassifiers, returnClassifiers, requiredClasses)
         returnTypes = getCommonTypeArray(overloadData.returnTypes) { |a| a }
         arguments = getCommonTypeArray(overloadData.arguments) { |a| a.type }
 
         static = overloadData.static
-
-        expectedArgCount = (static ? 0 : 1) + argCount
-
-        argumentsProcessed = formatArgumentData(arguments, argumentClassifiers)
-        
-        returnCount, returns, returnProcessed = formatReturnData(returnTypes, returnClassifiers)
-
-        if (returnCount == :unknown || static == :unknown)
+        if (static == :unknown)
           raise "Inconsistent static or return count data for function with classifier #{name}"
         end
 
+        expectedArgCount = (static ? 0 : 1) + argCount
+
+        argumentsProcessed = formatArgumentData(arguments, argumentClassifiers, requiredClasses)
+        
+        returnCount, returns, returnProcessed = formatReturnData(returnTypes, returnClassifiers, requiredClasses)
+
+
+        call = ""
+        if (returnCount == 0)
+          raise "Return data for function without returns" unless returnProcessed.empty?
+
+          call = "#{@lineStart}    return fwdName(#{argumentsProcessed})"
+        else
+          call = "#{@lineStart}    local #{returns} = fwdName(#{argumentsProcessed})
+#{@lineStart}    return #{returnProcessed}"
+        end
+
         return "#{@lineStart}  if #{expectedArgCount} == argCount then
-#{@lineStart}    local #{returns} = fwdName(#{argumentsProcessed})
-#{@lineStart}    return #{returnProcessed}
+#{call}
 #{@lineStart}  end
 "
       end
 
-      def formatArgumentData(arguments, argumentClassifiers)
+      def formatArgumentData(arguments, argumentClassifiers, requiredClasses)
         return arguments.length.times.map{ |i| 
           processArgument(
             "select(#{i}, ...)",
             argumentClassifiers[i],
             arguments[i].type,
-            :param)
+            :param,
+            requiredClasses)
         }.join(", ")
       end
 
-      def formatReturnData(returnTypes, returnClassifiers)
+      def formatReturnData(returnTypes, returnClassifiers, requiredClasses)
         returnCount = returnTypes.length
 
         returnNames = returnCount.times.map{ |i| "ret#{i}" }
         returns = returnNames.join(", ")
 
         returnProcessed = returnCount.times.map{ |i| 
-          processArgument(returnNames[i], returnClassifiers[i], returnTypes[i], :return)
+          processArgument(returnNames[i], returnClassifiers[i], returnTypes[i], :return, requiredClasses)
         }.join(", ")
 
         return returnCount, returns, returnProcessed
       end
 
-      def processArgument(arg, classifier, type, mode)
-        if (classifier == nil || classifier == :none)
+      def processArgument(arg, classifierName, type, mode, requiredClasses)
+        if (classifierName == nil || classifierName == :none)
           return arg
         end
 
-        return @classifiers[classifier].processArgument(arg, type, mode)
+        classifier = @classifiers[classifierName]
+        raise "Invalid classifier '#{classifierName}' specified for #{arg}
+Available classifiers: #{@classifiers.keys}" unless classifier
+
+        return classifier.processArgument(arg, type, mode, requiredClasses)
       end
 
       def getCommonTypeArray(arrays)

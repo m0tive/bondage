@@ -6,10 +6,10 @@ module Lua
 
   # Generate lua exposing code for C++ classes
   class ClassGenerator
-    def initialize(classPlugins, classifiers, lineStart, getter, resolver)
+    def initialize(classPlugins, classifiers, externalLine, lineStart, getter, resolver)
       @lineStart = lineStart
       @plugins = classPlugins
-      @fnGen = Function::Generator.new(classifiers, @lineStart, getter)
+      @fnGen = Function::Generator.new(classifiers, externalLine, @lineStart, getter)
       @enumGen = Lua::EnumGenerator.new(@lineStart)
       @resolver = resolver
     end
@@ -26,7 +26,8 @@ module Lua
 
       @plugins.each { |n, plugin| plugin.beginClass(library, parsed) }
 
-      formattedFunctions, extraData = generateFunctions(library, exposer, parsed)
+      requiredClasses = Set.new
+      formattedFunctions, extraData = generateFunctions(library, exposer, parsed, requiredClasses)
 
 
       # if [cls] has a parent class, find its data and require path.
@@ -42,14 +43,20 @@ module Lua
         extraDatas = extraData.join("\n\n") + "\n\n"
       end
 
+
       pluginInsert = ""
-      pluginInsertData = @plugins.map { |n, plugin| plugin.endClass(@lineStart) }
+      pluginInsertData = @plugins.map { |n, plugin|
+        plugin.endClass(@lineStart, requiredClasses)
+      }.select{ |r|
+        r != nil && !r.empty?
+      }
+
       if (pluginInsertData.length != 0)
         pluginInsert = "\n" + pluginInsertData.join(",\n\n") + ",\n"
       end
 
       # generate class output.
-      @classDefinition = "#{extraDatas}-- \\brief #{brief}
+      @classDefinition = "#{generateIncludes(requiredClasses)}#{extraDatas}-- \\brief #{brief}
 --
 local #{localVarOut} = class \"#{cls.name}\" {
 #{parentInsert}#{pluginInsert}#{enumInsert}
@@ -58,6 +65,14 @@ local #{localVarOut} = class \"#{cls.name}\" {
     end
 
   private
+    def generateIncludes(clss)
+      if (clss.length == 0)
+        return ""
+      end
+
+      return clss.map{ |cls| "require \"#{@resolver.pathFor(cls)}\"" }.join("\n") + "\n\n"
+    end
+
     def generateEnums(parsed)
       @enumGen.generate(parsed)
 
@@ -83,8 +98,8 @@ local #{localVarOut} = class \"#{cls.name}\" {
       return interested.length > 0 ? interested : nil
     end
 
-    def generateFunction(library, parsed, name, fns, formattedFunctions, extraData)
-      @fnGen.generate(library, parsed, fns)
+    def generateFunction(library, parsed, name, fns, formattedFunctions, extraData, requiredClasses)
+      @fnGen.generate(library, parsed, fns, requiredClasses)
 
       bind = @fnGen.bind
       name = @fnGen.name
@@ -115,7 +130,7 @@ local #{localVarOut} = class \"#{cls.name}\" {
       formattedFunctions << "#{@fnGen.docs}\n#{@lineStart}#{name} = #{bind}"
     end
 
-    def generateFunctions(library, exposer, parsed)
+    def generateFunctions(library, exposer, parsed, requiredClasses)
       functions = exposer.findExposedFunctions(parsed) 
 
       extraData = []
@@ -123,7 +138,7 @@ local #{localVarOut} = class \"#{cls.name}\" {
 
       # for each function, work out how best to call it.
       functions.sort.each do |name, fns|
-        generateFunction(library, parsed, name, fns, formattedFunctions, extraData)
+        generateFunction(library, parsed, name, fns, formattedFunctions, extraData, requiredClasses)
       end
 
       return formattedFunctions, extraData

@@ -7,10 +7,10 @@ module Lua
   module Function
 
     class Generator
-      def initialize(classifiers, line, getter)
+      def initialize(classifiers, externalLine, line, getter)
         @lineStart = line
         @getter = getter
-        @wrapperGenerator = WrapperGenerator.new(classifiers, line, getter)
+        @wrapperGenerator = WrapperGenerator.new(classifiers, externalLine, getter)
         reset()
       end
 
@@ -35,7 +35,7 @@ module Lua
 
       # Generate the function, takes a [library], the owner [cls],
       # and a list of functions to generate for [fns]
-      def generate(library, cls, fns)
+      def generate(library, cls, fns, requiredClasses)
         reset()
 
         FunctionVisitor.visit(cls, fns, self)
@@ -54,7 +54,7 @@ module Lua
           localName = "#{clsName}_#{@name}_wrapper"
           @bind = localName
           @bindIsForwarder = true
-          @wrapper = @wrapperGenerator.generate(localName, library, clsName, @overloads, @argumentClassifiers, @returnClassifiers)
+          @wrapper = @wrapperGenerator.generate(localName, library, clsName, @overloads, @argumentClassifiers, @returnClassifiers, requiredClasses)
         else
           @bind = "#{@getter}(\"#{library.name}\", \"#{clsName}\", \"#{@name}\")"
           @wrapper = ""

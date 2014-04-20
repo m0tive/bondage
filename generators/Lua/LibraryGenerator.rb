@@ -10,10 +10,13 @@ module Lua
     def initialize(classPlugins, classifiers, getter, resolver)
       @lineStart = "  "
       @pathResolver = resolver
+      @classes = { }
       @getter = getter
       @classifiers = classifiers
-      @clsGen = ClassGenerator.new(classPlugins, classifiers, @lineStart, getter, resolver)
+      @clsGen = ClassGenerator.new(classPlugins, classifiers, "", @lineStart, getter, resolver)
     end
+
+    attr_reader :classes
 
     # Generate lua classes into [dir]
     def generate(visitor, exposer)
@@ -60,9 +63,11 @@ module Lua
 
       data = @classes.map{ |cls, data| "#{ls}#{cls.name} = require(\"#{@pathResolver.pathFor(cls)}\")" }
 
+      requiredClasses = Set.new
+
       appendEnums(library, rootNs, data)
 
-      appendFunctions(library, exposer, rootNs, data)
+      appendFunctions(library, exposer, rootNs, data, requiredClasses)
 
       extraData = []
       extraDatas = ""
@@ -72,7 +77,7 @@ module Lua
 
       fileData = data.join(",\n\n")
 
-      @libraryDef = "#{extraDatas}local #{@libraryName} = {\n#{fileData}\n}\n\nreturn #{@libraryName}"
+      @libraryDef = "#{generateIncludes(requiredClasses)}#{extraDatas}local #{@libraryName} = {\n#{fileData}\n}\n\nreturn #{@libraryName}"
     end
 
     def appendEnums(library, rootNs, data)
@@ -84,16 +89,24 @@ module Lua
       end
     end
 
-    def appendFunctions(library, exposer, rootNs, data)
+    def appendFunctions(library, exposer, rootNs, data, requiredClasses)
       functions = exposer.findExposedFunctions(rootNs)
 
       # for each function, work out how best to call it.
-      fnGen = Function::Generator.new(@classifiers, @lineStart, @getter)
+      fnGen = Function::Generator.new(@classifiers, "", @lineStart, @getter)
       functions.sort.each do |name, fns|
-        fnGen.generate(library, rootNs, fns)
+        fnGen.generate(library, rootNs, fns, requiredClasses)
 
         data << "#{fnGen.docs}\n#{@lineStart}#{fnGen.name} = #{fnGen.bind}"
       end
+    end
+
+    def generateIncludes(clss)
+      if (clss.length == 0)
+        return ""
+      end
+
+      return clss.map{ |cls| "require \"#{@pathResolver.pathFor(cls)}\"" }.join("\n") + "\n\n"
     end
 
   end
