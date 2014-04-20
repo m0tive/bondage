@@ -15,11 +15,12 @@ module Lua
       @enums = []
     end
 
-    def generate(owner)
+    def generate(owner, exposer)
       reset()
 
       owner.enums.each do |name, enum|
-        if (name.empty?)
+        if (name.empty? || 
+          !exposer.allMetaData.isExposedEnum?(enum.fullyQualifiedName))
           next
         end
 

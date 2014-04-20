@@ -5,9 +5,15 @@ namespace Named
 class HelperThing
 {
 public:
+  /// \expose
+  enum TestTypes
+  {
+    TestA
+  };
+
   /// \brief set the foo
   /// \property foo
-  void setFoo(float a);
+  void setFoo(TestTypes a);
 
   /// \brief set the bar
   /// \property bar

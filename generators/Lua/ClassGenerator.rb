@@ -33,7 +33,7 @@ module Lua
       # if [cls] has a parent class, find its data and require path.
       parentInsert = generateClassParentData(exposer, cls)
 
-      enumInsert = generateEnums(parsed)
+      enumInsert = generateEnums(parsed, exposer)
 
       # find a brief comment for [cls]
       brief = parsed.comment.strippedCommand("brief")
@@ -73,8 +73,8 @@ local #{localVarOut} = class \"#{cls.name}\" {
       return clss.map{ |cls| "require \"#{@resolver.pathFor(cls)}\"" }.join("\n") + "\n\n"
     end
 
-    def generateEnums(parsed)
-      @enumGen.generate(parsed)
+    def generateEnums(parsed, exposer)
+      @enumGen.generate(parsed, exposer)
 
       if (@enumGen.enums.length == 0)
         return ""

@@ -133,7 +133,7 @@ class TestGenerator < Test::Unit::TestCase
   
     enumGen = Lua::EnumGenerator.new("")
 
-    enumGen.generate(cls)
+    enumGen.generate(cls, exposer)
 
     assert_equal 1, enumGen.enums.length
 
@@ -533,11 +533,15 @@ local HelperThing_cls = class "HelperThing" {
   -- \\sa setFoo
   foo = property(nil, HelperThing_setFoo_fwd),
 
+  TestTypes = {
+    TestA = 0,
+  },
+
   -- nil HelperThing:setBar(number a)
   -- \\brief set the bar
   setBar = HelperThing_setBar_fwd,
 
-  -- nil HelperThing:setFoo(number a)
+  -- nil HelperThing:setFoo(Named::HelperThing::TestTypes a)
   -- \\brief set the foo
   setFoo = HelperThing_setFoo_fwd
 }}, libGen.classes[clsMetaData]
@@ -563,6 +567,26 @@ local NamedClass_cls = class "NamedClass" {
   -- \\param data The pork to do.
   doAPork = NamedClass_doAPork_wrapper
 }}, libGen.classes[clsMetaData2]
+
+  assert_equal %{local _doMorePork_wrapper_fwd = getFunction("Named", "", "")
+local _doMorePork_wrapper = function(...)
+  local argCount = select("#")
+  if 1 == argCount then
+    return fwdName(select(0, ...))
+  end
+end
+
+local Named = {
+  HelperThing = require("Named.HelperThing"),
+
+  NamedClass = require("Named.NamedClass"),
+
+  -- nil Named.doMorePork(Named::HelperThing t)
+  -- \\brief Extra pork function
+  doMorePork = _doMorePork_wrapper
+}
+
+return Named}, libGen.library
   end
 end
 
