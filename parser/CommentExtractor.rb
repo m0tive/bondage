@@ -88,7 +88,7 @@ class CommentExtractor
 
     raise "invalid comment passed #{comment}" unless comment.kind_of?(FFI::Clang::Comment)
 
-    if (comment.is_whitespace)
+    if (comment.whitespace?)
       if (@debug)
         puts "#{debugPadd(1)}IGNORE\t[whitespace]"
       end
