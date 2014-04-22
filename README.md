@@ -93,10 +93,6 @@ libGen.write("c:\somedir\")
 
 ```
 
-Code Tour
-============
-
-
 
 > Written with [StackEdit](https://stackedit.io/).
 
