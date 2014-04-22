@@ -18,7 +18,7 @@ module Lua
 
       def reset
         @bind = ""
-        @signatures = []
+        @signatures = Set.new()
         @docs = ""
         @name = ""
         @brief = ""
@@ -63,7 +63,7 @@ module Lua
 
       def visitFunction(owner, function, functionIndex, argCount)
         if (@brief.empty?)
-          @brief = function.comment.strippedCommand("brief")
+          @brief = function.comment.commandText("brief")
         end
 
         @arguments = []

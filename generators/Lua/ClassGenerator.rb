@@ -1,6 +1,7 @@
 require_relative "../../exposer/ParsedLibrary.rb"
 require_relative "Function/Generator.rb"
 require_relative "RequireHelper.rb"
+require_relative "CommentHelper.rb"
 require_relative "EnumGenerator.rb"
 
 module Lua
@@ -37,7 +38,7 @@ module Lua
       enumInsert = generateEnums(parsed, exposer)
 
       # find a brief comment for [cls]
-      brief = parsed.comment.strippedCommand("brief")
+      brief = parsed.comment.commandText("brief")
 
       extraDatas = ""
       if (extraData.length != 0)
@@ -50,7 +51,7 @@ module Lua
       inc = Helper::generateRequires(@resolver, exposer, requiredClasses)
 
       # generate class output.
-      @classDefinition = "#{inc}#{extraDatas}-- \\brief #{brief}
+      @classDefinition = "#{inc}#{extraDatas}#{Helper::formatDocsTag('', 'brief', brief)}
 --
 local #{localVarOut} = class \"#{cls.name}\" {
 #{parentInsert}#{pluginInsert}#{enumInsert}

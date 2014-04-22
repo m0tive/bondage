@@ -1,3 +1,4 @@
+require_relative "../CommentHelper.rb"
 
 module Lua
 
@@ -9,17 +10,15 @@ module Lua
         # format the signatures with the param comments to form the preable for a funtion.
         comment = signatures.map{ |sig| "#{lineStart}-- #{sig}" }.join("\n")
 
-        commentLine = "\n#{lineStart}-- "
-
-        comment += "#{commentLine}\\brief #{brief}"
+        comment += "\n" + Helper::formatDocsTag(lineStart, 'brief', brief)
         namedArgs.to_a.sort.each do |argName, argBrief|
           if(!argName.empty? && !argBrief.empty?) 
-            comment += "#{commentLine}\\param #{argName} #{argBrief.strip}"
+            comment += "\n" + Helper::formatDocsTag(lineStart, 'param', "#{argName} #{argBrief.strip}")
           end
         end
 
         if(!returnBrief.empty?)
-          comment += "#{commentLine}\\return #{returnBrief}"
+          comment += "\n" + Helper::formatDocsTag(lineStart, 'return', returnBrief)
         end
 
         return comment

@@ -378,7 +378,6 @@ local var = class "TestClass" {
 
 -- nil TestClass:luaSample()
 -- nil TestClass:luaSample(number arg1)
--- nil TestClass:luaSample(number arg1)
 -- nil TestClass:luaSample(number arg1, number arg2)
 -- \\brief 
 luaSample = get("LuaFunctions", "TestClass", "luaSample")
@@ -594,3 +593,7 @@ return Named}, libGen.library
   end
 end
 
+# all functions in namespaces?
+# duplicate signatures
+# new lines in briefs
+# ------ in briefs
