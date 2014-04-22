@@ -27,12 +27,13 @@ module Lua
         return out
       end
 
-      return out + "\n" + (1..(lines.length)).map{ |i|
+      return out + "\n" + (1..(lines.length-1)).map{ |i|
         "#{lineStart}-- #{lines[i]}"
       }.join("\n")
 
+      puts out
 
-       out
+      return out
     end
 
   end

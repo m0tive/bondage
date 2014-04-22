@@ -56,8 +56,10 @@ class FunctionExposer
         puts " - asked to expose #{exposeFlag} automatically expose #{shouldExpose}"
         puts " - requested not to."
       end
-      return
+      return true
     end
+
+    return false
   end
 
   def putsExposeDetails(owner, fn, canExpose)

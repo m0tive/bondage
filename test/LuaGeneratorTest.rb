@@ -34,14 +34,20 @@ class TestGenerator < Test::Unit::TestCase
     @named = Library.new("Named", "test/testData/Named")
     @named.addIncludePath(".")
     @named.addFile("Named.h")
+
+    @comments = Library.new("Comments", "test/testData/Comments")
+    @comments.addIncludePath(".")
+    @comments.addFile("Comments.h")
     
     setupLibrary(@gen)
     setupLibrary(@luaFuncs)
     setupLibrary(@props)
     setupLibrary(@named)
+    setupLibrary(@comments)
   end
 
   def teardown
+    cleanLibrary(@comments)
     cleanLibrary(@named)
     cleanLibrary(@props)
     cleanLibrary(@luaFuncs)
@@ -590,6 +596,32 @@ local Named = {
 }
 
 return Named}, libGen.library
+  end
+
+  def test_comments
+    exposer, lib = exposeLibrary(@comments)
+
+    libGen = Lua::LibraryGenerator.new(
+      Lua::DEFAULT_PLUGINS,
+      Lua::DEFAULT_CLASSIFIERS,
+      "get", TestPathResolver.new)
+
+    libGen.generate(lib, exposer)
+
+    assert_equal %{local Comments = {
+  -- nil Comments.doMorePork(number t)
+  -- \\brief Extra pork function
+  -- \\param t does the pork
+  doMorePork = get("Comments", "", "doMorePork"),
+
+  -- nil Comments.doMorePork2(number t)
+  -- \\brief Extra Extra pork function
+  -- note that this is a longer brief.
+  -- \\param t does the pork
+  doMorePork2 = get("Comments", "", "doMorePork2")
+}
+
+return Comments}, libGen.library
   end
 end
 
