@@ -274,7 +274,7 @@ class TestExpose < Test::Unit::TestCase
     exposedClass = exposer.exposedMetaData.fullTypes["::Functions::SomeClass"].parsed
     assert_not_nil exposedClass
 
-    assert_equal 14, exposedClass.functions.length
+    assert_equal 17, exposedClass.functions.length
 
     fns = exposer.findExposedFunctions(exposedClass)
     assert_equal 6, fns.length
@@ -392,3 +392,5 @@ class TestExpose < Test::Unit::TestCase
     assert_nil bFns["pork"]
   end
 end
+
+# operators
