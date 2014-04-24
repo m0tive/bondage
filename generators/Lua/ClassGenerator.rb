@@ -132,7 +132,10 @@ local #{localVarOut} = class \"#{cls.name}\" {
     end
 
     def generateFunctions(library, exposer, parsed, requiredClasses)
-      functions = exposer.findExposedFunctions(parsed) 
+      operatorMatch = /\A[a-zA-Z_0-9]+\z/
+      functions = exposer.findExposedFunctions(parsed).select do |name, fns|
+        operatorMatch.match(name) != nil
+      end 
 
       extraData = []
       formattedFunctions = []

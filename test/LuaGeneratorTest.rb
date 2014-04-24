@@ -279,7 +279,7 @@ return Gen"
     rootNs = lib.getExposedNamespace()
     assert_not_nil rootNs
 
-    assert_equal 4, cls.functions.length
+    assert_equal 6, cls.functions.length
     assert_equal 1, rootNs.functions.length
 
     fnGen = Lua::Function::Generator.new(Lua::DEFAULT_CLASSIFIERS, "", "", "get")
@@ -385,7 +385,11 @@ local var = class "TestClass" {
 -- nil TestClass:luaSample(number arg1)
 -- nil TestClass:luaSample(number arg1, number arg2)
 -- \\brief 
-luaSample = get("LuaFunctions", "TestClass", "luaSample")
+luaSample = get("LuaFunctions", "TestClass", "luaSample"),
+
+-- boolean TestClass:operatorPork()
+-- \\brief 
+operatorPork = get("LuaFunctions", "TestClass", "operatorPork")
 }}, clsGen.classDefinition
 
     clsGen.generate(lib.library, exposer, clsMetaData2, "var")

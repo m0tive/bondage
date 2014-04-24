@@ -10,6 +10,9 @@ public:
   void luaSample(int);
   void luaSample(float);
   void luaSample(int, float);
+  
+  bool operator==(float) const;
+  bool operatorPork();
 };
 
 /// \expose
