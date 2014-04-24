@@ -111,6 +111,10 @@ class TypeDataSet
 
   attr_reader :types, :fullTypes
 
+  def debugTypes
+    return types.keys
+  end
+
   # Merge this set with another set.
   def merge(other)
     @types.merge!(other.types)
@@ -165,6 +169,8 @@ class TypeDataSet
 
   # Save this set into [dir], in json form
   def export(dir)
+    raise "Invalid export directory '#{dir}'" unless File.directory?(dir)
+
     File.open(dir + "/types.json", 'w') do |file|
       file.write(JSON.pretty_generate(@types))
     end

@@ -34,7 +34,10 @@ module CPP
       distance = 0
       cls = md.parentClass
       while(!cls.empty?)
-        parentName = @exposer.exposedMetaData.findClass(cls).parentClass
+        foundClass = @exposer.allMetaData.findClass(cls)
+        raise "Failed to locate exposed class #{cls} in exposer #{@exposer.allMetaData.debugTypes}" unless foundClass
+
+        parentName = foundClass.parentClass
         distance += 1
         if (!parentName)
           return cls, distance

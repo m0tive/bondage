@@ -212,13 +212,61 @@ private
   end
 
   def gatherClasses(visitor)
-    visitor.classes.each do |cls|
+    classes = sortClasses(visitor.classes)
+
+    # sort classes by inheritance
+
+    classes.each do |cls|
       if(canExposeClass(cls))
         addExposedClass(visitor, cls)
       else
         addPartiallyExposedClass(visitor, cls)
       end
     end
+  end
+
+  def sortClasses(classes)
+    parentMap = { }
+
+    classes.each do |cls|
+      parentMap[cls.fullyQualifiedName] = {
+        :data => cls,
+        :parents => findValidParentClasses(cls),
+        :children => [],
+        :visited => false
+      }
+    end
+
+    parentMap.each do |clsPath, data|
+      data[:parents].each do |parent|
+        parentData = parentMap[parent]
+        if (parentData)
+          parentData[:children] << clsPath
+        end
+      end
+    end
+
+    list = []
+
+    def append(list, parentMap, id)
+      data = parentMap[id]
+      if (data[:visited])
+        return
+      end
+
+      data[:children].each do |child|
+        append(list, parentMap, child)
+      end
+
+      data[:visited] = true
+      list << data[:data]
+    end
+
+    parentMap.keys.each do |clsPath|
+      append(list, parentMap, clsPath)
+    end
+
+    return list.reverse
   end
 
   def addExposedClass(visitor, cls)

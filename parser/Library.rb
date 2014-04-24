@@ -2,6 +2,7 @@
 class Library
   def initialize(name, path, exportMacro=nil)
     @name = name
+    @namespaceName = name
     @root = path
     @includePaths = []
     @files = []
@@ -10,6 +11,7 @@ class Library
   end
 
   attr_reader :name, :files, :root, :dependencies, :exportMacro
+  attr_accessor :namespaceName
 
   # The path which should hold auto gen files for the library
   def autogenPath

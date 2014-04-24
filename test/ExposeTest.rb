@@ -394,3 +394,5 @@ class TestExpose < Test::Unit::TestCase
 end
 
 # operators
+# return briefs for secondary parameters.
+# parent classes in other libraries
