@@ -237,15 +237,15 @@ return InheritTest2_cls"
 --
 
 local Gen = {
+  CtorGen = require(\"Gen.CtorGen\"),
+
+  MultipleReturnGen = require(\"Gen.MultipleReturnGen\"),
+
   Gen = require(\"Gen.Gen\"),
 
   InheritTest = require(\"Gen.InheritTest\"),
 
   InheritTest2 = require(\"Gen.InheritTest2\"),
-
-  MultipleReturnGen = require(\"Gen.MultipleReturnGen\"),
-
-  CtorGen = require(\"Gen.CtorGen\"),
 
   GlbEnum = {
     A = 0,
@@ -575,7 +575,7 @@ local NamedClass_cls = class "NamedClass" {
   doAPork = NamedClass_doAPork_wrapper
 }}, libGen.classes[clsMetaData2]
 
-  assert_equal %{local HelperThing = require \"Named.HelperThing\"
+  assert_equal %{local HelperThing = require "Named.HelperThing"
 
 local _doMorePork_wrapper_fwd = getFunction("Named", "", "")
 local _doMorePork_wrapper = function(...)
@@ -586,9 +586,9 @@ local _doMorePork_wrapper = function(...)
 end
 
 local Named = {
-  HelperThing = require("Named.HelperThing"),
-
   NamedClass = require("Named.NamedClass"),
+
+  HelperThing = require("Named.HelperThing"),
 
   -- nil Named.doMorePork(Named::HelperThing t)
   -- \\brief Extra pork function

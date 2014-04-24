@@ -43,6 +43,83 @@ const bondage::Library &bindings()
 }
 
 
+// Exposing class ::Gen::CtorGen
+::Gen::CtorGen * Gen_CtorGen_CtorGen_overload0()
+{
+  auto result = bondage::WrappedClassHelper< ::Gen::CtorGen >::create();
+  return result;
+}
+
+std::tuple< ::Gen::CtorGen *, int > Gen_CtorGen_CtorGen_overload1()
+{
+  std::tuple< ::Gen::CtorGen *, int > result;
+
+  std::get<0>(result) = bondage::WrappedClassHelper< ::Gen::CtorGen >::create(&std::get<1>(result));
+  return result;
+}
+
+const bondage::Function Gen_CtorGen_methods[] = {
+  bondage::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
+    Reflect::FunctionArgCountSelectorBlock<0,
+      bondage::FunctionBuilder::buildCall< ::Gen::CtorGen *(*)(), &Gen_CtorGen_CtorGen_overload0 >
+      >,
+    Reflect::FunctionArgCountSelectorBlock<1,
+      bondage::FunctionBuilder::buildCall< std::tuple< ::Gen::CtorGen *, int >(*)(), &Gen_CtorGen_CtorGen_overload1 >
+      >
+    > >("CtorGen")
+};
+
+
+BONDAGE_IMPLEMENT_EXPOSED_CLASS(
+  Gen_CtorGen,
+  g_bondage_library_Gen,
+  ::Gen,
+  CtorGen,
+  Gen_CtorGen_methods,
+  1);
+
+
+
+// Exposing class ::Gen::MultipleReturnGen
+int Gen_MultipleReturnGen_test_overload0(::Gen::MultipleReturnGen & inputArg0)
+{
+  int result;
+
+  inputArg0.test(&result);
+  return result;
+}
+
+std::tuple< int, float > Gen_MultipleReturnGen_test_overload1(::Gen::MultipleReturnGen & inputArg0, float * inputArg1)
+{
+  std::tuple< int, float > result;
+  std::get<1>(result) = * std::forward<float *>(inputArg1);
+
+  inputArg0.test(&std::get<0>(result), &std::get<1>(result));
+  return result;
+}
+
+const bondage::Function Gen_MultipleReturnGen_methods[] = {
+  bondage::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
+    Reflect::FunctionArgCountSelectorBlock<1,
+      bondage::FunctionBuilder::buildMemberStandinCall< int(*)(::Gen::MultipleReturnGen &), &Gen_MultipleReturnGen_test_overload0 >
+      >,
+    Reflect::FunctionArgCountSelectorBlock<2,
+      bondage::FunctionBuilder::buildMemberStandinCall< std::tuple< int, float >(*)(::Gen::MultipleReturnGen &, float *), &Gen_MultipleReturnGen_test_overload1 >
+      >
+    > >("test")
+};
+
+
+BONDAGE_IMPLEMENT_EXPOSED_CLASS(
+  Gen_MultipleReturnGen,
+  g_bondage_library_Gen,
+  ::Gen,
+  MultipleReturnGen,
+  Gen_MultipleReturnGen_methods,
+  1);
+
+
+
 // Exposing class ::Gen::Gen
 void Gen_Gen_test2_overload0(::Gen::Gen & inputArg0, int inputArg1)
 {
@@ -129,83 +206,6 @@ BONDAGE_IMPLEMENT_EXPOSED_CLASS(
   InheritTest2,
   nullptr,
   0);
-
-
-
-// Exposing class ::Gen::MultipleReturnGen
-int Gen_MultipleReturnGen_test_overload0(::Gen::MultipleReturnGen & inputArg0)
-{
-  int result;
-
-  inputArg0.test(&result);
-  return result;
-}
-
-std::tuple< int, float > Gen_MultipleReturnGen_test_overload1(::Gen::MultipleReturnGen & inputArg0, float * inputArg1)
-{
-  std::tuple< int, float > result;
-  std::get<1>(result) = * std::forward<float *>(inputArg1);
-
-  inputArg0.test(&std::get<0>(result), &std::get<1>(result));
-  return result;
-}
-
-const bondage::Function Gen_MultipleReturnGen_methods[] = {
-  bondage::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
-    Reflect::FunctionArgCountSelectorBlock<1,
-      bondage::FunctionBuilder::buildMemberStandinCall< int(*)(::Gen::MultipleReturnGen &), &Gen_MultipleReturnGen_test_overload0 >
-      >,
-    Reflect::FunctionArgCountSelectorBlock<2,
-      bondage::FunctionBuilder::buildMemberStandinCall< std::tuple< int, float >(*)(::Gen::MultipleReturnGen &, float *), &Gen_MultipleReturnGen_test_overload1 >
-      >
-    > >("test")
-};
-
-
-BONDAGE_IMPLEMENT_EXPOSED_CLASS(
-  Gen_MultipleReturnGen,
-  g_bondage_library_Gen,
-  ::Gen,
-  MultipleReturnGen,
-  Gen_MultipleReturnGen_methods,
-  1);
-
-
-
-// Exposing class ::Gen::CtorGen
-::Gen::CtorGen * Gen_CtorGen_CtorGen_overload0()
-{
-  auto result = bondage::WrappedClassHelper< ::Gen::CtorGen >::create();
-  return result;
-}
-
-std::tuple< ::Gen::CtorGen *, int > Gen_CtorGen_CtorGen_overload1()
-{
-  std::tuple< ::Gen::CtorGen *, int > result;
-
-  std::get<0>(result) = bondage::WrappedClassHelper< ::Gen::CtorGen >::create(&std::get<1>(result));
-  return result;
-}
-
-const bondage::Function Gen_CtorGen_methods[] = {
-  bondage::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
-    Reflect::FunctionArgCountSelectorBlock<0,
-      bondage::FunctionBuilder::buildCall< ::Gen::CtorGen *(*)(), &Gen_CtorGen_CtorGen_overload0 >
-      >,
-    Reflect::FunctionArgCountSelectorBlock<1,
-      bondage::FunctionBuilder::buildCall< std::tuple< ::Gen::CtorGen *, int >(*)(), &Gen_CtorGen_CtorGen_overload1 >
-      >
-    > >("CtorGen")
-};
-
-
-BONDAGE_IMPLEMENT_EXPOSED_CLASS(
-  Gen_CtorGen,
-  g_bondage_library_Gen,
-  ::Gen,
-  CtorGen,
-  Gen_CtorGen_methods,
-  1);
 
 
 #include "CastHelper.Gen_Gen.h"
