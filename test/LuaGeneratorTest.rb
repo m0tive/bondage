@@ -13,7 +13,6 @@ class TestPathResolver
   end
 end
 
-
 class TestGenerator < Test::Unit::TestCase
   def setup
     @gen = Library.new("Gen", "test/testData/Generator")
@@ -116,7 +115,7 @@ class TestGenerator < Test::Unit::TestCase
 
     exposer, lib = exposeLibrary(stringLibrary)
 
-    libGen = Lua::LibraryGenerator.new([], [], "getFunction", TestPathResolver.new)
+    libGen = Lua::LibraryGenerator.new([], [], "getFunction", TestPathResolver.new, HeaderHelper.new)
 
     libGen.generate(lib, exposer)
 
@@ -148,7 +147,7 @@ class TestGenerator < Test::Unit::TestCase
   def test_genTest
     exposer, lib = exposeLibrary(@gen)
 
-    libGen = Lua::LibraryGenerator.new([], [], "getFunction", TestPathResolver.new)
+    libGen = Lua::LibraryGenerator.new([], [], "getFunction", TestPathResolver.new, HeaderHelper.new)
 
     libGen.generate(lib, exposer)
 
@@ -526,7 +525,9 @@ setPork = PropertyClass_setPork_fwd
     libGen = Lua::LibraryGenerator.new(
       Lua::DEFAULT_PLUGINS,
       Lua::DEFAULT_CLASSIFIERS,
-      "getFunction", TestPathResolver.new)
+      "getFunction",
+      TestPathResolver.new,
+      HeaderHelper.new)
 
     clsMetaData = exposer.exposedMetaData.findClass("::Named::HelperThing")
     cls2 = clsMetaData.parsed
@@ -618,7 +619,9 @@ return Named}, libGen.library
     libGen = Lua::LibraryGenerator.new(
       Lua::DEFAULT_PLUGINS,
       Lua::DEFAULT_CLASSIFIERS,
-      "get", TestPathResolver.new)
+      "get",
+      TestPathResolver.new,
+      HeaderHelper.new)
 
     libGen.generate(lib, exposer)
 

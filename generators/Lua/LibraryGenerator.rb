@@ -8,9 +8,10 @@ module Lua
   # Generate lua exposing code for C++ classes
   class LibraryGenerator
     # create a lua generator for a [library], and a given [exposer].
-    def initialize(classPlugins, classifiers, getter, resolver)
+    def initialize(classPlugins, classifiers, getter, resolver, headerHelper)
       @lineStart = "  "
       @pathResolver = resolver
+      @headerHelper = headerHelper
       @classes = { }
       @getter = getter
       @classifiers = classifiers
@@ -41,14 +42,14 @@ module Lua
     def write(dir)
       @classes.each do |cls, data|
         File.open(dir + "/#{cls.name}.lua", 'w') do |file|
-          file.write(filePreamble("--") + "\n\n")
+          file.write(@headerHelper.filePreamble("--") + "\n\n")
           file.write(data)
           file.write("\n\nreturn #{localName(cls)}")
         end
       end
 
       File.open(dir + "/#{@libraryName}Library.lua", 'w') do |file|
-        file.write(filePreamble("--") + "\n\n")
+        file.write(@headerHelper.filePreamble("--") + "\n\n")
         file.write(@library)
       end
     end

@@ -8,7 +8,13 @@ module Lua
 
   # Generate lua exposing code for C++ classes
   class ClassGenerator
-    def initialize(classPlugins, classifiers, externalLine, lineStart, getter, resolver)
+    def initialize(
+        classPlugins,
+        classifiers,
+        externalLine,
+        lineStart,
+        getter,
+        resolver)
       @lineStart = lineStart
       @plugins = classPlugins
       @fnGen = Function::Generator.new(classifiers, externalLine, @lineStart, getter)

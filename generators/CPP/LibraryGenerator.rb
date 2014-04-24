@@ -22,9 +22,10 @@ module CPP
       attr_reader :literalName, :path, :rootPath, :distance
     end
 
-    def initialize()
+    def initialize(headerHelper)
       @header = ""
       @source = ""
+      @headerHelper = headerHelper
     end
 
     attr_reader :header, :source
@@ -76,11 +77,11 @@ module CPP
         clsSrc,
         clsGen,
         derivedClasses)
-      @header = filePreamble("//") + "\n\n" +
+      @header = @headerHelper.filePreamble("//") + "\n\n" +
         generateLibraryHeader(libraryName, library, exposer, rootNs, files) +
         "\n\n" + clsHead.join("\n") + "\n"
 
-      @source = filePreamble("//") + "\n" +
+      @source = @headerHelper.filePreamble("//") + "\n" +
         includes(library) + 
         generateLibrarySource(libraryName, library, exposer, rootNs, files) +
         "\n\n\n" + clsSrc.join("\n\n\n") +

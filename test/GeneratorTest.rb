@@ -7,7 +7,6 @@ require_relative "../generators/CPP/LibraryGenerator.rb"
 
 require 'test/unit'
 
-
 class TestGenerator < Test::Unit::TestCase
   def setup
     @gen = Library.new("Gen", "test/testData/Generator")
@@ -236,7 +235,7 @@ class TestGenerator < Test::Unit::TestCase
     gen.generate(exposer, derived, "var")
     assert_equal "BONDAGE_EXPOSED_DERIVED_CLASS(::Gen::InheritTest, ::Gen::Gen, ::Gen::Gen)", gen.interface
 
-    libGen = CPP::LibraryGenerator.new()
+    libGen = CPP::LibraryGenerator.new(HeaderHelper.new)
 
     expectedHeader = lib.library.autogenPath + "/../autogen_baked/Gen.h"
     expectedSource = lib.library.autogenPath + "/../autogen_baked/Gen.cpp"
@@ -267,7 +266,7 @@ class TestGenerator < Test::Unit::TestCase
     genExposer, genLib = exposeLibrary(@gen)
     exposer, lib = exposeLibrary(stringLibrary)
 
-    libGen = CPP::LibraryGenerator.new()
+    libGen = CPP::LibraryGenerator.new(HeaderHelper.new)
 
     expectedHeader = libGen.headerPath(genLib.library)
     expectedSource = libGen.sourcePath(genLib.library)

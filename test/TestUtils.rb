@@ -66,3 +66,15 @@ def runProcess(process, debug=false)
     raise output
   end
 end
+
+COPYRIGHT_MESSAGE = "Copyright me, fool. No, copying and stuff."
+AUTOGEN_MESSAGE = "This file is auto generated, do not change it!"
+
+class HeaderHelper
+  def filePreamble(lineStart)
+    return "#{lineStart} #{COPYRIGHT_MESSAGE}
+#{lineStart}
+#{lineStart} #{AUTOGEN_MESSAGE}
+#{lineStart}"
+  end
+end
