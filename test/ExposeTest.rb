@@ -168,6 +168,12 @@ class TestExpose < Test::Unit::TestCase
     assert_equal "::ParentB::S", exposer.allMetaData.types.keys[10]
     assert_equal "::ParentB::S", exposer.allMetaData.fullTypes.keys[6]
     assert_equal "::ParentB::R", exposer.allMetaData.types.keys[11]
+
+    assert_equal "::ParentB::Q",
+        exposer.findParentClass(exposer.exposedMetaData.findClass("::ParentB::R").parsed)
+
+    assert_equal "::ParentA::E",
+        exposer.findParentClass(exposer.exposedMetaData.findClass("::ParentB::Y").parsed)
   end
 
   def test_enum
@@ -399,3 +405,4 @@ end
 # operators
 # return briefs for secondary parameters.
 # parent classes in other libraries
+

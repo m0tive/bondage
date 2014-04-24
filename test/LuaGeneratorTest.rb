@@ -1,4 +1,3 @@
-# indexes in methods
 require_relative 'TestUtils.rb'
 require_relative "../generators/Lua/LibraryGenerator.rb"
 require_relative "../generators/Lua/Function/Generator.rb"
@@ -624,8 +623,3 @@ return Named}, libGen.library
 return Comments}, libGen.library
   end
 end
-
-# all functions in namespaces?
-# duplicate signatures
-# new lines in briefs
-# ------ in briefs

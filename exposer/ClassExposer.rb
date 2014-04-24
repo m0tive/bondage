@@ -53,6 +53,20 @@ class ClassExposer
     return functions
   end
 
+  def findParentClass(cls)
+    validSuperClasses = findValidParentClasses(cls)
+
+    # find valid super classes
+    validSuperClasses.each do |clsPath|
+      # if a super class is exposed in a parent library, then can partially expose the class.
+      if(@allMetaData.canDeriveFrom?(clsPath))
+        return clsPath
+      end
+    end
+
+    return nil
+  end
+  
 private
   # Find if an enum can be exposed.
   def canExposeEnum(enum)
@@ -115,20 +129,6 @@ private
 
     hasFlag = cmd.hasArg("derivable")
     return hasFlag 
-  end
-
-  def findParentClass(cls)
-    validSuperClasses = findValidParentClasses(cls)
-
-    # find valid super classes
-    validSuperClasses.each do |clsPath|
-      # if a super class is exposed in a parent library, then can partially expose the class.
-      if(@allMetaData.canDeriveFrom?(clsPath))
-        return clsPath
-      end
-    end
-
-    return nil
   end
 
   # find if a class can be partially exposed (ie, if one of its parent classes is exposed.)
