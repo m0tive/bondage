@@ -1,6 +1,10 @@
 namespace ParentA
 {
 
+
+class C;
+class H;
+
 class A
 {
 };
