@@ -401,7 +401,3 @@ class TestExpose < Test::Unit::TestCase
     assert_nil bFns["pork"]
   end
 end
-
-# operators
-# return briefs for secondary parameters.
-

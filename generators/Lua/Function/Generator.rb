@@ -22,7 +22,7 @@ module Lua
         @docs = ""
         @name = ""
         @brief = ""
-        @returnComment = ""
+        @returnComments = { }
         @namedArgs = { }
         @argumentClassifiers = []
         @returnClassifiers = []
@@ -47,7 +47,7 @@ module Lua
           clsName = cls.name
         end
 
-        @docs = DocumentationGenerator.generate(@lineStart, @signatures, @brief, @returnComment, @namedArgs)
+        @docs = DocumentationGenerator.generate(@lineStart, @signatures, @brief, @returnComments, @namedArgs)
 
         # If any classifiers are used, we need to generate a wrapper
         if (@anyClassifiersUsed)
@@ -92,8 +92,8 @@ module Lua
         if (function.returnType)
           type, brief = extractArgumentClassifier(function.returnBrief, @returnClassifiers, 0)
 
-          if (@returnComment.empty?)
-            @returnComment = brief.strip
+          if (!@returnComments[:result] || @returnComments[:result].empty?)
+            @returnComments[:result] = brief.strip
           end
 
           @returnTypes << function.returnType
@@ -132,7 +132,9 @@ module Lua
 
         @arguments << arg
 
-        visitArgument(arg, type, brief)
+        if (!arg.name.empty? && !@namedArgs.include?(arg.name))
+          @namedArgs[arg.name] = brief
+        end
       end
 
       def visitOutputArgument(fn, n, argCount, arg)
@@ -142,7 +144,9 @@ module Lua
 
         @returnTypes << arg.type
 
-        visitArgument(arg, type, brief)
+        if (!arg.name.empty? && !@namedArgs.include?(arg.name))
+          @returnComments["#{i} #{arg.name}"] = brief
+        end
       end
 
       def visitInputOutputArgument(fn, n, argCount, arg)
@@ -178,9 +182,6 @@ module Lua
       end
 
       def visitArgument(arg, type, brief)
-        if (!arg.name.empty? && !@namedArgs.include?(arg.name))
-          @namedArgs[arg.name] = brief
-        end
       end
     end    
   end

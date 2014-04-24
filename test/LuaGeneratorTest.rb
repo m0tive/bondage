@@ -314,17 +314,19 @@ return Gen"
     assert_equal false, overloads[2].static
     assert_nil overloads[3]
     assert_not_nil overloads[4]
-    assert_equal 2, overloads[4].returnTypes[0].length
+    assert_equal 3, overloads[4].returnTypes[0].length
     assert_equal true, overloads[4].static
 
     assert_equal "-- number TestClassIndexed:luaSample()
 -- number TestClassIndexed:luaSample(number idx)
 -- number TestClassIndexed:luaSample(number idx, number arg2)
--- number, number TestClassIndexed.luaSample(number idx, number a, number b, number idx3)
+-- number, number, number TestClassIndexed.luaSample(number idx, number a, number b, number idx3)
 -- \\brief sample
 -- \\param idx the Index
--- \\param idx2 the Index2
--- \\param idx3 the Index2", fnGen.docs
+-- \\param idx3 the Index2
+-- \\return returns an index
+-- \\param[out] 1 idx2 the Index2
+-- \\param[out] 2 out2 sweet output", fnGen.docs
 
     assert_equal "local TestClassIndexed_luaSample_wrapper_fwd = get(\"LuaFunctions\", \"TestClassIndexed\", \"\")
 local TestClassIndexed_luaSample_wrapper = function(...)
@@ -342,8 +344,8 @@ local TestClassIndexed_luaSample_wrapper = function(...)
     return (ret0-1)
   end
   if 4 == argCount then
-    local ret0, ret1 = fwdName((select(0, ...)-1), select(1, ...), select(2, ...), (select(3, ...)-1))
-    return (ret0-1), (ret1-1)
+    local ret0, ret1, ret2 = fwdName((select(0, ...)-1), select(1, ...), select(2, ...), (select(3, ...)-1))
+    return (ret0-1), (ret1-1), ret2
   end
 end", fnGen.wrapper
 
@@ -409,6 +411,10 @@ local TestClassIndexed_luaSample_wrapper = function(...)
     local ret0 = fwdName((select(0, ...)-1), select(1, ...))
     return (ret0-1)
   end
+  if 4 == argCount then
+    local ret0, ret1, ret2 = fwdName((select(0, ...)-1), select(1, ...), select(2, ...), (select(3, ...)-1))
+    return (ret0-1), (ret1-1), ret2
+  end
 end
 
 local TestClassIndexed_luaSample2_wrapper_fwd = get("LuaFunctions", "TestClassIndexed", "")
@@ -427,8 +433,13 @@ local var = class "TestClassIndexed" {
 -- number TestClassIndexed:luaSample()
 -- number TestClassIndexed:luaSample(number idx)
 -- number TestClassIndexed:luaSample(number idx, number arg2)
+-- number, number, number TestClassIndexed.luaSample(number idx, number a, number b, number idx3)
 -- \\brief sample
 -- \\param idx the Index
+-- \\param idx3 the Index2
+-- \\return returns an index
+-- \\param[out] 1 idx2 the Index2
+-- \\param[out] 2 out2 sweet output
 luaSample = TestClassIndexed_luaSample_wrapper,
 
 -- LuaFunctions::TestClassIndexed TestClassIndexed:luaSample2()

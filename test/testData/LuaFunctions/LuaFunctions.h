@@ -22,7 +22,7 @@ public:
   short luaSample();
   /// \brief sample
   /// \param idx [index] the Index
-  /// \return [index]
+  /// \return [index] returns an index
   short luaSample(int idx);
   /// \brief sample
   /// \return [index]
@@ -30,8 +30,9 @@ public:
   /// \brief sample
   /// \param[out] idx2 [index] the Index2
   /// \param idx3 [index] the Index2
-  /// \return [index]
-  static short luaSample(int idx, double a, float b, int &idx2, int &idx3);
+  /// \param[out] out2 sweet output
+  /// \return [index] the result
+  static short luaSample(int idx, double a, float b, int &idx2, const int &idx3, float *out2);
 
 
   /// \return [index]
