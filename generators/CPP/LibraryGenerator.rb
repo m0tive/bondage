@@ -88,15 +88,18 @@ module CPP
         "\n\n" + generateDerivedCasts(clsGen, derivedClasses)
     end
 
+    def generateIncludePath(libraryfile)
+      return Pathname.new(libraryfile).relative_path_from(@libraryPath).cleanpath
+    end
+
     def generateInclude(libraryfile)
-      path = Pathname.new(libraryfile).relative_path_from(@libraryPath).cleanpath
-      return "#include \"#{path}\""
+      return "#include \"#{generateIncludePath(libraryfile)}\""
     end
 
     def coreIncludeFiles(library)
       sourcefiles = [ TYPE_NAMESPACE + "/RuntimeHelpersImpl.h", "utility", "tuple" ]
 
-      library.dependencies.each{ |l| sourcefiles << headerPath(l) }
+      library.dependencies.each{ |l| sourcefiles << generateIncludePath(headerPath(l)) }
       return sourcefiles
     end
 

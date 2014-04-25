@@ -1,6 +1,6 @@
 # Library is a group of classes and settings which can be exposed as a group
 class Library
-  def initialize(name, path, exportMacro=nil)
+  def initialize(name, path="", exportMacro=nil)
     @name = name
     @namespaceName = name
     @root = path
@@ -10,8 +10,8 @@ class Library
     @exportMacro = exportMacro ? exportMacro : name.upcase() + "_EXPORT"
   end
 
-  attr_reader :name, :files, :root, :dependencies, :exportMacro
-  attr_accessor :namespaceName
+  attr_reader :name, :files, :exportMacro
+  attr_accessor :namespaceName, :root, :includePaths, :dependencies
 
   # The path which should hold auto gen files for the library
   def autogenPath
@@ -39,6 +39,11 @@ class Library
   # add a dependency library to this library
   def addDependency(dep)
     @dependencies << dep
+  end
+
+  # add a dependency library to this library
+  def addDependencies(depArr)
+    @dependencies = @dependencies.concat(depArr)
   end
 
   # add an include path to the library
