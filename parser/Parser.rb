@@ -24,6 +24,18 @@ class Parser
     @index = FFI::Clang::Index.new
     @library = library
 
+    host_os = RbConfig::CONFIG['host_os']
+    case host_os
+    when /mswin|msys|mingw|cygwin|bccwin|wince|emc/
+      @caseInsensitive = true
+    when /darwin|mac os/
+      @caseInsensitive = false
+    when /linux/
+      @caseInsensitive = false
+    when /solaris|bsd/
+      @caseInsensitive = false
+    end
+
     sourceName = "DATA.cpp"
 
     args = [
@@ -79,18 +91,27 @@ private
     end
 
     toFind = Pathname.new(file).cleanpath.to_s
-    return isLibraryFile(toFind)
+    return !isLibraryFile(toFind)
   end
 
   def isLibraryFile(toFind)
     if(@library.files.any?{ |path|
         norm = Pathname.new(path).cleanpath.to_s
-        next toFind[-norm.length, toFind.length] == norm
+        if (@caseInsensitive)
+          found = toFind[-norm.length, toFind.length]
+          if (norm == nil || found == nil)
+            next false
+          end
+
+          next found.downcase == norm.downcase
+        else
+          next toFind[-norm.length, toFind.length] == norm
+        end
       })
-      return false
+      return true
     end
 
-    return true
+    return false
   end
 
   def findNextState(oldType, cursor)
@@ -110,7 +131,14 @@ private
 
   def visitChildren(cursor, visitor, states, data)
     cursor.visit_children do |cursor, parent|
-      puts ('  ' * @depth) + "#{cursor.kind} #{cursor.spelling.inspect} #{cursor.raw_comment_text}" unless not @debug
+      if @debug then
+        file = ""
+        if (cursor.kind == :cursor_namespace or cursor.kind == :cursor_class_decl)
+          file = cursor.location.file ? cursor.location.file : cursor.extent.start.file
+        end
+        
+        puts ('  ' * @depth) + "#{cursor.kind} #{cursor.spelling.inspect} #{file} #{cursor.raw_comment_text}" unless not @debug
+      end
 
       newState = findNextState(states[-1], cursor)
 
