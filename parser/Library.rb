@@ -8,13 +8,22 @@ class Library
     @files = []
     @dependencies = []
     @exportMacro = exportMacro ? exportMacro : name.upcase() + "_EXPORT"
+
   end
 
-  attr_reader :name, :files, :exportMacro
-  attr_accessor :namespaceName, :root, :includePaths, :dependencies
+  attr_reader :name, :files
+  attr_accessor :namespaceName, :root, :includePaths, :dependencies, :exportMacro
+
+  def setAutogenPath(path)
+    @autogenPath = path
+  end
 
   # The path which should hold auto gen files for the library
   def autogenPath
+    if (@autogenPath)
+      return @autogenPath
+    end
+
     return "#{root}/autogen_#{name}"
   end
 
