@@ -53,7 +53,6 @@ class FunctionExposer
     if (cantExpose || !shouldExpose)
       if (@debug)
         puts "- #{owner.fullyQualifiedName}::#{fn.name}"
-        puts " - asked to expose #{exposeFlag} automatically expose #{shouldExpose}"
         puts " - requested not to."
       end
       return true
