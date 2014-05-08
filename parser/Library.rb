@@ -8,11 +8,11 @@ class Library
     @files = []
     @dependencies = []
     @exportMacro = exportMacro ? exportMacro : name.upcase() + "_EXPORT"
-
+    @coreInclude = "#{name}.h"
   end
 
   attr_reader :name, :files
-  attr_accessor :namespaceName, :root, :includePaths, :dependencies, :exportMacro
+  attr_accessor :namespaceName, :root, :includePaths, :dependencies, :exportMacro, :coreInclude
 
   def setAutogenPath(path)
     @autogenPath = path

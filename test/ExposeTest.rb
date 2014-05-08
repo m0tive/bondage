@@ -401,3 +401,8 @@ class TestExpose < Test::Unit::TestCase
     assert_nil bFns["pork"]
   end
 end
+
+
+# abstract classes
+# const functions
+# variadic functions

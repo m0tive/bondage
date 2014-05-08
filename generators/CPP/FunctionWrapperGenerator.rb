@@ -19,7 +19,11 @@ module CPP
       @functionIndex = functionIndex
       @name = function.name
 
-      @argumentHelper.reset(argCount != function.arguments.length || @constructor)
+      forceWrapper = argCount != function.arguments.length ||
+        @constructor ||
+        function.isVariadic
+
+      @argumentHelper.reset(forceWrapper)
     end
 
     def generateCall(owner, function, functionIndex, argCount, calls, extraFunctions)
@@ -88,7 +92,7 @@ module CPP
 
     def addReturnTypeOutputArgument(function)
       if (function.returnType)
-        @argumentHelper.outputs << Helpers::OutputArg.new(Helpers::argType(function.returnType), function.returnType.name)
+        @argumentHelper.outputs << Helpers::OutputArg.new(Helpers::argType(function.returnType), function.returnType.nameWithTypedefs)
       end
     end
 
@@ -135,18 +139,23 @@ module CPP
     def signature()
       result = returnType()
 
+      constness = ""
+
       ptrType = "(*)"
       types = nil
-      if (@argumentHelper.needsWrapper)
+      if (@argumentHelper.needsWrapper == true)
         types = @argumentHelper.inputs.join(", ")
       else
-        types = @function.arguments.map{ |arg| arg.type.name }.join(", ")
+        if (@function.isConst)
+          constness = " const"
+        end
+        types = @function.arguments.map{ |arg| arg.type.nameWithTypedefs }.join(", ")
         if (!@static)
           ptrType = "(#{@owner.fullyQualifiedName}::*)"
         end
       end
 
-      return "#{result}#{ptrType}(#{types})"
+      return "#{result}#{ptrType}(#{types})#{constness}"
     end
 
     def constructCall(args, resVar, returns)

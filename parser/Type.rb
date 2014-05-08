@@ -128,6 +128,16 @@ class Type
     return Type.stripTemplates(n)
   end
 
+  # find a name, without decoration or templating for the type, but includeing namespacesss
+  def nameWithTypedefs
+    n = @type.spelling
+    if(isConstQualified)
+      n.sub!("const ", "")
+    end
+
+    return Type.stripTemplates(n)
+  end
+
   # find a short name, without decoration or templating for the type.
   def shortName
     n = name

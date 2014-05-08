@@ -89,7 +89,7 @@ module CPP
     end
 
     def generateIncludePath(libraryfile)
-      return Pathname.new(libraryfile).relative_path_from(@libraryPath).cleanpath
+      return Pathname.new(libraryfile).relative_path_from(@libraryIncludePath).cleanpath
     end
 
     def generateInclude(libraryfile)
@@ -149,7 +149,7 @@ module CPP
       classHeaders << clsGen.interface
       classSources << clsGen.implementation
 
-      files << cls.parsed.fileLocation
+      files << cls.parsed.primaryFile
 
       if (cls.parentClass)
         rootPath, distance = clsGen.findRootClass(cls)
@@ -160,6 +160,8 @@ module CPP
 
     def generateLibraryHeader(libraryName, library, exposer, rootNs, files)
       raise "Invalid root namespace for #{library.name}." unless rootNs
+
+      files = files | Set.new(@headerHelper.requiredIncludes(library))
 
       includes = files.map{ |path| generateInclude(path) }.join("\n")
 
@@ -177,7 +179,7 @@ namespace #{library.name}
 
       methodsLiteral, methodsArray, extraMethodSource = fnGen.generateFunctionArray(methods, extraMethods, libraryName)
 
-      return "#{extraMethodSource}#{methodsArray}
+      return "using namespace #{library.namespaceName};\n\n#{extraMethodSource}#{methodsArray}
 bondage::Library #{libraryName}(
   \"#{library.name}\",
   #{methodsLiteral},
@@ -235,7 +237,13 @@ const bondage::Library &bindings()
 
     def setLibrary(lib)
       @library = lib
-      @libraryPath = Pathname.new(lib.root)
+
+      rootIncludePath = lib.root
+      if (lib.includePaths.length > 0)
+        rootIncludePath = lib.includePaths[0]
+      end
+
+      @libraryIncludePath = Pathname.new(rootIncludePath)
     end
   end
 end

@@ -9,15 +9,17 @@ module AST
     def initialize(parent, data, constructor) super(parent, data)
       @name = data[:name]
       @isConstructor = constructor
+      @isConst = FunctionItem.isConstFunction(data[:cursor])
       @isOverride = data[:cursor].overriddens.length != 0
       @comment = data[:comment]
       @accessSpecifier = data[:cursor].access_specifier
       @static = parent.kind_of?(NamespaceItem) || data[:cursor].static?
       @arguments = []
       @returnType = data[:type].resultType
+      @isVariadic = data[:cursor].variadic?
     end
 
-    attr_reader :returnType, :arguments, :isConstructor, :comment, :accessSpecifier, :static, :isOverride
+    attr_reader :returnType, :arguments, :isConstructor, :isConst, :comment, :accessSpecifier, :static, :isOverride, :isVariadic
 
     def self.build(parent, data, isCtor)
       return AST::FunctionItem.new(parent, data, isCtor)
@@ -57,6 +59,21 @@ module AST
       return type.isLValueReference() &&
              type.pointeeType.isConstQualified() &&
              type.pointeeType.shortName() == name()
+    end
+
+  private
+    def self.isConstFunction(cursor)
+      usr = cursor.usr
+      idx = usr.rindex('#')
+
+      if (idx == nil)
+        return false
+      end
+
+      num = usr[idx+1].to_i
+
+      # find usr, check for bit 1 in num after #
+      return num & 1 == 1
     end
   end
 end

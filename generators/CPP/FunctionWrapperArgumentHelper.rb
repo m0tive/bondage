@@ -15,14 +15,14 @@ module CPP
       outIdx, access = addOutputArgumentHelper(arg)
 
       inIdx = @inputs.length
-      @inputs << arg.type.name
+      @inputs << arg.type.nameWithTypedefs
       @callArguments << Helpers::WrapperArg.new(:inout, outIdx, inIdx, access)
       @needsWrapper = true
     end
     
     def visitInputArgument(fn, idx, cnt, arg)
       inIdx = @inputs.length
-      @inputs << arg.type.name
+      @inputs << arg.type.nameWithTypedefs
       @callArguments << Helpers::WrapperArg.new(:input, inIdx)
     end
 
@@ -63,13 +63,13 @@ module CPP
   private
     def addOutputArgumentHelper(arg)
       outIdx = @outputs.length
-      name = arg.type.name
+      name = arg.type.nameWithTypedefs
       accessor = Helpers::argType(arg.type)
 
       if (arg.type.isPointer)
-        name = arg.type.pointeeType().name
+        name = arg.type.pointeeType().nameWithTypedefs
       elsif (arg.type.isLValueReference)
-        name = arg.type.pointeeType().name
+        name = arg.type.pointeeType().nameWithTypedefs
       elsif (arg.type.isRValueReference)
         raise "R value reference as an output? this needs some thought."
       end
