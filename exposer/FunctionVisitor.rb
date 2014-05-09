@@ -3,22 +3,34 @@
 # this includes overloads created by default arguments
 class FunctionVisitor
   def self.visit(owner, fns, visitor, exposer=nil)
+    if (fns[0].name == "getSelectionList")
+      puts
+      puts
+      puts "SELECTION LIST #{fns.length} fns"
+    end
+
     functionIndex = 0
     fns.each do |fn|
       functionIndex += FunctionVisitor.visitFunction(owner, fn, functionIndex, visitor, exposer)
+    end
+
+    if (fns[0].name == "getSelectionList")
+      puts
+      puts
     end
   end
 
   def self.visitFunction(owner, fn, functionIndex, visitor, exposer)
     fn.arguments.each_index do |i|
       arg = fn.arguments[i]
-      if (exposer && !arg.functionExposer.canExposeArgument(arg))
-        return functionIndex
-      end
 
       if (arg.hasDefault && arg.input?)
         visitor.visitFunction(owner, fn, functionIndex, i)
         functionIndex += 1
+      end
+
+      if (exposer && !exposer.functionExposer.canExposeArgument(arg))
+        return functionIndex
       end
     end
 

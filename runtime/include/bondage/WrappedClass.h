@@ -63,12 +63,12 @@ public:
 
   template <typename A, typename B> static T *create(A &&a, B &&b)
     {
-    return new T(std::forward<A>(a), std::forward<Args>(b));
+    return new T(std::forward<A>(a), std::forward<B>(b));
     }
 
   template <typename A, typename B, typename C> static T *create(A &&a, B &&b, C &&c)
     {
-    return new T(std::forward<A>(a), std::forward<Args>(b), std::forward<Args>(c));
+    return new T(std::forward<A>(a), std::forward<B>(b), std::forward<C>(c));
     }
   };
 

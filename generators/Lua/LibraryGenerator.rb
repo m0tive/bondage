@@ -42,15 +42,17 @@ module Lua
     def write(dir)
       @classes.each do |cls, data|
         File.open(dir + "/#{cls.name}.lua", 'w') do |file|
-          file.write(@headerHelper.filePreamble("--") + "\n\n")
+          file.write(@headerHelper.filePrefix(:lua) + "\n\n")
           file.write(data)
           file.write("\n\nreturn #{localName(cls)}")
+          file.write(@headerHelper.fileSuffix(:lua) + "\n")
         end
       end
 
       File.open(dir + "/#{@libraryName}Library.lua", 'w') do |file|
-        file.write(@headerHelper.filePreamble("--") + "\n\n")
+        file.write(@headerHelper.filePrefix(:lua) + "\n\n")
         file.write(@library)
+        file.write(@headerHelper.fileSuffix(:lua) + "\n")
       end
     end
 

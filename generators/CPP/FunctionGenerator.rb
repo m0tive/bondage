@@ -35,7 +35,7 @@ module CPP
 
       # for each function, work out how best to call it.
       functions.sort.each do |name, fns|
-        generate(owner, fns)
+        generate(owner, fns, exposer)
 
         methods << bind
         extraMethods = extraMethods.concat(extraFunctions)
@@ -65,10 +65,10 @@ module CPP
       return methodsLiteral, methodsInfo, extraMethodSource
     end
 
-    def generate(owner, functions)
+    def generate(owner, functions, exposer)
       reset()
 
-      FunctionVisitor.visit(owner, functions, self)
+      FunctionVisitor.visit(owner, functions, self, exposer)
 
       name = functions[0].name
 

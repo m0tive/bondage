@@ -15,6 +15,11 @@ class CastHelper;
   template <> struct TypeResolver<CLS> { \
   static const Type *find(); }; } }
 
+#define BONDAGE_CLASS_RESOLVER_FORWARD(CLS, FWD) \
+  namespace Crate { \
+  namespace detail { \
+  template <> struct TypeResolver<CLS> : TypeResolver<FWD> { }; } }
+
 #define BONDAGE_CLASS_UNDERIVABLE(CLS) namespace bondage { \
   template <> class WrappedClassFinder<CLS> { public: \
     static const WrappedClass *findBase(); \
@@ -68,3 +73,10 @@ class CastHelper;
   BONDAGE_CLASS_RESOLVER(CLS) \
   BONDAGE_CLASS_DERIVED(CLS, ROOT) \
   namespace Crate { template <> class Traits<CLS> : public DerivedTraits<CLS, PARENT, ROOT> { }; }
+
+#define BONDAGE_EXPOSED_DERIVED_PARTIAL_CLASS(CLS, PARENT, ROOT) \
+  BONDAGE_CLASS_RESOLVER(CLS) \
+  namespace Crate { template <> class Traits<CLS> : public DerivedTraits<CLS, PARENT, ROOT> { }; }
+
+#define BONDAGE_EXPOSED_ENUM(CLS) \
+  BONDAGE_CLASS_RESOLVER_FORWARD(CLS, unsigned int)

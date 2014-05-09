@@ -77,15 +77,17 @@ module CPP
         clsSrc,
         clsGen,
         derivedClasses)
-      @header = @headerHelper.filePreamble("//") + "\n\n" +
+      @header = @headerHelper.filePrefix(:cpp) + "\n\n" +
         generateLibraryHeader(libraryName, library, exposer, rootNs, files) +
-        "\n\n" + clsHead.join("\n") + "\n"
+        "\n\n" + clsHead.join("\n") + "\n" +
+        @headerHelper.fileSuffix(:cpp) + "\n"
 
-      @source = @headerHelper.filePreamble("//") + "\n" +
+      @source = @headerHelper.filePrefix(:cpp) + "\n" +
         includes(library) + 
         generateLibrarySource(libraryName, library, exposer, rootNs, files) +
         "\n\n\n" + clsSrc.join("\n\n\n") +
-        "\n\n" + generateDerivedCasts(clsGen, derivedClasses)
+        "\n\n" + generateDerivedCasts(clsGen, derivedClasses) +
+        @headerHelper.fileSuffix(:cpp) + "\n"
     end
 
     def generateIncludePath(libraryfile)
@@ -115,7 +117,7 @@ module CPP
       classSources = []
 
       exposer.exposedMetaData.types.each do |path, cls|
-        if (cls.type == :class && cls.fullyExposed)
+        if (cls.type == :class)
 
           generateClass(
             clsGen, 
@@ -127,6 +129,10 @@ module CPP
             files, 
             derivedClasses, 
             libraryName)
+        elsif (cls.type == :enum)
+          generateEnum(
+            cls,
+            classHeaders)
         end
       end
 
@@ -151,11 +157,18 @@ module CPP
 
       files << cls.parsed.primaryFile
 
-      if (cls.parentClass)
+      if (cls.parentClass && cls.fullyExposed)
         rootPath, distance = clsGen.findRootClass(cls)
 
         derivedClasses << DerivedClass.new(clsGen.wrapperName, path, rootPath, distance)
       end
+    end
+
+    def generateEnum(
+        enum,
+        classHeaders)
+      fullName = enum.parsed.fullyQualifiedName
+      classHeaders << "#{MACRO_PREFIX}EXPOSED_ENUM(#{fullName})"
     end
 
     def generateLibraryHeader(libraryName, library, exposer, rootNs, files)

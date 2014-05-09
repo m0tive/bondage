@@ -26,8 +26,12 @@ module CPP
 
       @exposer = exposer
 
-      generateHeader()
-      generateSource(libraryVariable)
+      if md.fullyExposed
+        generateHeader()
+        generateSource(libraryVariable)
+      else
+        generatePartial()
+      end
     end
 
     def findRootClass(md)
@@ -49,6 +53,15 @@ module CPP
     end
 
   private
+    def generatePartial()
+      clsPath = @cls.fullyQualifiedName
+      raise "partial class without parent #{clsPath}" unless @metaData.hasParentClass()
+
+      parent = @metaData.parentClass
+      root, dist = findRootClass(@metaData)
+      @interface = "#{MACRO_PREFIX}EXPOSED_DERIVED_PARTIAL_CLASS(#{clsPath}, #{parent}, #{root})"
+    end
+
     def generateHeader()
       clsPath = @cls.fullyQualifiedName
       if(!@metaData.hasParentClass())

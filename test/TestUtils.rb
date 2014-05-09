@@ -71,10 +71,19 @@ COPYRIGHT_MESSAGE = "Copyright me, fool. No, copying and stuff."
 AUTOGEN_MESSAGE = "This file is auto generated, do not change it!"
 
 class HeaderHelper
-  def filePreamble(lineStart)
+  def filePrefix(lang)
+    lineStart = lang == :lua ? "--" : "//"
     return "#{lineStart} #{COPYRIGHT_MESSAGE}
 #{lineStart}
 #{lineStart} #{AUTOGEN_MESSAGE}
 #{lineStart}"
+  end
+
+  def fileSuffix(lang)
+    return ""
+  end
+
+  def requiredIncludes(lib)
+    return [ ]
   end
 end
