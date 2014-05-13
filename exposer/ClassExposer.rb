@@ -83,7 +83,7 @@ private
     end
 
     enums.each do |enum|
-      data = TypeData.new(enum.name, nil, :enum, lib, enum.fileLocation, enum)
+      data = createTypeData(enum, nil, :enum, lib, enum.fileLocation)
       data.setFullyExposed()
 
       @exposedMetaData.addType(enum.fullyQualifiedName, data)
@@ -272,7 +272,7 @@ private
   def addExposedClass(visitor, cls)
     # check for parent classes (also updates parentClasses)
     superClass = findParentClass(cls)
-    data = TypeData.new(cls.name, superClass, :class, visitor.library, cls.primaryFile, cls)
+    data = createTypeData(cls, superClass, :class, visitor.library, cls.primaryFile)
     data.setFullyExposed()
 
     if (canDeriveFrom(cls, superClass))
@@ -289,7 +289,7 @@ private
     canExpose, superClass = canPartiallyExposeClass(cls)
     if (canExpose)
 
-      data = TypeData.new(cls.name, superClass, :class, visitor.library, cls.primaryFile, cls)
+      data = createTypeData(cls, superClass, :class, visitor.library, cls.primaryFile)
 
       if (canDeriveFrom(cls, superClass))
         data.setDerivable()
@@ -314,6 +314,11 @@ private
     end
 
     return result == :no ? false : true
+  end
+
+  def createTypeData(obj, superClass, type, lib, file)
+    relativeFile = Pathname.new(file).relative_path_from(lib.rootPathname).to_s
+    return TypeData.new(obj.name, superClass, type, lib, relativeFile, obj)
   end
 
 end
