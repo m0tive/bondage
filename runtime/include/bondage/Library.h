@@ -2,6 +2,8 @@
 #include "bondage/Bondage.h"
 #include "WrappedClass.h"
 
+BONDAGE_BEGIN_WARNING_SCOPE
+
 namespace bondage
 {
 
@@ -54,3 +56,5 @@ private:
   };
 
 }
+
+BONDAGE_END_WARNING_SCOPE
