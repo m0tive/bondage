@@ -17,7 +17,8 @@ module AST
       end
     end
 
-    attr_reader :classes, :enums, :functions, :primaryFile, :hasPureVirtualFunctions
+    attr_reader :classes, :enums, :functions, :hasPureVirtualFunctions
+    attr_accessor :primaryFile
 
     # Add a struct to the container, [data] is a hash of data from clang
     def addStruct(data)
