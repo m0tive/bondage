@@ -406,3 +406,4 @@ end
 # abstract classes
 # const functions
 # variadic functions
+# const pod pointer - seemed to be exposed?
