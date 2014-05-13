@@ -2,38 +2,47 @@
 # Function visito visits a list of functions and all overloads they present
 # this includes overloads created by default arguments
 class FunctionVisitor
-  def self.visit(owner, fns, visitor, exposer=nil)
-    if (fns[0].name == "getSelectionList")
-      puts
-      puts
-      puts "SELECTION LIST #{fns.length} fns"
+  def self.visit(owner, fns, visitor, exposer=nil, debug=false)
+    if (debug)
+      puts "Visiting function #{fns[0].name} with #{fns.length} overloads"
     end
-
     functionIndex = 0
     fns.each do |fn|
-      functionIndex += FunctionVisitor.visitFunction(owner, fn, functionIndex, visitor, exposer)
-    end
-
-    if (fns[0].name == "getSelectionList")
-      puts
-      puts
+      functionIndex += FunctionVisitor.visitFunction(owner, fn, functionIndex, visitor, exposer, debug)
     end
   end
 
-  def self.visitFunction(owner, fn, functionIndex, visitor, exposer)
+  def self.visitFunction(owner, fn, functionIndex, visitor, exposer, debug=false)
+    if (debug)
+      puts "Visiting overload #{fn.name} with#{exposer ? "" : "out"} exposer"
+    end
+
     fn.arguments.each_index do |i|
       arg = fn.arguments[i]
+      if (debug)
+        puts "  visiting [i: #{arg.input?}, o: #{arg.output?}] argument #{i} with#{arg.hasDefault ? "" : "out"} default"
+      end
 
       if (arg.hasDefault && arg.input?)
+        if (debug)
+          puts "  Visiting overload with #{i} argument because arg[#{i}] has a default argument"
+        end
         visitor.visitFunction(owner, fn, functionIndex, i)
         functionIndex += 1
       end
 
       if (exposer && !exposer.functionExposer.canExposeArgument(arg))
+        if (debug)
+          puts "  Aborting early as cannot expose arg #{i} #{arg.name} #{arg.type.name}"
+        end
+
         return functionIndex
       end
     end
 
+    if (debug)
+      puts "  Visiting full function with #{fn.arguments.length} arguments"
+    end
     visitor.visitFunction(owner, fn, functionIndex, fn.arguments.length)
     functionIndex += 1
     return functionIndex
