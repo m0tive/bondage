@@ -4,6 +4,7 @@ class Library
     @name = name
     @namespaceName = name
     @root = path
+    @rootPathname = Pathname.new(@root)
     @includePaths = []
     @files = []
     @dependencies = []
@@ -11,8 +12,8 @@ class Library
     @coreInclude = "#{name}.h"
   end
 
-  attr_reader :name, :files
-  attr_accessor :namespaceName, :root, :includePaths, :dependencies, :exportMacro, :coreInclude
+  attr_reader :name, :files, :root
+  attr_accessor :namespaceName, :rootPathname, :includePaths, :dependencies, :exportMacro, :coreInclude
 
   def setAutogenPath(path)
     @autogenPath = path
@@ -27,6 +28,11 @@ class Library
     return "#{root}/autogen_#{name}"
   end
 
+  def setRoot(root)
+    @root = root
+    @rootPathname = Pathname.new(@root)
+  end
+
   # Add a source file path to the library
   def addFile(path)
     @files << path
@@ -34,13 +40,12 @@ class Library
 
   # Add a source file path to the library
   def addFiles(path, pattern, recursive)
-    rootPath = Pathname.new(root)
     pattern = "#{root}/#{path}/#{recursive ? "**/" : ""}#{pattern}"
     Dir.glob(pattern).each do |item|
       next if item == '.' or item == '..'
       # do work on real items
 
-      filePath = Pathname.new(item).relative_path_from(rootPath)
+      filePath = Pathname.new(item).relative_path_from(@rootPathname)
       addFile(filePath)
     end
   end
