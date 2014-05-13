@@ -3,10 +3,11 @@ require_relative "FunctionWrapperGenerator.rb"
 module CPP
 
   class FunctionGenerator
-    def initialize(extraFnLineStart, lineStart)
+    def initialize(extraFnLineStart, lineStart, debug=false)
       @lineStart = lineStart
       @extraFunctionLineStart = extraFnLineStart
-      reset()
+      @debug = debug
+      reset(nil)
       @wrapperGenerator = FunctionWrapperGenerator.new(@extraFunctionLineStart)
     end
 
@@ -20,26 +21,37 @@ module CPP
   #{olLs}>"
     end
 
-    def reset()
+    def reset(types)
       @bind = ""
+      @files = nil
       @calls = { }
       @extraFunctions = []
       @extraFunctionDecls = nil
+      @types = types
     end
 
-    def gatherFunctions(owner, exposer)
+    def gatherFunctions(owner, exposer, files)
       functions = exposer.findExposedFunctions(owner)
       
       methods = []
       extraMethods = []
 
+      types = Set.new()
+
       # for each function, work out how best to call it.
       functions.sort.each do |name, fns|
-        generate(owner, fns, exposer)
+        generate(owner, fns, exposer, types)
 
         methods << bind
         extraMethods = extraMethods.concat(extraFunctions)
       end
+
+      files.merge(types.map { |e|
+        cls = exposer.allMetaData.findClass(e)
+        raise "Failed to find dependency '#{e}' #{exposer.allMetaData.debugTypes}" unless cls
+
+        next cls.library.root + "/" + cls.filename
+      })
 
       return methods, extraMethods
     end
@@ -65,10 +77,10 @@ module CPP
       return methodsLiteral, methodsInfo, extraMethodSource
     end
 
-    def generate(owner, functions, exposer)
-      reset()
+    def generate(owner, functions, exposer, types)
+      reset(types)
 
-      FunctionVisitor.visit(owner, functions, self, exposer)
+      FunctionVisitor.visit(owner, functions, self, exposer, @debug)
 
       name = functions[0].name
 
@@ -128,7 +140,8 @@ module CPP
         functionIndex,
         argCount,
         callsArray,
-        @extraFunctions)
+        @extraFunctions,
+        @types)
     end
   end
 end

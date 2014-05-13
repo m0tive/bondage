@@ -45,12 +45,14 @@ module CPP
 
 
       files = Set.new
+      sourceFiles = Set.new
       derivedClasses = Set.new
       libraryName = "g_bondage_library_#{library.name}"
 
       classHeaders, classSources, clsGen = generateClasses(
         exposer,
         files,
+        sourceFiles,
         derivedClasses,
         libraryName)
 
@@ -60,6 +62,7 @@ module CPP
         exposer,
         rootNs,
         files,
+        sourceFiles,
         classHeaders,
         classSources,
         clsGen,
@@ -73,6 +76,7 @@ module CPP
         exposer,
         rootNs,
         files,
+        sourceFiles,
         clsHead,
         clsSrc,
         clsGen,
@@ -82,9 +86,11 @@ module CPP
         "\n\n" + clsHead.join("\n") + "\n" +
         @headerHelper.fileSuffix(:cpp) + "\n"
 
+      generatedSource = generateLibrarySource(libraryName, library, exposer, rootNs, sourceFiles)
+
       @source = @headerHelper.filePrefix(:cpp) + "\n" +
-        includes(library) + 
-        generateLibrarySource(libraryName, library, exposer, rootNs, files) +
+        sourceIncludes(library, sourceFiles) +
+        generatedSource +
         "\n\n\n" + clsSrc.join("\n\n\n") +
         "\n\n" + generateDerivedCasts(clsGen, derivedClasses) +
         @headerHelper.fileSuffix(:cpp) + "\n"
@@ -101,16 +107,16 @@ module CPP
     def coreIncludeFiles(library)
       sourcefiles = [ TYPE_NAMESPACE + "/RuntimeHelpersImpl.h", "utility", "tuple" ]
 
-      library.dependencies.each{ |l| sourcefiles << generateIncludePath(headerPath(l)) }
       return sourcefiles
     end
 
-    def includes(library)
+    def sourceIncludes(library, required)
+      files = required.map{ |path| generateInclude(path) }.join("\n")
       return generateInclude(headerPath(library)) + "\n" +
-       coreIncludeFiles(library).map{ |f| "#include \"#{f}\"" }.join("\n") + "\n\n\n"
+       coreIncludeFiles(library).map{ |f| "#include \"#{f}\"" }.join("\n") + "\n" + files + "\n\n\n"
     end
 
-    def generateClasses(exposer, files, derivedClasses, libraryName)
+    def generateClasses(exposer, files, sourceFiles, derivedClasses, libraryName)
       clsGen = ClassGenerator.new
 
       classHeaders = []
@@ -127,6 +133,7 @@ module CPP
             classSources, 
             exposer, 
             files, 
+            sourceFiles,
             derivedClasses, 
             libraryName)
         elsif (cls.type == :enum)
@@ -147,11 +154,12 @@ module CPP
         classSources, 
         exposer, 
         files, 
+        sourceFiles,
         derivedClasses, 
         libraryName)
 
       clsGen.reset()
-      clsGen.generate(exposer, cls, libraryName)
+      clsGen.generate(exposer, cls, libraryName, sourceFiles)
       classHeaders << clsGen.interface
       classSources << clsGen.implementation
 
@@ -176,9 +184,11 @@ module CPP
 
       files = files | Set.new(@headerHelper.requiredIncludes(library))
 
+      library.dependencies.each{ |l| files << headerPath(l) }
+
       includes = files.map{ |path| generateInclude(path) }.join("\n")
 
-      return "#{includes}\n#include \"#{TYPE_NAMESPACE}/RuntimeHelpers.h\"
+      return "#pragma once\n#{includes}\n#include \"#{TYPE_NAMESPACE}/RuntimeHelpers.h\"
 
 namespace #{library.name}
 {
@@ -188,7 +198,7 @@ namespace #{library.name}
 
     def generateLibrarySource(libraryName, library, exposer, rootNs, files)
       fnGen = CPP::FunctionGenerator.new("", "  ")
-      methods, extraMethods = fnGen.gatherFunctions(rootNs, exposer)
+      methods, extraMethods = fnGen.gatherFunctions(rootNs, exposer, files)
 
       methodsLiteral, methodsArray, extraMethodSource = fnGen.generateFunctionArray(methods, extraMethods, libraryName)
 

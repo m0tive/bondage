@@ -10,7 +10,7 @@ module CPP
       @argumentHelper = ArgumentHelper.new
     end
 
-    def reset(owner, function, functionIndex, argCount)
+    def reset(owner, function, functionIndex, argCount, types)
       @constructor = function.isConstructor
       @static = function.static || @constructor
       @functionWrapper = nil
@@ -18,16 +18,18 @@ module CPP
       @function = function
       @functionIndex = functionIndex
       @name = function.name
+      @types = nil
 
       forceWrapper = argCount != function.arguments.length ||
         @constructor ||
-        function.isVariadic
+        function.isVariadic ||
+        isComplexName(function.name)
 
-      @argumentHelper.reset(forceWrapper)
+      @argumentHelper.reset(forceWrapper, types)
     end
 
-    def generateCall(owner, function, functionIndex, argCount, calls, extraFunctions)
-      reset(owner, function, functionIndex, argCount)
+    def generateCall(owner, function, functionIndex, argCount, calls, extraFunctions, types)
+      reset(owner, function, functionIndex, argCount, types)
       
       if (!@static)
         @argumentHelper.inputs << "#{owner.fullyQualifiedName} &"
@@ -90,9 +92,15 @@ module CPP
       end
     end
 
+    def isComplexName(name)
+      # some compilers find bindings with > in the function name hard, this enables us to force an overload
+      # which makes the binding simpler.
+      return name == "operator>"
+    end
+
     def addReturnTypeOutputArgument(function)
       if (function.returnType)
-        @argumentHelper.outputs << Helpers::OutputArg.new(Helpers::argType(function.returnType), function.returnType.nameWithTypedefs)
+        @argumentHelper.outputs << Helpers::OutputArg.new(Helpers::argType(function.returnType), function.returnType.bindableName)
       end
     end
 
@@ -149,7 +157,7 @@ module CPP
         if (@function.isConst)
           constness = " const"
         end
-        types = @function.arguments.map{ |arg| arg.type.nameWithTypedefs }.join(", ")
+        types = @function.arguments.map{ |arg| arg.type.bindableName }.join(", ")
         if (!@static)
           ptrType = "(#{@owner.fullyQualifiedName}::*)"
         end
@@ -210,7 +218,7 @@ module CPP
 
     def literalName
       fullyQualified = @function.fullyQualifiedName()
-      literalName = fullyQualified.sub("::", "").gsub("::", "_")
+      literalName = fullyQualified.sub("::", "").gsub("::", "_").gsub("<", "lt").gsub(">", "gt")
       if (@functionIndex)
         literalName += "_overload#{@functionIndex}"
       end

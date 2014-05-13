@@ -18,7 +18,7 @@ module CPP
       @fnGen = CPP::FunctionGenerator.new("", "  ")
     end
 
-    def generate(exposer, md, libraryVariable)
+    def generate(exposer, md, libraryVariable, files)
       @metaData = md
       @cls = md.parsed
 
@@ -28,7 +28,7 @@ module CPP
 
       if md.fullyExposed
         generateHeader()
-        generateSource(libraryVariable)
+        generateSource(libraryVariable, files)
       else
         generatePartial()
       end
@@ -79,12 +79,12 @@ module CPP
     end
 
     # Generate binding data for a class
-    def generateSource(libraryVariable)
+    def generateSource(libraryVariable, files)
       # find a name that is a valid literal in c++ used for static definitions
       fullyQualified = @cls.fullyQualifiedName()
       @wrapperName = fullyQualified.sub("::", "").gsub("::", "_")
 
-      methods, extraMethods = @fnGen.gatherFunctions(@cls, @exposer)
+      methods, extraMethods = @fnGen.gatherFunctions(@cls, @exposer, files)
 
       methodsLiteral, methodsArray, extraMethodSource = @fnGen.generateFunctionArray(methods, extraMethods, @wrapperName)
 
