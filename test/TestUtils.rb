@@ -72,7 +72,12 @@ AUTOGEN_MESSAGE = "This file is auto generated, do not change it!"
 
 class HeaderHelper
   def filePrefix(lang)
-    lineStart = lang == :lua ? "--" : "//"
+
+    lineStart = "//"
+    if (lang == :lua)
+      lineStart = "--"
+    end
+
     return "#{lineStart} #{COPYRIGHT_MESSAGE}
 #{lineStart}
 #{lineStart} #{AUTOGEN_MESSAGE}
@@ -84,6 +89,7 @@ class HeaderHelper
   end
 
   def requiredIncludes(lib)
-    return [ ]
+    return []
   end
+
 end

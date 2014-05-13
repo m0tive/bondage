@@ -91,7 +91,7 @@ public:
   /// \brief test
   /// \param[out] a test param
   /// \param[in,out] b test param
-  void test(int *a = nullptr, float *b = nullptr)
+  void test(int *a = nullptr, const float &b = 5.0f)
     {
     *a = 3;
     *b = 2;
@@ -101,7 +101,7 @@ public:
   /// \param[in] a test
   /// \param[in,out] b test2
   /// \param[out] c test3
-  double test(int &a, int *b, int &c)
+  double test(const int &a, const int &b, const int &c)
     {
     (void)a;
     (void)b;

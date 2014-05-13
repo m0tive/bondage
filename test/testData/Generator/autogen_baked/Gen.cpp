@@ -9,6 +9,9 @@
 
 
 
+using namespace Gen;
+
+
 int Gen_test5_overload0(bool inputArg0, bool inputArg1)
 {
   auto result = ::Gen::test5(std::forward<bool>(inputArg0), std::forward<bool>(inputArg1));
@@ -89,12 +92,21 @@ int Gen_MultipleReturnGen_test_overload0(::Gen::MultipleReturnGen & inputArg0)
   return result;
 }
 
-std::tuple< int, float > Gen_MultipleReturnGen_test_overload1(::Gen::MultipleReturnGen & inputArg0, float * inputArg1)
+std::tuple< int, const float > Gen_MultipleReturnGen_test_overload1(::Gen::MultipleReturnGen & inputArg0, const float & inputArg1)
 {
-  std::tuple< int, float > result;
-  std::get<1>(result) = * std::forward<float *>(inputArg1);
+  std::tuple< int, const float > result;
+  std::get<1>(result) =  std::forward<const float &>(inputArg1);
 
-  inputArg0.test(&std::get<0>(result), &std::get<1>(result));
+  inputArg0.test(&std::get<0>(result), std::get<1>(result));
+  return result;
+}
+
+std::tuple< double, const int, const int > Gen_MultipleReturnGen_test_overload2(::Gen::MultipleReturnGen & inputArg0, const int & inputArg1, const int & inputArg2)
+{
+  std::tuple< double, const int, const int > result;
+  std::get<1>(result) =  std::forward<const int &>(inputArg2);
+
+  std::get<0>(result) = inputArg0.test(std::forward<const int &>(inputArg1), std::get<1>(result), std::get<2>(result));
   return result;
 }
 
@@ -104,7 +116,10 @@ const bondage::Function Gen_MultipleReturnGen_methods[] = {
       bondage::FunctionBuilder::buildMemberStandinCall< int(*)(::Gen::MultipleReturnGen &), &Gen_MultipleReturnGen_test_overload0 >
       >,
     Reflect::FunctionArgCountSelectorBlock<2,
-      bondage::FunctionBuilder::buildMemberStandinCall< std::tuple< int, float >(*)(::Gen::MultipleReturnGen &, float *), &Gen_MultipleReturnGen_test_overload1 >
+      bondage::FunctionBuilder::buildMemberStandinCall< std::tuple< int, const float >(*)(::Gen::MultipleReturnGen &, const float &), &Gen_MultipleReturnGen_test_overload1 >
+      >,
+    Reflect::FunctionArgCountSelectorBlock<3,
+      bondage::FunctionBuilder::buildMemberStandinCall< std::tuple< double, const int, const int >(*)(::Gen::MultipleReturnGen &, const int &, const int &), &Gen_MultipleReturnGen_test_overload2 >
       >
     > >("test")
 };

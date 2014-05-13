@@ -185,7 +185,8 @@ local Gen_cls = class \"Gen\" {
   test3 = getFunction(\"Gen\", \"Gen\", \"test3\")
 }
 
-return Gen_cls"
+return Gen_cls
+"
 
     expectedInheritTest = "-- Copyright me, fool. No, copying and stuff.
 --
@@ -206,7 +207,8 @@ local InheritTest_cls = class \"InheritTest\" {
   pork2 = getFunction(\"Gen\", \"InheritTest\", \"pork2\")
 }
 
-return InheritTest_cls"
+return InheritTest_cls
+"
 
     expectedInherit2Test = "-- Copyright me, fool. No, copying and stuff.
 --
@@ -227,7 +229,8 @@ local InheritTest2_cls = class \"InheritTest2\" {
 
 }
 
-return InheritTest2_cls"
+return InheritTest2_cls
+"
 
     libraryTest = "-- Copyright me, fool. No, copying and stuff.
 --
@@ -260,7 +263,8 @@ local Gen = {
   test5 = getFunction(\"Gen\", \"\", \"test5\")
 }
 
-return Gen"
+return Gen
+"
 
     assert_equal expectedGenTest, File.read("#{luaPath}/Gen.lua")
     assert_equal expectedInheritTest, File.read("#{luaPath}/InheritTest.lua")
