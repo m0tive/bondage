@@ -242,3 +242,4 @@ const bondage::WrappedClass *Gen_Gen_GenCls_caster(const void *vPtr)
 bondage::CastHelperLibrary g_Gen_Gen_GenCls_caster(bondage::WrappedClassFinder< ::Gen::GenCls >::castHelper(), Gen_Gen_GenCls_caster);
 
 
+

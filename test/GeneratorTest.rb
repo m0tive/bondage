@@ -246,7 +246,7 @@ class TestGenerator < Test::Unit::TestCase
     assert_not_nil cls
 
     gen.generate(exposer, cls, "var", Set.new())
-    assert_equal "BONDAGE_EXPOSED_CLASS_DERIVABLE_MANAGED(::Gen::GenCls)", gen.interface
+    assert_equal "BONDAGE_EXPOSED_CLASS_DERIVABLE_MANAGED(GEN_EXPORT, ::Gen::GenCls)", gen.interface
 
     derived = exposer.exposedMetaData.findClass("::Gen::InheritTest");
     cls = derived.parsed
@@ -254,7 +254,7 @@ class TestGenerator < Test::Unit::TestCase
     assert_not_nil cls
 
     gen.generate(exposer, derived, "var", Set.new())
-    assert_equal "BONDAGE_EXPOSED_DERIVED_CLASS(::Gen::InheritTest, ::Gen::GenCls, ::Gen::GenCls)", gen.interface
+    assert_equal "BONDAGE_EXPOSED_DERIVED_CLASS(GEN_EXPORT, ::Gen::InheritTest, ::Gen::GenCls, ::Gen::GenCls)", gen.interface
 
     libGen = CPP::LibraryGenerator.new(HeaderHelper.new)
 

@@ -54,6 +54,7 @@ module CPP
         files,
         sourceFiles,
         derivedClasses,
+        library,
         libraryName)
 
       generateFiles(
@@ -116,7 +117,7 @@ module CPP
        coreIncludeFiles(library).map{ |f| "#include \"#{f}\"" }.join("\n") + "\n" + files + "\n\n\n"
     end
 
-    def generateClasses(exposer, files, sourceFiles, derivedClasses, libraryName)
+    def generateClasses(exposer, files, sourceFiles, derivedClasses, library, libraryName)
       clsGen = ClassGenerator.new
 
       classHeaders = []
@@ -138,6 +139,7 @@ module CPP
             libraryName)
         elsif (cls.type == :enum)
           generateEnum(
+            library,
             cls,
             classHeaders)
         end
@@ -173,10 +175,11 @@ module CPP
     end
 
     def generateEnum(
+        library,
         enum,
         classHeaders)
       fullName = enum.parsed.fullyQualifiedName
-      classHeaders << "#{MACRO_PREFIX}EXPOSED_ENUM(#{fullName})"
+      classHeaders << "#{MACRO_PREFIX}EXPOSED_ENUM(#{library.exportMacro}, #{fullName})"
     end
 
     def generateLibraryHeader(libraryName, library, exposer, rootNs, files)
