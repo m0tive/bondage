@@ -8,7 +8,7 @@ namespace bondage
 class WrappedClass;
 class CastHelperLibrary;
 
-class CastHelper
+class BONDAGE_EXPORT CastHelper
   {
 public:
   CastHelper();

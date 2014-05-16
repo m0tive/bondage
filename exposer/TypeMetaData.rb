@@ -8,12 +8,13 @@ require "json"
 class TypeData
   # Create a TypeData, given a short name and a parent, fully qualified path.
   # [parsed] is optional, and should only be supplied if it was parsed in this library.
-  def initialize(name, parent, type, library, parsed=nil)
+  def initialize(name, parent, type, library, filename, parsed=nil)
     @name = name
     @type = type
     @fullyExposed = false
     @isDerivable = false
     @parsed = parsed
+    @filename = filename
     @parentClass = parent
     @library = library
     @templateArgumentsToSatisfy = nil
@@ -21,6 +22,7 @@ class TypeData
 
   attr_reader :name, 
               :type, 
+              :filename,
               :fullyExposed,
               :parsed,
               :parentClass,
@@ -54,7 +56,8 @@ class TypeData
   def to_json(opt)
     data = {
       :name => @name,
-      :parent => @parentClass
+      :parent => @parentClass,
+      :filename => @filename
     }
     
     if(@type != :class)
@@ -82,7 +85,12 @@ class TypeData
       type = data["type"]
     end
 
-    cls = TypeData.new(data["name"], data["parent"], type, library)
+    filename = ""
+    if (data.has_key?("filename"))
+      filename = data["filename"]
+    end
+
+    cls = TypeData.new(data["name"], data["parent"], type, library, filename)
     if (!data.include?("partial"))
       cls.setFullyExposed()
     end
@@ -110,6 +118,10 @@ class TypeDataSet
   end
 
   attr_reader :types, :fullTypes
+
+  def debugTypes
+    return types.keys
+  end
 
   # Merge this set with another set.
   def merge(other)
@@ -165,6 +177,8 @@ class TypeDataSet
 
   # Save this set into [dir], in json form
   def export(dir)
+    raise "Invalid export directory '#{dir}'" unless File.directory?(dir)
+
     File.open(dir + "/types.json", 'w') do |file|
       file.write(JSON.pretty_generate(@types))
     end

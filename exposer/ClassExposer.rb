@@ -53,6 +53,20 @@ class ClassExposer
     return functions
   end
 
+  def findParentClass(cls)
+    validSuperClasses = findValidParentClasses(cls)
+
+    # find valid super classes
+    validSuperClasses.each do |clsPath|
+      # if a super class is exposed in a parent library, then can partially expose the class.
+      if(@allMetaData.canDeriveFrom?(clsPath))
+        return clsPath
+      end
+    end
+
+    return nil
+  end
+  
 private
   # Find if an enum can be exposed.
   def canExposeEnum(enum)
@@ -69,7 +83,7 @@ private
     end
 
     enums.each do |enum|
-      data = TypeData.new(enum.name, nil, :enum, lib, enum)
+      data = createTypeData(enum, nil, :enum, lib, enum.fileLocation)
       data.setFullyExposed()
 
       @exposedMetaData.addType(enum.fullyQualifiedName, data)
@@ -115,20 +129,6 @@ private
 
     hasFlag = cmd.hasArg("derivable")
     return hasFlag 
-  end
-
-  def findParentClass(cls)
-    validSuperClasses = findValidParentClasses(cls)
-
-    # find valid super classes
-    validSuperClasses.each do |clsPath|
-      # if a super class is exposed in a parent library, then can partially expose the class.
-      if(@allMetaData.canDeriveFrom?(clsPath))
-        return clsPath
-      end
-    end
-
-    return nil
   end
 
   # find if a class can be partially exposed (ie, if one of its parent classes is exposed.)
@@ -212,7 +212,11 @@ private
   end
 
   def gatherClasses(visitor)
-    visitor.classes.each do |cls|
+    classes = sortClasses(visitor.classes)
+
+    # sort classes by inheritance
+
+    classes.each do |cls|
       if(canExposeClass(cls))
         addExposedClass(visitor, cls)
       else
@@ -221,10 +225,54 @@ private
     end
   end
 
+  def sortClasses(classes)
+    parentMap = { }
+
+    classes.each do |cls|
+      parentMap[cls.fullyQualifiedName] = {
+        :data => cls,
+        :parents => findValidParentClasses(cls),
+        :children => [],
+        :visited => false
+      }
+    end
+
+    parentMap.each do |clsPath, data|
+      data[:parents].each do |parent|
+        parentData = parentMap[parent]
+        if (parentData)
+          parentData[:children] << clsPath
+        end
+      end
+    end
+
+    list = []
+
+    def append(list, parentMap, id)
+      data = parentMap[id]
+      if (data[:visited])
+        return
+      end
+
+      data[:children].each do |child|
+        append(list, parentMap, child)
+      end
+
+      data[:visited] = true
+      list << data[:data]
+    end
+
+    parentMap.keys.each do |clsPath|
+      append(list, parentMap, clsPath)
+    end
+
+    return list.reverse
+  end
+
   def addExposedClass(visitor, cls)
     # check for parent classes (also updates parentClasses)
     superClass = findParentClass(cls)
-    data = TypeData.new(cls.name, superClass, :class, visitor.library, cls)
+    data = createTypeData(cls, superClass, :class, visitor.library, cls.primaryFile)
     data.setFullyExposed()
 
     if (canDeriveFrom(cls, superClass))
@@ -241,7 +289,7 @@ private
     canExpose, superClass = canPartiallyExposeClass(cls)
     if (canExpose)
 
-      data = TypeData.new(cls.name, superClass, :class, visitor.library, cls)
+      data = createTypeData(cls, superClass, :class, visitor.library, cls.primaryFile)
 
       if (canDeriveFrom(cls, superClass))
         data.setDerivable()
@@ -266,6 +314,11 @@ private
     end
 
     return result == :no ? false : true
+  end
+
+  def createTypeData(obj, superClass, type, lib, file)
+    relativeFile = Pathname.new(file).relative_path_from(lib.rootPathname).to_s
+    return TypeData.new(obj.name, superClass, type, lib, relativeFile, obj)
   end
 
 end

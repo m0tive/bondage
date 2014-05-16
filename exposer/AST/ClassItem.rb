@@ -38,6 +38,9 @@ module AST
     def addConstructor(data)
       fn = AST::FunctionItem.build(self, data, true)
       @functions << fn
+
+      self.primaryFile = data[:cursor].location.file
+
       return fn
     end
 

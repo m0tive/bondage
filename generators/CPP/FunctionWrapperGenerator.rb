@@ -10,7 +10,7 @@ module CPP
       @argumentHelper = ArgumentHelper.new
     end
 
-    def reset(owner, function, functionIndex, argCount)
+    def reset(owner, function, functionIndex, argCount, types)
       @constructor = function.isConstructor
       @static = function.static || @constructor
       @functionWrapper = nil
@@ -18,12 +18,18 @@ module CPP
       @function = function
       @functionIndex = functionIndex
       @name = function.name
+      @types = nil
 
-      @argumentHelper.reset(argCount != function.arguments.length || @constructor)
+      forceWrapper = argCount != function.arguments.length ||
+        @constructor ||
+        function.isVariadic ||
+        isComplexName(function.name)
+
+      @argumentHelper.reset(forceWrapper, types)
     end
 
-    def generateCall(owner, function, functionIndex, argCount, calls, extraFunctions)
-      reset(owner, function, functionIndex, argCount)
+    def generateCall(owner, function, functionIndex, argCount, calls, extraFunctions, types)
+      reset(owner, function, functionIndex, argCount, types)
       
       if (!@static)
         @argumentHelper.inputs << "#{owner.fullyQualifiedName} &"
@@ -86,9 +92,15 @@ module CPP
       end
     end
 
+    def isComplexName(name)
+      # some compilers find bindings with > in the function name hard, this enables us to force an overload
+      # which makes the binding simpler.
+      return name == "operator>"
+    end
+
     def addReturnTypeOutputArgument(function)
       if (function.returnType)
-        @argumentHelper.outputs << Helpers::OutputArg.new(Helpers::argType(function.returnType), function.returnType.name)
+        @argumentHelper.outputs << Helpers::OutputArg.new(Helpers::argType(function.returnType), function.returnType.bindableName)
       end
     end
 
@@ -135,18 +147,23 @@ module CPP
     def signature()
       result = returnType()
 
+      constness = ""
+
       ptrType = "(*)"
       types = nil
-      if (@argumentHelper.needsWrapper)
+      if (@argumentHelper.needsWrapper == true)
         types = @argumentHelper.inputs.join(", ")
       else
-        types = @function.arguments.map{ |arg| arg.type.name }.join(", ")
+        if (@function.isConst)
+          constness = " const"
+        end
+        types = @function.arguments.map{ |arg| arg.type.bindableName }.join(", ")
         if (!@static)
           ptrType = "(#{@owner.fullyQualifiedName}::*)"
         end
       end
 
-      return "#{result}#{ptrType}(#{types})"
+      return "#{result}#{ptrType}(#{types})#{constness}"
     end
 
     def constructCall(args, resVar, returns)
@@ -201,7 +218,7 @@ module CPP
 
     def literalName
       fullyQualified = @function.fullyQualifiedName()
-      literalName = fullyQualified.sub("::", "").gsub("::", "_")
+      literalName = fullyQualified.sub("::", "").gsub("::", "_").gsub("<", "lt").gsub(">", "gt")
       if (@functionIndex)
         literalName += "_overload#{@functionIndex}"
       end

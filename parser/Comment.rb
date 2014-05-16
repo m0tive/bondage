@@ -70,14 +70,7 @@ class Comment
 
   # get the command for the command [name].
   def command(name)
-    return command = @commands[name]
-  end
-
-  def strippedCommand(name)
-    if(hasCommand(name))
-      return commandText(name).strip
-    end
-    return ""
+    return @commands[name]
   end
 
   # find a ParamCommand (or nil), for the param at [index].

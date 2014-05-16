@@ -22,9 +22,10 @@ module CPP
       attr_reader :literalName, :path, :rootPath, :distance
     end
 
-    def initialize()
+    def initialize(headerHelper)
       @header = ""
       @source = ""
+      @headerHelper = headerHelper
     end
 
     attr_reader :header, :source
@@ -44,12 +45,14 @@ module CPP
 
 
       files = Set.new
+      sourceFiles = Set.new
       derivedClasses = Set.new
       libraryName = "g_bondage_library_#{library.name}"
 
       classHeaders, classSources, clsGen = generateClasses(
         exposer,
         files,
+        sourceFiles,
         derivedClasses,
         libraryName)
 
@@ -59,6 +62,7 @@ module CPP
         exposer,
         rootNs,
         files,
+        sourceFiles,
         classHeaders,
         classSources,
         clsGen,
@@ -72,46 +76,54 @@ module CPP
         exposer,
         rootNs,
         files,
+        sourceFiles,
         clsHead,
         clsSrc,
         clsGen,
         derivedClasses)
-      @header = filePreamble("//") + "\n\n" +
+      @header = @headerHelper.filePrefix(:cpp) + "\n\n" +
         generateLibraryHeader(libraryName, library, exposer, rootNs, files) +
-        "\n\n" + clsHead.join("\n") + "\n"
+        "\n\n" + clsHead.join("\n") + "\n" +
+        @headerHelper.fileSuffix(:cpp) + "\n"
 
-      @source = filePreamble("//") + "\n" +
-        includes(library) + 
-        generateLibrarySource(libraryName, library, exposer, rootNs, files) +
+      generatedSource = generateLibrarySource(libraryName, library, exposer, rootNs, sourceFiles)
+
+      @source = @headerHelper.filePrefix(:cpp) + "\n" +
+        sourceIncludes(library, sourceFiles) +
+        generatedSource +
         "\n\n\n" + clsSrc.join("\n\n\n") +
-        "\n\n" + generateDerivedCasts(clsGen, derivedClasses)
+        "\n\n" + generateDerivedCasts(clsGen, derivedClasses) +
+        @headerHelper.fileSuffix(:cpp) + "\n"
+    end
+
+    def generateIncludePath(libraryfile)
+      return Pathname.new(libraryfile).relative_path_from(@libraryIncludePath).cleanpath
     end
 
     def generateInclude(libraryfile)
-      path = Pathname.new(libraryfile).relative_path_from(@libraryPath).cleanpath
-      return "#include \"#{path}\""
+      return "#include \"#{generateIncludePath(libraryfile)}\""
     end
 
     def coreIncludeFiles(library)
       sourcefiles = [ TYPE_NAMESPACE + "/RuntimeHelpersImpl.h", "utility", "tuple" ]
 
-      library.dependencies.each{ |l| sourcefiles << headerPath(l) }
       return sourcefiles
     end
 
-    def includes(library)
+    def sourceIncludes(library, required)
+      files = required.map{ |path| generateInclude(path) }.join("\n")
       return generateInclude(headerPath(library)) + "\n" +
-       coreIncludeFiles(library).map{ |f| "#include \"#{f}\"" }.join("\n") + "\n\n\n"
+       coreIncludeFiles(library).map{ |f| "#include \"#{f}\"" }.join("\n") + "\n" + files + "\n\n\n"
     end
 
-    def generateClasses(exposer, files, derivedClasses, libraryName)
+    def generateClasses(exposer, files, sourceFiles, derivedClasses, libraryName)
       clsGen = ClassGenerator.new
 
       classHeaders = []
       classSources = []
 
       exposer.exposedMetaData.types.each do |path, cls|
-        if (cls.type == :class && cls.fullyExposed)
+        if (cls.type == :class)
 
           generateClass(
             clsGen, 
@@ -121,8 +133,13 @@ module CPP
             classSources, 
             exposer, 
             files, 
+            sourceFiles,
             derivedClasses, 
             libraryName)
+        elsif (cls.type == :enum)
+          generateEnum(
+            cls,
+            classHeaders)
         end
       end
 
@@ -137,29 +154,41 @@ module CPP
         classSources, 
         exposer, 
         files, 
+        sourceFiles,
         derivedClasses, 
         libraryName)
 
       clsGen.reset()
-      clsGen.generate(exposer, cls, libraryName)
+      clsGen.generate(exposer, cls, libraryName, sourceFiles)
       classHeaders << clsGen.interface
       classSources << clsGen.implementation
 
-      files << cls.parsed.fileLocation
+      files << cls.parsed.primaryFile
 
-      if (cls.parentClass)
+      if (cls.parentClass && cls.fullyExposed)
         rootPath, distance = clsGen.findRootClass(cls)
 
         derivedClasses << DerivedClass.new(clsGen.wrapperName, path, rootPath, distance)
       end
     end
 
+    def generateEnum(
+        enum,
+        classHeaders)
+      fullName = enum.parsed.fullyQualifiedName
+      classHeaders << "#{MACRO_PREFIX}EXPOSED_ENUM(#{fullName})"
+    end
+
     def generateLibraryHeader(libraryName, library, exposer, rootNs, files)
       raise "Invalid root namespace for #{library.name}." unless rootNs
 
+      files = files | Set.new(@headerHelper.requiredIncludes(library))
+
+      library.dependencies.each{ |l| files << headerPath(l) }
+
       includes = files.map{ |path| generateInclude(path) }.join("\n")
 
-      return "#{includes}\n#include \"#{TYPE_NAMESPACE}/RuntimeHelpers.h\"
+      return "#pragma once\n#{includes}\n#include \"#{TYPE_NAMESPACE}/RuntimeHelpers.h\"
 
 namespace #{library.name}
 {
@@ -169,11 +198,11 @@ namespace #{library.name}
 
     def generateLibrarySource(libraryName, library, exposer, rootNs, files)
       fnGen = CPP::FunctionGenerator.new("", "  ")
-      methods, extraMethods = fnGen.gatherFunctions(rootNs, exposer)
+      methods, extraMethods = fnGen.gatherFunctions(rootNs, exposer, files)
 
       methodsLiteral, methodsArray, extraMethodSource = fnGen.generateFunctionArray(methods, extraMethods, libraryName)
 
-      return "#{extraMethodSource}#{methodsArray}
+      return "using namespace #{library.namespaceName};\n\n#{extraMethodSource}#{methodsArray}
 bondage::Library #{libraryName}(
   \"#{library.name}\",
   #{methodsLiteral},
@@ -231,7 +260,13 @@ const bondage::Library &bindings()
 
     def setLibrary(lib)
       @library = lib
-      @libraryPath = Pathname.new(lib.root)
+
+      rootIncludePath = lib.root
+      if (lib.includePaths.length > 0)
+        rootIncludePath = lib.includePaths[0]
+      end
+
+      @libraryIncludePath = Pathname.new(rootIncludePath)
     end
   end
 end

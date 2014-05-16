@@ -52,7 +52,7 @@ class ParsedLibrary
   end
 
   def getExposedNamespace
-    ns = rootItem.namespaces[library.name]
+    ns = rootItem.namespaces[library.namespaceName]
     return ns
   end
 end

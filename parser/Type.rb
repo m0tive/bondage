@@ -108,6 +108,10 @@ class Type
       @canonical.kind == :type_longdouble
   end
 
+  def isPod
+    return isInteger() || isStringLiteral() || isFloatingPoint() || isBoolean() || isVoid()
+  end
+
   # find a pretty string to represent the type
   def prettyName
     return "#{@type.spelling}"
@@ -134,6 +138,10 @@ class Type
     idx = n.rindex("::")
 
     return n[(idx+2)..n.length]
+  end
+
+  def bindableName
+    return @type.spelling
   end
 
   def fullyQualifiedName
@@ -177,6 +185,19 @@ class Type
     end
 
     return Type.new(@type.result_type)
+  end
+
+  def getRequiredTypes(types)
+    if (isPointer || isLValueReference || isRValueReference)
+      pointeeType.getRequiredTypes(types)
+    elsif (!isPod())
+      types << fullyQualifiedName
+    end
+
+    templateArgCount.times do |i|
+      t = templateArg[i]
+      t.getRequiredTypes(types)
+    end
   end
 
   # Find the number of template arguments

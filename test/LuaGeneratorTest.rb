@@ -1,4 +1,3 @@
-# indexes in methods
 require_relative 'TestUtils.rb'
 require_relative "../generators/Lua/LibraryGenerator.rb"
 require_relative "../generators/Lua/Function/Generator.rb"
@@ -13,7 +12,6 @@ class TestPathResolver
     return "#{cls.library.name}.#{cls.name}"
   end
 end
-
 
 class TestGenerator < Test::Unit::TestCase
   def setup
@@ -34,14 +32,20 @@ class TestGenerator < Test::Unit::TestCase
     @named = Library.new("Named", "test/testData/Named")
     @named.addIncludePath(".")
     @named.addFile("Named.h")
+
+    @comments = Library.new("Comments", "test/testData/Comments")
+    @comments.addIncludePath(".")
+    @comments.addFile("Comments.h")
     
     setupLibrary(@gen)
     setupLibrary(@luaFuncs)
     setupLibrary(@props)
     setupLibrary(@named)
+    setupLibrary(@comments)
   end
 
   def teardown
+    cleanLibrary(@comments)
     cleanLibrary(@named)
     cleanLibrary(@props)
     cleanLibrary(@luaFuncs)
@@ -53,7 +57,7 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen = Lua::Function::Generator.new(nil, "", "", "getFunction")
 
-    cls = exposer.exposedMetaData.findClass("::Gen::Gen").parsed
+    cls = exposer.exposedMetaData.findClass("::Gen::GenCls").parsed
     assert_not_nil cls
 
     rootNs = lib.getExposedNamespace()
@@ -93,14 +97,14 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen.generate(lib.library, cls, [ fn1, fn2 ], Set.new)
 
-    assert_equal "-- nil Gen:test1(number myint, number myFloat, number arg3)
--- nil Gen:test2(number arg1)
--- nil Gen:test2(number arg1, number arg2)
--- nil Gen:test2(number arg1, number arg2, number arg3)
+    assert_equal "-- nil GenCls:test1(number myint, number myFloat, number arg3)
+-- nil GenCls:test2(number arg1)
+-- nil GenCls:test2(number arg1, number arg2)
+-- nil GenCls:test2(number arg1, number arg2, number arg3)
 -- \\brief This funciton is a test
 -- \\param myFloat This is a float.
 -- \\param myint This is an int!", fnGen.docs
-    assert_equal "getFunction(\"Gen\", \"Gen\", \"test1\")", fnGen.bind
+    assert_equal "getFunction(\"Gen\", \"GenCls\", \"test1\")", fnGen.bind
   end
 
   def test_stringLibGeneratorLua
@@ -111,7 +115,7 @@ class TestGenerator < Test::Unit::TestCase
 
     exposer, lib = exposeLibrary(stringLibrary)
 
-    libGen = Lua::LibraryGenerator.new([], [], "getFunction", TestPathResolver.new)
+    libGen = Lua::LibraryGenerator.new([], [], "getFunction", TestPathResolver.new, HeaderHelper.new)
 
     libGen.generate(lib, exposer)
 
@@ -143,7 +147,7 @@ class TestGenerator < Test::Unit::TestCase
   def test_genTest
     exposer, lib = exposeLibrary(@gen)
 
-    libGen = Lua::LibraryGenerator.new([], [], "getFunction", TestPathResolver.new)
+    libGen = Lua::LibraryGenerator.new([], [], "getFunction", TestPathResolver.new, HeaderHelper.new)
 
     libGen.generate(lib, exposer)
 
@@ -159,29 +163,30 @@ class TestGenerator < Test::Unit::TestCase
 
 -- \\brief A CLASS!
 --
-local Gen_cls = class \"Gen\" {
+local GenCls_cls = class \"GenCls\" {
 
-  -- nil Gen:test1(number myint, number myFloat, number arg3)
+  -- nil GenCls:test1(number myint, number myFloat, number arg3)
   -- \\brief This funciton is a test
   -- \\param myFloat This is a float.
   -- \\param myint This is an int!
-  test1 = getFunction(\"Gen\", \"Gen\", \"test1\"),
+  test1 = getFunction(\"Gen\", \"GenCls\", \"test1\"),
 
-  -- nil Gen:test2(number arg1)
-  -- nil Gen:test2(number arg1, number arg2)
-  -- nil Gen:test2(number arg1, number arg2, number arg3)
+  -- nil GenCls:test2(number arg1)
+  -- nil GenCls:test2(number arg1, number arg2)
+  -- nil GenCls:test2(number arg1, number arg2, number arg3)
   -- \\brief 
-  test2 = getFunction(\"Gen\", \"Gen\", \"test2\"),
+  test2 = getFunction(\"Gen\", \"GenCls\", \"test2\"),
 
-  -- nil Gen.test3(boolean arg1)
-  -- number Gen.test3(boolean arg1, number arg2)
-  -- number Gen.test3(boolean arg1, number arg2, boolean arg3)
-  -- number Gen.test3(number arg1, number arg2)
+  -- nil GenCls.test3(boolean arg1)
+  -- number GenCls.test3(boolean arg1, number arg2)
+  -- number GenCls.test3(boolean arg1, number arg2, boolean arg3)
+  -- number GenCls.test3(number arg1, number arg2)
   -- \\brief 
-  test3 = getFunction(\"Gen\", \"Gen\", \"test3\")
+  test3 = getFunction(\"Gen\", \"GenCls\", \"test3\")
 }
 
-return Gen_cls"
+return GenCls_cls
+"
 
     expectedInheritTest = "-- Copyright me, fool. No, copying and stuff.
 --
@@ -191,7 +196,7 @@ return Gen_cls"
 -- \\brief 
 --
 local InheritTest_cls = class \"InheritTest\" {
-  super = require \"Gen.Gen\",
+  super = require \"Gen.GenCls\",
 
   -- nil InheritTest:pork()
   -- \\brief 
@@ -202,7 +207,8 @@ local InheritTest_cls = class \"InheritTest\" {
   pork2 = getFunction(\"Gen\", \"InheritTest\", \"pork2\")
 }
 
-return InheritTest_cls"
+return InheritTest_cls
+"
 
     expectedInherit2Test = "-- Copyright me, fool. No, copying and stuff.
 --
@@ -223,7 +229,8 @@ local InheritTest2_cls = class \"InheritTest2\" {
 
 }
 
-return InheritTest2_cls"
+return InheritTest2_cls
+"
 
     libraryTest = "-- Copyright me, fool. No, copying and stuff.
 --
@@ -231,15 +238,15 @@ return InheritTest2_cls"
 --
 
 local Gen = {
-  Gen = require(\"Gen.Gen\"),
+  CtorGen = require(\"Gen.CtorGen\"),
+
+  MultipleReturnGen = require(\"Gen.MultipleReturnGen\"),
+
+  GenCls = require(\"Gen.GenCls\"),
 
   InheritTest = require(\"Gen.InheritTest\"),
 
   InheritTest2 = require(\"Gen.InheritTest2\"),
-
-  MultipleReturnGen = require(\"Gen.MultipleReturnGen\"),
-
-  CtorGen = require(\"Gen.CtorGen\"),
 
   GlbEnum = {
     A = 0,
@@ -256,9 +263,10 @@ local Gen = {
   test5 = getFunction(\"Gen\", \"\", \"test5\")
 }
 
-return Gen"
+return Gen
+"
 
-    assert_equal expectedGenTest, File.read("#{luaPath}/Gen.lua")
+    assert_equal expectedGenTest, File.read("#{luaPath}/GenCls.lua")
     assert_equal expectedInheritTest, File.read("#{luaPath}/InheritTest.lua")
     assert_equal expectedInherit2Test, File.read("#{luaPath}/InheritTest2.lua")
     assert_equal libraryTest, File.read("#{luaPath}/GenLibrary.lua")
@@ -274,7 +282,7 @@ return Gen"
     rootNs = lib.getExposedNamespace()
     assert_not_nil rootNs
 
-    assert_equal 4, cls.functions.length
+    assert_equal 6, cls.functions.length
     assert_equal 1, rootNs.functions.length
 
     fnGen = Lua::Function::Generator.new(Lua::DEFAULT_CLASSIFIERS, "", "", "get")
@@ -309,17 +317,19 @@ return Gen"
     assert_equal false, overloads[2].static
     assert_nil overloads[3]
     assert_not_nil overloads[4]
-    assert_equal 2, overloads[4].returnTypes[0].length
+    assert_equal 3, overloads[4].returnTypes[0].length
     assert_equal true, overloads[4].static
 
     assert_equal "-- number TestClassIndexed:luaSample()
 -- number TestClassIndexed:luaSample(number idx)
 -- number TestClassIndexed:luaSample(number idx, number arg2)
--- number, number TestClassIndexed.luaSample(number idx, number a, number b, number idx3)
+-- number, number, number TestClassIndexed.luaSample(number idx, number a, number b, number idx3)
 -- \\brief sample
 -- \\param idx the Index
--- \\param idx2 the Index2
--- \\param idx3 the Index2", fnGen.docs
+-- \\param idx3 the Index2
+-- \\return returns an index
+-- \\param[out] 1 idx2 the Index2
+-- \\param[out] 2 out2 sweet output", fnGen.docs
 
     assert_equal "local TestClassIndexed_luaSample_wrapper_fwd = get(\"LuaFunctions\", \"TestClassIndexed\", \"\")
 local TestClassIndexed_luaSample_wrapper = function(...)
@@ -337,8 +347,8 @@ local TestClassIndexed_luaSample_wrapper = function(...)
     return (ret0-1)
   end
   if 4 == argCount then
-    local ret0, ret1 = fwdName((select(0, ...)-1), select(1, ...), select(2, ...), (select(3, ...)-1))
-    return (ret0-1), (ret1-1)
+    local ret0, ret1, ret2 = fwdName((select(0, ...)-1), select(1, ...), select(2, ...), (select(3, ...)-1))
+    return (ret0-1), (ret1-1), ret2
   end
 end", fnGen.wrapper
 
@@ -378,10 +388,13 @@ local var = class "TestClass" {
 
 -- nil TestClass:luaSample()
 -- nil TestClass:luaSample(number arg1)
--- nil TestClass:luaSample(number arg1)
 -- nil TestClass:luaSample(number arg1, number arg2)
 -- \\brief 
-luaSample = get("LuaFunctions", "TestClass", "luaSample")
+luaSample = get("LuaFunctions", "TestClass", "luaSample"),
+
+-- boolean TestClass:operatorPork()
+-- \\brief 
+operatorPork = get("LuaFunctions", "TestClass", "operatorPork")
 }}, clsGen.classDefinition
 
     clsGen.generate(lib.library, exposer, clsMetaData2, "var")
@@ -401,6 +414,10 @@ local TestClassIndexed_luaSample_wrapper = function(...)
     local ret0 = fwdName((select(0, ...)-1), select(1, ...))
     return (ret0-1)
   end
+  if 4 == argCount then
+    local ret0, ret1, ret2 = fwdName((select(0, ...)-1), select(1, ...), select(2, ...), (select(3, ...)-1))
+    return (ret0-1), (ret1-1), ret2
+  end
 end
 
 local TestClassIndexed_luaSample2_wrapper_fwd = get("LuaFunctions", "TestClassIndexed", "")
@@ -419,8 +436,13 @@ local var = class "TestClassIndexed" {
 -- number TestClassIndexed:luaSample()
 -- number TestClassIndexed:luaSample(number idx)
 -- number TestClassIndexed:luaSample(number idx, number arg2)
+-- number, number, number TestClassIndexed.luaSample(number idx, number a, number b, number idx3)
 -- \\brief sample
 -- \\param idx the Index
+-- \\param idx3 the Index2
+-- \\return returns an index
+-- \\param[out] 1 idx2 the Index2
+-- \\param[out] 2 out2 sweet output
 luaSample = TestClassIndexed_luaSample_wrapper,
 
 -- LuaFunctions::TestClassIndexed TestClassIndexed:luaSample2()
@@ -507,7 +529,9 @@ setPork = PropertyClass_setPork_fwd
     libGen = Lua::LibraryGenerator.new(
       Lua::DEFAULT_PLUGINS,
       Lua::DEFAULT_CLASSIFIERS,
-      "getFunction", TestPathResolver.new)
+      "getFunction",
+      TestPathResolver.new,
+      HeaderHelper.new)
 
     clsMetaData = exposer.exposedMetaData.findClass("::Named::HelperThing")
     cls2 = clsMetaData.parsed
@@ -570,7 +594,7 @@ local NamedClass_cls = class "NamedClass" {
   doAPork = NamedClass_doAPork_wrapper
 }}, libGen.classes[clsMetaData2]
 
-  assert_equal %{local HelperThing = require \"Named.HelperThing\"
+  assert_equal %{local HelperThing = require "Named.HelperThing"
 
 local _doMorePork_wrapper_fwd = getFunction("Named", "", "")
 local _doMorePork_wrapper = function(...)
@@ -581,9 +605,9 @@ local _doMorePork_wrapper = function(...)
 end
 
 local Named = {
-  HelperThing = require("Named.HelperThing"),
-
   NamedClass = require("Named.NamedClass"),
+
+  HelperThing = require("Named.HelperThing"),
 
   -- nil Named.doMorePork(Named::HelperThing t)
   -- \\brief Extra pork function
@@ -592,5 +616,32 @@ local Named = {
 
 return Named}, libGen.library
   end
-end
 
+  def test_comments
+    exposer, lib = exposeLibrary(@comments)
+
+    libGen = Lua::LibraryGenerator.new(
+      Lua::DEFAULT_PLUGINS,
+      Lua::DEFAULT_CLASSIFIERS,
+      "get",
+      TestPathResolver.new,
+      HeaderHelper.new)
+
+    libGen.generate(lib, exposer)
+
+    assert_equal %{local Comments = {
+  -- nil Comments.doMorePork(number t)
+  -- \\brief Extra pork function
+  -- \\param t does the pork
+  doMorePork = get("Comments", "", "doMorePork"),
+
+  -- nil Comments.doMorePork2(number t)
+  -- \\brief Extra Extra pork function
+  -- note that this is a longer brief.
+  -- \\param t does the pork
+  doMorePork2 = get("Comments", "", "doMorePork2")
+}
+
+return Comments}, libGen.library
+  end
+end

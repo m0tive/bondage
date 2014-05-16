@@ -1,3 +1,4 @@
+#pragma once
 #include <cstddef>
 
 #define GEN_EXPORT
@@ -8,10 +9,10 @@ namespace Gen
 /// \brief A CLASS!
 ///
 /// \expose derivable managed
-class Gen
+class GenCls
 {
 public:
-  virtual ~Gen() { }
+  virtual ~GenCls() { }
 
   /// \brief This funciton is a test
   /// \param myint This is an int!
@@ -58,7 +59,7 @@ inline int test5(bool a, bool b, float = 4.3f)
   }
 
 /// \expose
-class InheritTest : public Gen
+class InheritTest : public GenCls
 {
 public:
   void pork()
@@ -91,17 +92,17 @@ public:
   /// \brief test
   /// \param[out] a test param
   /// \param[in,out] b test param
-  void test(int *a = nullptr, float *b = nullptr)
+  void test(int *a = nullptr, MultipleReturnGen *gen = nullptr)
     {
     *a = 3;
-    *b = 2;
+    (void)gen;
     }
 
   /// \brief test again
   /// \param[in] a test
   /// \param[in,out] b test2
   /// \param[out] c test3
-  double test(int &a, int *b, int &c)
+  double test(const int &a, MultipleReturnGen &b, const int &c)
     {
     (void)a;
     (void)b;

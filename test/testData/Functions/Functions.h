@@ -71,6 +71,14 @@ public:
   /// \param[out] out a param
   void complex8(TestC *&out);
 
+  /// \noexpose
+  void notExposed(float);
+
+  /** \noexpose */
+  void notExposed(int);
+
+  /** \noexpose */ void notExposed(int, int);
+
   TestType<TestB, TestB> template1();
 
   TestType<TestA, TestB> template2();

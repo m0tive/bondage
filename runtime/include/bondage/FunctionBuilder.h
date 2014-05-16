@@ -29,6 +29,7 @@ public:
   template <typename Signature, Signature Fn> class buildMemberStandinCall :
       public Reflect::WrappedFunction<Signature, Fn>::Builder
     {
+  public:
     typedef Reflect::MethodInjectorBuilder<FunctionCaller> Caller;
     };
 

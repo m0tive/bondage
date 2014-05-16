@@ -1,13 +1,20 @@
 require_relative "../../exposer/ParsedLibrary.rb"
 require_relative "Function/Generator.rb"
 require_relative "RequireHelper.rb"
+require_relative "CommentHelper.rb"
 require_relative "EnumGenerator.rb"
 
 module Lua
 
   # Generate lua exposing code for C++ classes
   class ClassGenerator
-    def initialize(classPlugins, classifiers, externalLine, lineStart, getter, resolver)
+    def initialize(
+        classPlugins,
+        classifiers,
+        externalLine,
+        lineStart,
+        getter,
+        resolver)
       @lineStart = lineStart
       @plugins = classPlugins
       @fnGen = Function::Generator.new(classifiers, externalLine, @lineStart, getter)
@@ -37,7 +44,7 @@ module Lua
       enumInsert = generateEnums(parsed, exposer)
 
       # find a brief comment for [cls]
-      brief = parsed.comment.strippedCommand("brief")
+      brief = parsed.comment.commandText("brief")
 
       extraDatas = ""
       if (extraData.length != 0)
@@ -50,7 +57,7 @@ module Lua
       inc = Helper::generateRequires(@resolver, exposer, requiredClasses)
 
       # generate class output.
-      @classDefinition = "#{inc}#{extraDatas}-- \\brief #{brief}
+      @classDefinition = "#{inc}#{extraDatas}#{Helper::formatDocsTag('', 'brief', brief)}
 --
 local #{localVarOut} = class \"#{cls.name}\" {
 #{parentInsert}#{pluginInsert}#{enumInsert}
@@ -131,7 +138,10 @@ local #{localVarOut} = class \"#{cls.name}\" {
     end
 
     def generateFunctions(library, exposer, parsed, requiredClasses)
-      functions = exposer.findExposedFunctions(parsed) 
+      operatorMatch = /\A[a-zA-Z_0-9]+\z/
+      functions = exposer.findExposedFunctions(parsed).select do |name, fns|
+        operatorMatch.match(name) != nil
+      end 
 
       extraData = []
       formattedFunctions = []

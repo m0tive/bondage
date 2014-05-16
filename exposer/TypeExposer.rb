@@ -38,7 +38,7 @@ class TypeExposer
        pointed.isCharacter() ||
        pointed.isInteger() ||
        pointed.isFloatingPoint())
-      return false
+      return pointed.isConstQualified()
     end
 
     return canExposeType(pointed, partialOk)

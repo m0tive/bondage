@@ -18,7 +18,7 @@ module CPP
       @fnGen = CPP::FunctionGenerator.new("", "  ")
     end
 
-    def generate(exposer, md, libraryVariable)
+    def generate(exposer, md, libraryVariable, files)
       @metaData = md
       @cls = md.parsed
 
@@ -26,15 +26,22 @@ module CPP
 
       @exposer = exposer
 
-      generateHeader()
-      generateSource(libraryVariable)
+      if md.fullyExposed
+        generateHeader()
+        generateSource(libraryVariable, files)
+      else
+        generatePartial()
+      end
     end
 
     def findRootClass(md)
       distance = 0
       cls = md.parentClass
       while(!cls.empty?)
-        parentName = @exposer.exposedMetaData.findClass(cls).parentClass
+        foundClass = @exposer.allMetaData.findClass(cls)
+        raise "Failed to locate exposed class #{cls} in exposer #{@exposer.allMetaData.debugTypes}" unless foundClass
+
+        parentName = foundClass.parentClass
         distance += 1
         if (!parentName)
           return cls, distance
@@ -46,6 +53,15 @@ module CPP
     end
 
   private
+    def generatePartial()
+      clsPath = @cls.fullyQualifiedName
+      raise "partial class without parent #{clsPath}" unless @metaData.hasParentClass()
+
+      parent = @metaData.parentClass
+      root, dist = findRootClass(@metaData)
+      @interface = "#{MACRO_PREFIX}EXPOSED_DERIVED_PARTIAL_CLASS(#{clsPath}, #{parent}, #{root})"
+    end
+
     def generateHeader()
       clsPath = @cls.fullyQualifiedName
       if(!@metaData.hasParentClass())
@@ -63,12 +79,12 @@ module CPP
     end
 
     # Generate binding data for a class
-    def generateSource(libraryVariable)
+    def generateSource(libraryVariable, files)
       # find a name that is a valid literal in c++ used for static definitions
       fullyQualified = @cls.fullyQualifiedName()
       @wrapperName = fullyQualified.sub("::", "").gsub("::", "_")
 
-      methods, extraMethods = @fnGen.gatherFunctions(@cls, @exposer)
+      methods, extraMethods = @fnGen.gatherFunctions(@cls, @exposer, files)
 
       methodsLiteral, methodsArray, extraMethodSource = @fnGen.generateFunctionArray(methods, extraMethods, @wrapperName)
 
@@ -109,6 +125,10 @@ module CPP
         else
           mode = :managed
         end
+      end
+
+      if (@cls.hasPureVirtualFunctions && mode == :copyable)
+        raise "Abstract class #{@cls.name} can not be copyable"
       end
 
       raise "#{@cls.locationString}: A copyable class cannot be derivable." if @metaData.isDerivable && mode == :copyable

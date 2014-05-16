@@ -25,7 +25,8 @@ class FunctionExposer
         isFunctionAccessible(fn) &&
         isFunctionNotOverride(fn) &&
         isReturnTypeExposed(fn) &&
-        areAllArgumentTypesExposable(fn)
+        areAllArgumentTypesExposable(fn) &&
+        isNotConstructorForAbstract(owner, fn)
 
       if(@debug || (!canExpose && mustExpose))
         putsExposeDetails(owner, fn, canExpose)
@@ -53,11 +54,12 @@ class FunctionExposer
     if (cantExpose || !shouldExpose)
       if (@debug)
         puts "- #{owner.fullyQualifiedName}::#{fn.name}"
-        puts " - asked to expose #{exposeFlag} automatically expose #{shouldExpose}"
         puts " - requested not to."
       end
-      return
+      return true
     end
+
+    return false
   end
 
   def putsExposeDetails(owner, fn, canExpose)
@@ -111,6 +113,10 @@ private
 
   def isReturnTypeExposed(fn)
     return fn.returnType == nil || @typeExposer.canExposeType(fn.returnType, true)
+  end
+
+  def isNotConstructorForAbstract(owner, fn)
+    return !owner.hasPureVirtualFunctions || !fn.isConstructor
   end
 
   def areAllArgumentTypesExposable(fn)

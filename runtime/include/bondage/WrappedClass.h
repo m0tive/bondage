@@ -63,12 +63,32 @@ public:
 
   template <typename A, typename B> static T *create(A &&a, B &&b)
     {
-    return new T(std::forward<A>(a), std::forward<Args>(b));
+    return new T(std::forward<A>(a), std::forward<B>(b));
     }
 
   template <typename A, typename B, typename C> static T *create(A &&a, B &&b, C &&c)
     {
-    return new T(std::forward<A>(a), std::forward<Args>(b), std::forward<Args>(c));
+    return new T(std::forward<A>(a), std::forward<B>(b), std::forward<C>(c));
+    }
+
+  template <typename A, typename B, typename C, typename D> static T *create(A &&a, B &&b, C &&c, D &&d)
+    {
+    return new T(std::forward<A>(a), std::forward<B>(b), std::forward<C>(c), std::forward<D>(d));
+    }
+
+  template <typename A, typename B, typename C, typename D, typename E> static T *create(A &&a, B &&b, C &&c, D &&d, E &&e)
+    {
+    return new T(std::forward<A>(a), std::forward<B>(b), std::forward<C>(c), std::forward<D>(d), std::forward<E>(e));
+    }
+
+  template <typename A, typename B, typename C, typename D, typename E, typename F> static T *create(A &&a, B &&b, C &&c, D &&d, E &&e, F &&f)
+    {
+    return new T(std::forward<A>(a), std::forward<B>(b), std::forward<C>(c), std::forward<D>(d), std::forward<E>(e), std::forward<F>(f));
+    }
+
+  template <typename A, typename B, typename C, typename D, typename E, typename F, typename G> static T *create(A &&a, B &&b, C &&c, D &&d, E &&e, F &&f, G &&g)
+    {
+    return new T(std::forward<A>(a), std::forward<B>(b), std::forward<C>(c), std::forward<D>(d), std::forward<E>(e), std::forward<F>(f), std::forward<G>(g));
     }
   };
 

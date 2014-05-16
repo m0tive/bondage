@@ -9,9 +9,16 @@ module AST
       @classes = {}
       @enums = {}
       @functions = []
+      @hasPureVirtualFunctions = false
+
+      cursor = data[:cursor]
+      if (cursor)
+        @primaryFile = cursor.location.file
+      end
     end
 
-    attr_reader :classes, :enums, :functions
+    attr_reader :classes, :enums, :functions, :hasPureVirtualFunctions
+    attr_accessor :primaryFile
 
     # Add a struct to the container, [data] is a hash of data from clang
     def addStruct(data)
@@ -58,6 +65,10 @@ module AST
     def addFunction(data)
       fn = AST::FunctionItem.build(self, data, false)
       functions << fn
+      @primaryFile = data[:cursor].location.file
+
+      @hasPureVirtualFunctions ||= data[:cursor].pure_virtual?
+
       return fn
     end
 

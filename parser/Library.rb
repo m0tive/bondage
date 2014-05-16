@@ -1,19 +1,36 @@
 # Library is a group of classes and settings which can be exposed as a group
 class Library
-  def initialize(name, path, exportMacro=nil)
+  def initialize(name, path="", exportMacro=nil)
     @name = name
+    @namespaceName = name
     @root = path
+    @rootPathname = Pathname.new(@root)
     @includePaths = []
     @files = []
     @dependencies = []
     @exportMacro = exportMacro ? exportMacro : name.upcase() + "_EXPORT"
+    @coreInclude = "#{name}.h"
   end
 
-  attr_reader :name, :files, :root, :dependencies, :exportMacro
+  attr_reader :name, :files, :root
+  attr_accessor :namespaceName, :rootPathname, :includePaths, :dependencies, :exportMacro, :coreInclude
+
+  def setAutogenPath(path)
+    @autogenPath = path
+  end
 
   # The path which should hold auto gen files for the library
   def autogenPath
+    if (@autogenPath)
+      return @autogenPath
+    end
+
     return "#{root}/autogen_#{name}"
+  end
+
+  def setRoot(root)
+    @root = root
+    @rootPathname = Pathname.new(@root)
   end
 
   # Add a source file path to the library
@@ -23,13 +40,12 @@ class Library
 
   # Add a source file path to the library
   def addFiles(path, pattern, recursive)
-    rootPath = Pathname.new(root)
     pattern = "#{root}/#{path}/#{recursive ? "**/" : ""}#{pattern}"
     Dir.glob(pattern).each do |item|
       next if item == '.' or item == '..'
       # do work on real items
 
-      filePath = Pathname.new(item).relative_path_from(rootPath)
+      filePath = Pathname.new(item).relative_path_from(@rootPathname)
       addFile(filePath)
     end
   end
@@ -37,6 +53,11 @@ class Library
   # add a dependency library to this library
   def addDependency(dep)
     @dependencies << dep
+  end
+
+  # add a dependency library to this library
+  def addDependencies(depArr)
+    @dependencies = @dependencies.concat(depArr)
   end
 
   # add an include path to the library
