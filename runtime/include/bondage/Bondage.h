@@ -1,5 +1,9 @@
 #pragma once
 
+#define BONDAGE_VERSION_MAJOR 1
+#define BONDAGE_VERSION_MINOR 0
+#define BONDAGE_VERSION_PATCH 0
+
 #ifdef _WIN32
 # ifdef BONDAGE_BUILD
 #  define BONDAGE_EXPORT __declspec(dllexport)
