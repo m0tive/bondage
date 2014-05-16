@@ -3,7 +3,8 @@
 
 #include "Generator/autogen_Gen/Gen.h"
 #include "bondage/Library.h"
-#include "CastHelper.Gen_Gen.h"
+#include "bondage/WrappedClass.h"
+#include "CastHelper.Gen_GenCls.h"
 
 #include "StringLibrary/StringLibrary.h"
 #include "StringLibrary/autogen_String/String.h"
@@ -36,11 +37,11 @@ template <typename T> struct Helper
 
 void RuntimeTest::testTypeExistance()
   {
-  const Crate::Type *value = Crate::findType<Gen::Gen>();
-  const Crate::Type *ptr = Crate::findType<Gen::Gen*>();
-  const Crate::Type *constPtr = Crate::findType<const Gen::Gen*>();
-  const Crate::Type *ref = Crate::findType<Gen::Gen&>();
-  const Crate::Type *constRef = Crate::findType<const Gen::Gen&>();
+  const Crate::Type *value = Crate::findType<Gen::GenCls>();
+  const Crate::Type *ptr = Crate::findType<Gen::GenCls*>();
+  const Crate::Type *constPtr = Crate::findType<const Gen::GenCls*>();
+  const Crate::Type *ref = Crate::findType<Gen::GenCls&>();
+  const Crate::Type *constRef = Crate::findType<const Gen::GenCls&>();
 
   QCOMPARE(value, ptr);
   QCOMPARE(value, constPtr);
@@ -55,7 +56,7 @@ void RuntimeTest::testTypeExistance()
 
   QVERIFY(5 == classes.size());
 
-  QVERIFY(classes["Gen"]);
+  QVERIFY(classes["GenCls"]);
   QVERIFY(classes["InheritTest"]);
   QVERIFY(classes["InheritTest2"]);
   QVERIFY(classes["MultipleReturnGen"]);
@@ -76,21 +77,21 @@ void RuntimeTest::testTypeCasting()
   auto multiGen = Helper<Gen::MultipleReturnGen>::create(&boxer, new Gen::MultipleReturnGen);
   QVERIFY(Crate::Traits<Gen::MultipleReturnGen>::canUnbox(&boxer, multiGen.get()));
   QVERIFY(!Crate::Traits<Gen::CtorGen>::canUnbox(&boxer, multiGen.get()));
-  QVERIFY(!Crate::Traits<Gen::Gen>::canUnbox(&boxer, multiGen.get()));
+  QVERIFY(!Crate::Traits<Gen::GenCls>::canUnbox(&boxer, multiGen.get()));
   QVERIFY(!Crate::Traits<Gen::InheritTest>::canUnbox(&boxer, multiGen.get()));
 
   auto ctorGen = Helper<Gen::CtorGen>::create(&boxer, new Gen::CtorGen);
   QVERIFY(!Crate::Traits<Gen::MultipleReturnGen>::canUnbox(&boxer, ctorGen.get()));
   QVERIFY(Crate::Traits<Gen::CtorGen>::canUnbox(&boxer, ctorGen.get()));
-  QVERIFY(!Crate::Traits<Gen::Gen>::canUnbox(&boxer, ctorGen.get()));
+  QVERIFY(!Crate::Traits<Gen::GenCls>::canUnbox(&boxer, ctorGen.get()));
   QVERIFY(!Crate::Traits<Gen::InheritTest>::canUnbox(&boxer, ctorGen.get()));
 
 
   // genbox and inheritbox should cast to derived types.
-  auto inheritBox = Helper<Gen::Gen>::create(&boxer, new Gen::InheritTest);
+  auto inheritBox = Helper<Gen::GenCls>::create(&boxer, new Gen::InheritTest);
   auto inheritBox2 = Helper<Gen::InheritTest>::create(&boxer, new Gen::InheritTest);
-  auto inheritBox3 = Helper<Gen::Gen>::create(&boxer, new Gen::InheritTest2);
-  auto genBox = Helper<Gen::Gen>::create(&boxer, new Gen::Gen);
+  auto inheritBox3 = Helper<Gen::GenCls>::create(&boxer, new Gen::InheritTest2);
+  auto genBox = Helper<Gen::GenCls>::create(&boxer, new Gen::GenCls);
 
   // check no casting to other types
   QVERIFY(!Crate::Traits<Gen::MultipleReturnGen>::canUnbox(&boxer, inheritBox.get()));
@@ -99,10 +100,10 @@ void RuntimeTest::testTypeCasting()
   QVERIFY(!Crate::Traits<Gen::CtorGen>::canUnbox(&boxer, genBox.get()));
 
   // both object can be a gen.
-  QVERIFY(Crate::Traits<Gen::Gen>::canUnbox(&boxer, genBox.get()));
-  QVERIFY(Crate::Traits<Gen::Gen>::canUnbox(&boxer, inheritBox.get()));
-  QVERIFY(Crate::Traits<Gen::Gen>::canUnbox(&boxer, inheritBox2.get()));
-  QVERIFY(Crate::Traits<Gen::Gen>::canUnbox(&boxer, inheritBox3.get()));
+  QVERIFY(Crate::Traits<Gen::GenCls>::canUnbox(&boxer, genBox.get()));
+  QVERIFY(Crate::Traits<Gen::GenCls>::canUnbox(&boxer, inheritBox.get()));
+  QVERIFY(Crate::Traits<Gen::GenCls>::canUnbox(&boxer, inheritBox2.get()));
+  QVERIFY(Crate::Traits<Gen::GenCls>::canUnbox(&boxer, inheritBox3.get()));
 
   // only the derived type can be an inherittest
   QVERIFY(!Crate::Traits<Gen::InheritTest>::canUnbox(&boxer, genBox.get()));
@@ -118,10 +119,10 @@ void RuntimeTest::testTypeCasting()
 
   auto multiGenData = Crate::Traits<Gen::MultipleReturnGen>::unbox(&boxer, multiGen.get());
   auto ctorGenData = Crate::Traits<Gen::CtorGen>::unbox(&boxer, ctorGen.get());
-  auto genData = Crate::Traits<Gen::Gen>::unbox(&boxer, genBox.get());
-  auto inherit1Data = Crate::Traits<Gen::Gen>::unbox(&boxer, inheritBox.get());
-  auto inherit2Data = Crate::Traits<Gen::Gen>::unbox(&boxer, inheritBox2.get());
-  auto inherit3Data = Crate::Traits<Gen::Gen>::unbox(&boxer, inheritBox3.get());
+  auto genData = Crate::Traits<Gen::GenCls>::unbox(&boxer, genBox.get());
+  auto inherit1Data = Crate::Traits<Gen::GenCls>::unbox(&boxer, inheritBox.get());
+  auto inherit2Data = Crate::Traits<Gen::GenCls>::unbox(&boxer, inheritBox2.get());
+  auto inherit3Data = Crate::Traits<Gen::GenCls>::unbox(&boxer, inheritBox3.get());
 
   auto ctorCls = bondage::WrappedClassFinder<Gen::CtorGen>::find(ctorGenData);
   auto ctorClsBase = bondage::WrappedClassFinder<Gen::CtorGen>::findBase();
@@ -133,18 +134,18 @@ void RuntimeTest::testTypeCasting()
   QCOMPARE(multiCls, multiClsBase);
   QCOMPARE(classes["MultipleReturnGen"], multiCls);
 
-  auto genCls = bondage::WrappedClassFinder<Gen::Gen>::find(genData);
-  auto genClsBase = bondage::WrappedClassFinder<Gen::Gen>::findBase();
+  auto genCls = bondage::WrappedClassFinder<Gen::GenCls>::find(genData);
+  auto genClsBase = bondage::WrappedClassFinder<Gen::GenCls>::findBase();
   QCOMPARE(genCls, genClsBase);
-  QCOMPARE(classes["Gen"], genCls);
+  QCOMPARE(classes["GenCls"], genCls);
 
   auto i1Cls = bondage::WrappedClassFinder<Gen::InheritTest>::find(inherit1Data);
   auto i1ClsBase = bondage::WrappedClassFinder<Gen::InheritTest>::findBase();
   QCOMPARE(i1Cls, i1ClsBase);
   QCOMPARE(classes["InheritTest"], i1Cls);
 
-  auto i2Cls = bondage::WrappedClassFinder<Gen::Gen>::find(inherit2Data);
-  auto i2ClsBase = bondage::WrappedClassFinder<Gen::Gen>::findBase();
+  auto i2Cls = bondage::WrappedClassFinder<Gen::GenCls>::find(inherit2Data);
+  auto i2ClsBase = bondage::WrappedClassFinder<Gen::GenCls>::findBase();
   QCOMPARE(i2ClsBase, genCls);
   QCOMPARE(classes["InheritTest"], i2Cls);
 
@@ -170,7 +171,7 @@ void RuntimeTest::testFunctionExistance()
   QVERIFY(multiGen->functionCount() == 1);
   QVERIFY("test" == multiGen->function(0).name());
 
-  auto gen = classes["Gen"];
+  auto gen = classes["GenCls"];
   QVERIFY(gen->functionCount() == 3);
   QVERIFY("test1" == gen->function(0).name());
   QVERIFY("test2" == gen->function(1).name());
@@ -260,7 +261,7 @@ void RuntimeTest::testStringLibrary()
   QVERIFY(1 == String::bindings().functionCount());
   auto quote = String::bindings().function(0);
 
-  auto stringClass = classes["String"];
+  auto stringClass = classes["StringCls"];
   QVERIFY(stringClass);
 
 
@@ -280,15 +281,15 @@ void RuntimeTest::testStringLibrary()
 
 
   QVERIFY(1 == createStringArgs.args.resultCount);
-  QVERIFY(Reflect::example::Caster<String::String*>::canCast(&boxer, &createStringArgs.args.results[0]));
-  QVERIFY(Reflect::example::Caster<String::String*>::cast(&boxer, &createStringArgs.args.results[0]) != nullptr);
+  QVERIFY(Reflect::example::Caster<String::StringCls*>::canCast(&boxer, &createStringArgs.args.results[0]));
+  QVERIFY(Reflect::example::Caster<String::StringCls*>::cast(&boxer, &createStringArgs.args.results[0]) != nullptr);
 
 
   Args<0> toUpperArgs;
   createArgs(&boxer, toUpperArgs, &createStringArgs.args.results[0]);
   toUpperArgs.call(functions["toUpper"]);
-  QVERIFY(Reflect::example::Caster<String::String*>::canCast(&boxer, &toUpperArgs.args.results[0]));
-  String::String* upper = Reflect::example::Caster<String::String*>::cast(&boxer, &toUpperArgs.args.results[0]);
+  QVERIFY(Reflect::example::Caster<String::StringCls*>::canCast(&boxer, &toUpperArgs.args.results[0]));
+  String::StringCls* upper = Reflect::example::Caster<String::StringCls*>::cast(&boxer, &toUpperArgs.args.results[0]);
   QVERIFY(upper != nullptr);
   QCOMPARE(upper->val.c_str(), "PORK");
 
@@ -315,7 +316,7 @@ void RuntimeTest::testStringLibrary()
   createArgs(&boxer, quoteStringArgs, nullptr, upper);
   quoteStringArgs.call(&quote);
 
-  String::String* arg1 = Reflect::example::Caster<String::String*>::cast(&boxer, quoteStringArgs.args.args[0]);
+  String::StringCls* arg1 = Reflect::example::Caster<String::StringCls*>::cast(&boxer, quoteStringArgs.args.args[0]);
   QCOMPARE(arg1->val.c_str(), "`PORK5_TEST12`");
   }
 

@@ -57,7 +57,7 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen = Lua::Function::Generator.new(nil, "", "", "getFunction")
 
-    cls = exposer.exposedMetaData.findClass("::Gen::Gen").parsed
+    cls = exposer.exposedMetaData.findClass("::Gen::GenCls").parsed
     assert_not_nil cls
 
     rootNs = lib.getExposedNamespace()
@@ -97,14 +97,14 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen.generate(lib.library, cls, [ fn1, fn2 ], Set.new)
 
-    assert_equal "-- nil Gen:test1(number myint, number myFloat, number arg3)
--- nil Gen:test2(number arg1)
--- nil Gen:test2(number arg1, number arg2)
--- nil Gen:test2(number arg1, number arg2, number arg3)
+    assert_equal "-- nil GenCls:test1(number myint, number myFloat, number arg3)
+-- nil GenCls:test2(number arg1)
+-- nil GenCls:test2(number arg1, number arg2)
+-- nil GenCls:test2(number arg1, number arg2, number arg3)
 -- \\brief This funciton is a test
 -- \\param myFloat This is a float.
 -- \\param myint This is an int!", fnGen.docs
-    assert_equal "getFunction(\"Gen\", \"Gen\", \"test1\")", fnGen.bind
+    assert_equal "getFunction(\"Gen\", \"GenCls\", \"test1\")", fnGen.bind
   end
 
   def test_stringLibGeneratorLua
@@ -163,29 +163,29 @@ class TestGenerator < Test::Unit::TestCase
 
 -- \\brief A CLASS!
 --
-local Gen_cls = class \"Gen\" {
+local GenCls_cls = class \"GenCls\" {
 
-  -- nil Gen:test1(number myint, number myFloat, number arg3)
+  -- nil GenCls:test1(number myint, number myFloat, number arg3)
   -- \\brief This funciton is a test
   -- \\param myFloat This is a float.
   -- \\param myint This is an int!
-  test1 = getFunction(\"Gen\", \"Gen\", \"test1\"),
+  test1 = getFunction(\"Gen\", \"GenCls\", \"test1\"),
 
-  -- nil Gen:test2(number arg1)
-  -- nil Gen:test2(number arg1, number arg2)
-  -- nil Gen:test2(number arg1, number arg2, number arg3)
+  -- nil GenCls:test2(number arg1)
+  -- nil GenCls:test2(number arg1, number arg2)
+  -- nil GenCls:test2(number arg1, number arg2, number arg3)
   -- \\brief 
-  test2 = getFunction(\"Gen\", \"Gen\", \"test2\"),
+  test2 = getFunction(\"Gen\", \"GenCls\", \"test2\"),
 
-  -- nil Gen.test3(boolean arg1)
-  -- number Gen.test3(boolean arg1, number arg2)
-  -- number Gen.test3(boolean arg1, number arg2, boolean arg3)
-  -- number Gen.test3(number arg1, number arg2)
+  -- nil GenCls.test3(boolean arg1)
+  -- number GenCls.test3(boolean arg1, number arg2)
+  -- number GenCls.test3(boolean arg1, number arg2, boolean arg3)
+  -- number GenCls.test3(number arg1, number arg2)
   -- \\brief 
-  test3 = getFunction(\"Gen\", \"Gen\", \"test3\")
+  test3 = getFunction(\"Gen\", \"GenCls\", \"test3\")
 }
 
-return Gen_cls
+return GenCls_cls
 "
 
     expectedInheritTest = "-- Copyright me, fool. No, copying and stuff.
@@ -196,7 +196,7 @@ return Gen_cls
 -- \\brief 
 --
 local InheritTest_cls = class \"InheritTest\" {
-  super = require \"Gen.Gen\",
+  super = require \"Gen.GenCls\",
 
   -- nil InheritTest:pork()
   -- \\brief 
@@ -242,7 +242,7 @@ local Gen = {
 
   MultipleReturnGen = require(\"Gen.MultipleReturnGen\"),
 
-  Gen = require(\"Gen.Gen\"),
+  GenCls = require(\"Gen.GenCls\"),
 
   InheritTest = require(\"Gen.InheritTest\"),
 
@@ -266,7 +266,7 @@ local Gen = {
 return Gen
 "
 
-    assert_equal expectedGenTest, File.read("#{luaPath}/Gen.lua")
+    assert_equal expectedGenTest, File.read("#{luaPath}/GenCls.lua")
     assert_equal expectedInheritTest, File.read("#{luaPath}/InheritTest.lua")
     assert_equal expectedInherit2Test, File.read("#{luaPath}/InheritTest2.lua")
     assert_equal libraryTest, File.read("#{luaPath}/GenLibrary.lua")

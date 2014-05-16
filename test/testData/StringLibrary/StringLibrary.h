@@ -8,19 +8,19 @@ namespace String
 #define STRING_EXPORT
 
 /// \expose
-class String
+class StringCls
 {
 public:
-  static String create(const char *val)
+  static StringCls create(const char *val)
   {
-    String s;
+    StringCls s;
     s.val = val;
     return s;
   }
 
-  String toUpper()
+  StringCls toUpper()
   {
-    String s = *this;
+    StringCls s = *this;
     std::transform(s.val.begin(), s.val.end(), s.val.begin(), ::toupper);
     return s;
   }
@@ -44,7 +44,7 @@ public:
 };
 
 /// \expose
-inline void quote(String& s)
+inline void quote(StringCls& s)
   {
   s.val = "`" + s.val + "`";
   }

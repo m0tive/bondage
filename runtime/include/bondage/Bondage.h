@@ -12,7 +12,7 @@
 # define BONDAGE_END_WARNING_SCOPE \
   __pragma(warning(pop))
 #else
-# define NMEDITORS_EXPORT
+# define BONDAGE_EXPORT
 # define BONDAGE_BEGIN_WARNING_SCOPE
 # define BONDAGE_END_WARNING_SCOPE
 #endif

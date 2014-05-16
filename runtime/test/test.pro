@@ -40,8 +40,8 @@ HEADERS += \
     ../include/bondage/WrappedClass.h \
     ../include/bondage/Bondage.h \
     ../include/bondage/CastHelper.h \
-    CastHelper.Gen_Gen.h \
-    PackHelper.h
+    PackHelper.h \
+    CastHelper.Gen_GenCls.h
 
 INCLUDEPATH += \
   ../include/ \
