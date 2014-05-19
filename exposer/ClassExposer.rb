@@ -23,7 +23,7 @@ class ClassExposer
       gatherEnums(rootNs, visitor.library)
     end
 
-    @exposedMetaData.export(visitor.library.autogenPath)
+    @exposedMetaData.export(visitor.library.autogenPath(:cpp))
 
     @typeExposer = TypeExposer.new(@allMetaData)
     @functionExposer = FunctionExposer.new(@typeExposer, debug)
@@ -96,7 +96,7 @@ private
     lib.dependencies.each do |dep|
       mergeDependencyClasses(dataToMerge, dep)
 
-      metaData = TypeDataSet.import(dep.autogenPath, dep)
+      metaData = TypeDataSet.import(dep.autogenPath(:cpp), dep)
       dataToMerge.merge(metaData)
     end
   end

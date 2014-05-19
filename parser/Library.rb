@@ -8,6 +8,7 @@ class Library
     @includePaths = []
     @files = []
     @dependencies = []
+    @languagesAutogenPath = { }
     @exportMacro = exportMacro ? exportMacro : name.upcase() + "_EXPORT"
     @coreInclude = "#{name}.h"
   end
@@ -15,14 +16,15 @@ class Library
   attr_reader :name, :files, :root
   attr_accessor :namespaceName, :rootPathname, :includePaths, :dependencies, :exportMacro, :coreInclude
 
-  def setAutogenPath(path)
-    @autogenPath = path
+  def setAutogenPath(lang, path)
+    @languagesAutogenPath[lang] = path
   end
 
   # The path which should hold auto gen files for the library
-  def autogenPath
-    if (@autogenPath)
-      return @autogenPath
+  def autogenPath(lang)
+    pth = @languagesAutogenPath[lang]
+    if (pth)
+      return pth
     end
 
     return "#{root}/autogen_#{name}"

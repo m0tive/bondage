@@ -11,6 +11,14 @@ class TestPathResolver
   def pathFor(cls)
     return "#{cls.library.name}.#{cls.name}"
   end
+
+  def coreClassPath()
+    return "class"
+  end
+
+  def coreRequires()
+    return [ ]
+  end
 end
 
 class TestGenerator < Test::Unit::TestCase
@@ -119,7 +127,7 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen.generate(lib, exposer)
 
-    luaPath = lib.library.autogenPath + "/lua"
+    luaPath = lib.library.autogenPath(:lua)
     FileUtils.mkdir_p(luaPath)
 
     libGen.write(luaPath)
@@ -151,7 +159,7 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen.generate(lib, exposer)
 
-    luaPath = lib.library.autogenPath + "/lua"
+    luaPath = lib.library.autogenPath(:lua)
     FileUtils.mkdir_p(luaPath)
 
     libGen.write(luaPath)

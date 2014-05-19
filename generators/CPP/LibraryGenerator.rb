@@ -31,11 +31,11 @@ module CPP
     attr_reader :header, :source
 
     def headerPath(library)
-      return "#{library.autogenPath}/#{library.name}.h"
+      return "#{library.autogenPath(:cpp)}/#{library.name}.h"
     end
 
     def sourcePath(library)
-      return "#{library.autogenPath}/#{library.name}.cpp"
+      return "#{library.autogenPath(:cpp)}/#{library.name}.cpp"
     end
 
     def generate(visitor, exposer)

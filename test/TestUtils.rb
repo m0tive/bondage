@@ -37,7 +37,9 @@ $:.unshift File.dirname(__FILE__) + "/../parser/ffi-clang/lib"
 DEBUGGING = false
 
 def setupLibrary(library)
-  path = library.autogenPath
+  path = library.autogenPath(:cpp)
+  FileUtils.mkdir_p(path)
+  path = library.autogenPath(:lua)
   FileUtils.mkdir_p(path)
 end
 
@@ -49,7 +51,12 @@ def exposeLibrary(lib, dbg = false)
 end
 
 def cleanLibrary(library)
-  path = library.autogenPath
+  path = library.autogenPath(:cpp)
+  if File.directory?(path)
+    result = FileUtils.rm_rf(path)
+  end
+
+  path = library.autogenPath(:lua)
   if File.directory?(path)
     result = FileUtils.rm_rf(path)
   end

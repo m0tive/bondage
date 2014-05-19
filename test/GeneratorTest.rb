@@ -258,13 +258,13 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen = CPP::LibraryGenerator.new(HeaderHelper.new)
 
-    expectedHeader = lib.library.autogenPath + "/../autogen_baked/Gen.h"
-    expectedSource = lib.library.autogenPath + "/../autogen_baked/Gen.cpp"
+    expectedHeader = lib.library.autogenPath(:cpp) + "/../autogen_baked/Gen.h"
+    expectedSource = lib.library.autogenPath(:cpp) + "/../autogen_baked/Gen.cpp"
 
     libGen.generate(lib, exposer)
 
     if (false)
-      FileUtils.mkdir_p(lib.library.autogenPath)
+      FileUtils.mkdir_p(lib.library.autogenPath(:cpp))
       File.open(expectedHeader, 'w') do |file|
         file.write(libGen.header)
       end
@@ -294,7 +294,7 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen.generate(genLib, genExposer)
 
-    FileUtils.mkdir_p(genLib.library.autogenPath)
+    FileUtils.mkdir_p(genLib.library.autogenPath(:cpp))
     File.open(expectedHeader, 'w') do |file|
       file.write(libGen.header)
     end
@@ -307,7 +307,7 @@ class TestGenerator < Test::Unit::TestCase
     expectedHeader = libGen.headerPath(lib.library)
     expectedSource = libGen.sourcePath(lib.library)
 
-    FileUtils.mkdir_p(lib.library.autogenPath)
+    FileUtils.mkdir_p(lib.library.autogenPath(:cpp))
     File.open(expectedHeader, 'w') do |file|
       file.write(libGen.header)
     end
