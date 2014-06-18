@@ -7,7 +7,7 @@
 #define BONDAGE_IMPLEMENT_EXPOSED_CLASS(varName, lib, parent, name, fns, fnCount) \
   namespace Crate { namespace detail { \
   const Type *TypeResolver<parent::name>::find() \
-    { static Type t(#name); return &t; } } } \
+    { static Type t; t.initialise<parent::name>(#name); return &t; } } } \
   bondage::WrappedClass varName ( \
     lib, \
     Crate::findType<parent::name>(), \

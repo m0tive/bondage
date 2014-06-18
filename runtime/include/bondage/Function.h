@@ -8,10 +8,9 @@ class Function
   {
 public:
   typedef bondage::Builder::Arguments Arguments;
+  typedef bondage::Builder::Call Call;
+  typedef bondage::Builder::CanCall CanCall;
   typedef Arguments *CallData;
-
-  typedef void (*Call)(bondage::Builder::Boxer *, Arguments *);
-  typedef bool (*CanCall)(bondage::Builder::Boxer *, Arguments *);
 
   Function(const char *name, Call fn)
       : m_function(fn),
@@ -20,9 +19,9 @@ public:
     assert(m_function);
     }
 
-  void call(bondage::Builder::Boxer *b, Arguments *a) const
+  Call getCallFunction()
     {
-    m_function(b, a);
+    return m_function;
     }
 
   const std::string &name() const { return m_name; }
@@ -38,27 +37,27 @@ public:
   typedef Function::Call Result;
   typedef Function::CanCall CanCallResult;
 
-  template <typename Function, typename Builder> static Result buildCall()
+  template <typename Function, typename Builder> static Result buildWrappedCall()
     {
-    return call<Function, Builder>;
+    return wrapCall<Function, Builder>;
     }
 
-  template <typename Function, typename Builder> static CanCallResult buildCanCall()
+  template <typename Function, typename Builder> static CanCallResult buildWrappedCanCall()
     {
-    return canCall<Function, Builder>;
+    return wrapCanCall<Function, Builder>;
     }
 
   template <typename Fn, typename Builder> static void call(Boxer *b, Function::Arguments *data)
     {
-    Call call = { data, b };
+    auto call = bondage::Builder::buildCall<Fn>(data, b);
     Fn::template call<Builder>(&call);
     }
 
   template <typename Fn, typename Builder> static bool canCall(Boxer *b, Function::Arguments *data)
-    {
-    Call call = { data, b };
+  {
+    auto call = bondage::Builder::buildCall<Fn>(data, b);
     return Fn::template canCall<Builder>(&call);
-    }
+  }
   };
 
 }

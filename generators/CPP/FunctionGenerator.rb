@@ -131,7 +131,8 @@ module CPP
       callsArray = @calls[argCount]
       if (callsArray == nil)
         callsArray = []
-        @calls[argCount] = callsArray
+        thisCount = function.static ? 0 : 1
+        @calls[argCount + thisCount] = callsArray
       end
 
       @wrapperGenerator.generateCall(
