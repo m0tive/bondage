@@ -19,7 +19,7 @@ public:
     assert(m_function);
     }
 
-  Call getCallFunction()
+  Call getCallFunction() const
     {
     return m_function;
     }
@@ -46,18 +46,6 @@ public:
     {
     return wrapCanCall<Function, Builder>;
     }
-
-  template <typename Fn, typename Builder> static void call(Boxer *b, Function::Arguments *data)
-    {
-    auto call = bondage::Builder::buildCall<Fn>(data, b);
-    Fn::template call<Builder>(&call);
-    }
-
-  template <typename Fn, typename Builder> static bool canCall(Boxer *b, Function::Arguments *data)
-  {
-    auto call = bondage::Builder::buildCall<Fn>(data, b);
-    return Fn::template canCall<Builder>(&call);
-  }
   };
 
 }

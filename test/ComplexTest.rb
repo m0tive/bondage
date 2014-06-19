@@ -39,6 +39,14 @@ class TestComplex < Test::Unit::TestCase
     def pathFor(cls)
       return cls.name
     end
+
+    def coreClassPath()
+      return "class"
+    end
+
+    def coreRequires()
+      return []
+    end
   end
 
   def expose(library)

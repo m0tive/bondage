@@ -76,13 +76,13 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen.generate(cls, [ fn2 ], exposer, Set.new())
     assert_equal "bondage::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
-  Reflect::FunctionArgCountSelectorBlock<1,
+  Reflect::FunctionArgCountSelectorBlock<2,
     bondage::FunctionBuilder::buildMemberStandinCall< void(*)(::Gen::GenCls &, int), &Gen_GenCls_test2_overload0 >
     >,
-  Reflect::FunctionArgCountSelectorBlock<2,
+  Reflect::FunctionArgCountSelectorBlock<3,
     bondage::FunctionBuilder::buildMemberStandinCall< void(*)(::Gen::GenCls &, int, float), &Gen_GenCls_test2_overload1 >
     >,
-  Reflect::FunctionArgCountSelectorBlock<3,
+  Reflect::FunctionArgCountSelectorBlock<4,
     bondage::FunctionBuilder::buildCall< void(::Gen::GenCls::*)(int, float, double), &::Gen::GenCls::test2 >
     >
   > >(\"test2\")", fnGen.bind
@@ -164,13 +164,13 @@ class TestGenerator < Test::Unit::TestCase
     fnGen.generate(multiReturnCls, [ fn1, fn2 ], exposer, Set.new())
 
     assert_equal "bondage::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
-  Reflect::FunctionArgCountSelectorBlock<1,
+  Reflect::FunctionArgCountSelectorBlock<2,
     bondage::FunctionBuilder::buildMemberStandinCall< int(*)(::Gen::MultipleReturnGen &), &Gen_MultipleReturnGen_test_overload0 >
     >,
-  Reflect::FunctionArgCountSelectorBlock<2,
+  Reflect::FunctionArgCountSelectorBlock<3,
     bondage::FunctionBuilder::buildMemberStandinCall< int(*)(::Gen::MultipleReturnGen &, Gen::MultipleReturnGen *), &Gen_MultipleReturnGen_test_overload1 >
     >,
-  Reflect::FunctionArgCountSelectorBlock<3,
+  Reflect::FunctionArgCountSelectorBlock<4,
     bondage::FunctionBuilder::buildMemberStandinCall< std::tuple< double, Gen::MultipleReturnGen, const int >(*)(::Gen::MultipleReturnGen &, const int &, Gen::MultipleReturnGen &), &Gen_MultipleReturnGen_test_overload2 >
     >
   > >(\"test\")", fnGen.bind
@@ -226,10 +226,10 @@ class TestGenerator < Test::Unit::TestCase
     fnGen.generate(cls, ctors, exposer, Set.new())
 
     assert_equal "bondage::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
-  Reflect::FunctionArgCountSelectorBlock<0,
+  Reflect::FunctionArgCountSelectorBlock<1,
     bondage::FunctionBuilder::buildCall< ::Gen::CtorGen *(*)(), &Gen_CtorGen_CtorGen_overload0 >
     >,
-  Reflect::FunctionArgCountSelectorBlock<1,
+  Reflect::FunctionArgCountSelectorBlock<2,
     bondage::FunctionBuilder::buildCall< std::tuple< ::Gen::CtorGen *, int >(*)(), &Gen_CtorGen_CtorGen_overload1 >
     >
   > >(\"CtorGen\")", fnGen.bind
@@ -275,7 +275,7 @@ class TestGenerator < Test::Unit::TestCase
 
     assert_equal File.read(expectedHeader), libGen.header
     assert_equal File.read(expectedSource), libGen.source
-    cleanLibrary(@gen)
+    #cleanLibrary(@gen)
   end
 
   def test_stringLibGenerator
@@ -321,7 +321,7 @@ class TestGenerator < Test::Unit::TestCase
       #runProcess("test/testGenerator.bat")
     end
 
-    cleanLibrary(stringLibrary)
-    cleanLibrary(@gen)
+    #cleanLibrary(stringLibrary)
+    #cleanLibrary(@gen)
   end
 end

@@ -41,7 +41,8 @@ HEADERS += \
     ../include/bondage/Bondage.h \
     ../include/bondage/CastHelper.h \
     PackHelper.h \
-    CastHelper.Gen_GenCls.h
+    CastHelper.Gen_GenCls.h \
+    CrateTypeHelper.h
 
 INCLUDEPATH += \
   ../include/ \

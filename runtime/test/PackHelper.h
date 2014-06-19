@@ -13,15 +13,23 @@ public:
     Signature fn;
     };
 
+  typedef Result::Signature Call;
+  typedef bool (*CanCall)(CallData);
+
   template <typename Builder> static Result build()
     {
-    Result r = { call<Builder> };
+    Result r = { wrapCall<Builder> };
     return r;
     }
 
-  template <typename Builder> static void call(CallData data)
+  template <typename Function, typename Builder> static void wrapCall(CallData data)
     {
-    Builder::call(data);
+    Function::template call<Builder>(data);
+    }
+
+  template <typename Function, typename Builder> static void wrapCanCall(CallData data)
+    {
+    Function::template canCall<Builder>(data);
     }
   };
 

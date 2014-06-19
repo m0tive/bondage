@@ -17,8 +17,6 @@ public:
     return Function(name, Invoker::template buildWrappedCall<Fn, FunctionCaller>());
     }
 
-
-
   template <typename Signature, Signature Fn> class buildCall :
       public Reflect::WrappedFunction<Signature, Fn>::Builder
     {
