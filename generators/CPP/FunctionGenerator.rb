@@ -80,9 +80,9 @@ module CPP
     def generate(owner, functions, exposer, types)
       reset(types)
 
-      FunctionVisitor.visit(owner, functions, self, exposer, @debug)
-
       name = functions[0].name
+
+      FunctionVisitor.visit(owner, functions, self, exposer, @debug)
 
       singleCall = nil
       @calls.each do |num, calls|
@@ -128,10 +128,13 @@ module CPP
     end
 
     def visitFunction(owner, function, functionIndex, argCount)
-      callsArray = @calls[argCount]
+      thisCount = function.static ? 0 : 1
+      expectedCount = thisCount + argCount
+
+      callsArray = @calls[expectedCount]
       if (callsArray == nil)
         callsArray = []
-        @calls[argCount] = callsArray
+        @calls[expectedCount] = callsArray
       end
 
       @wrapperGenerator.generateCall(

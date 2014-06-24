@@ -197,7 +197,8 @@ public:
 
   void call(const bondage::Function *f)
     {
-    f->call(boxer, &args);
+    Reflect::example::Builder::Call call = { &args, boxer };
+    f->getCallFunction()(&call);
     }
   };
 
@@ -210,7 +211,8 @@ public:
 
   void call(const bondage::Function *f)
     {
-    f->call(boxer, &args);
+    Reflect::example::Builder::Call call = { &args, boxer };
+    f->getCallFunction()(&call);
     }
   };
 

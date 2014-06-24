@@ -63,10 +63,10 @@ std::tuple< ::Gen::CtorGen *, int > Gen_CtorGen_CtorGen_overload1()
 
 const bondage::Function Gen_CtorGen_methods[] = {
   bondage::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
-    Reflect::FunctionArgCountSelectorBlock<0,
+    Reflect::FunctionArgCountSelectorBlock<1,
       bondage::FunctionBuilder::buildCall< ::Gen::CtorGen *(*)(), &Gen_CtorGen_CtorGen_overload0 >
       >,
-    Reflect::FunctionArgCountSelectorBlock<1,
+    Reflect::FunctionArgCountSelectorBlock<2,
       bondage::FunctionBuilder::buildCall< std::tuple< ::Gen::CtorGen *, int >(*)(), &Gen_CtorGen_CtorGen_overload1 >
       >
     > >("CtorGen")
@@ -111,13 +111,13 @@ std::tuple< double, Gen::MultipleReturnGen, const int > Gen_MultipleReturnGen_te
 
 const bondage::Function Gen_MultipleReturnGen_methods[] = {
   bondage::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
-    Reflect::FunctionArgCountSelectorBlock<1,
+    Reflect::FunctionArgCountSelectorBlock<2,
       bondage::FunctionBuilder::buildMemberStandinCall< int(*)(::Gen::MultipleReturnGen &), &Gen_MultipleReturnGen_test_overload0 >
       >,
-    Reflect::FunctionArgCountSelectorBlock<2,
+    Reflect::FunctionArgCountSelectorBlock<3,
       bondage::FunctionBuilder::buildMemberStandinCall< int(*)(::Gen::MultipleReturnGen &, Gen::MultipleReturnGen *), &Gen_MultipleReturnGen_test_overload1 >
       >,
-    Reflect::FunctionArgCountSelectorBlock<3,
+    Reflect::FunctionArgCountSelectorBlock<4,
       bondage::FunctionBuilder::buildMemberStandinCall< std::tuple< double, Gen::MultipleReturnGen, const int >(*)(::Gen::MultipleReturnGen &, const int &, Gen::MultipleReturnGen &), &Gen_MultipleReturnGen_test_overload2 >
       >
     > >("test")
@@ -156,13 +156,13 @@ const bondage::Function Gen_GenCls_methods[] = {
     bondage::FunctionBuilder::buildCall< void(::Gen::GenCls::*)(int, float, double), &::Gen::GenCls::test1 >
     >("test1"),
   bondage::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
-    Reflect::FunctionArgCountSelectorBlock<1,
+    Reflect::FunctionArgCountSelectorBlock<2,
       bondage::FunctionBuilder::buildMemberStandinCall< void(*)(::Gen::GenCls &, int), &Gen_GenCls_test2_overload0 >
       >,
-    Reflect::FunctionArgCountSelectorBlock<2,
+    Reflect::FunctionArgCountSelectorBlock<3,
       bondage::FunctionBuilder::buildMemberStandinCall< void(*)(::Gen::GenCls &, int, float), &Gen_GenCls_test2_overload1 >
       >,
-    Reflect::FunctionArgCountSelectorBlock<3,
+    Reflect::FunctionArgCountSelectorBlock<4,
       bondage::FunctionBuilder::buildCall< void(::Gen::GenCls::*)(int, float, double), &::Gen::GenCls::test2 >
       >
     > >("test2"),

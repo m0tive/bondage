@@ -11,6 +11,14 @@ class TestPathResolver
   def pathFor(cls)
     return "#{cls.library.name}.#{cls.name}"
   end
+
+  def coreClassPath()
+    return "class"
+  end
+
+  def coreRequires()
+    return [ ]
+  end
 end
 
 class TestGenerator < Test::Unit::TestCase
@@ -49,7 +57,7 @@ class TestGenerator < Test::Unit::TestCase
     cleanLibrary(@named)
     cleanLibrary(@props)
     cleanLibrary(@luaFuncs)
-    cleanLibrary(@gen)
+    #cleanLibrary(@gen)
   end
 
   def test_luaFunctionGenerator
@@ -119,12 +127,12 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen.generate(lib, exposer)
 
-    luaPath = lib.library.autogenPath + "/lua"
+    luaPath = lib.library.autogenPath(:lua)
     FileUtils.mkdir_p(luaPath)
 
     libGen.write(luaPath)
 
-    cleanLibrary(stringLibrary)
+    #cleanLibrary(stringLibrary)
   end
 
   def test_enumTest
@@ -151,7 +159,7 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen.generate(lib, exposer)
 
-    luaPath = lib.library.autogenPath + "/lua"
+    luaPath = lib.library.autogenPath(:lua)
     FileUtils.mkdir_p(luaPath)
 
     libGen.write(luaPath)
@@ -160,6 +168,8 @@ class TestGenerator < Test::Unit::TestCase
 --
 -- This file is auto generated, do not change it!
 --
+
+local class = require \"class\"
 
 -- \\brief A CLASS!
 --
@@ -193,6 +203,8 @@ return GenCls_cls
 -- This file is auto generated, do not change it!
 --
 
+local class = require \"class\"
+
 -- \\brief 
 --
 local InheritTest_cls = class \"InheritTest\" {
@@ -215,6 +227,8 @@ return InheritTest_cls
 -- This file is auto generated, do not change it!
 --
 
+local class = require \"class\"
+
 -- \\brief 
 --
 local InheritTest2_cls = class \"InheritTest2\" {
@@ -236,6 +250,8 @@ return InheritTest2_cls
 --
 -- This file is auto generated, do not change it!
 --
+
+local class = require \"class\"
 
 local Gen = {
   CtorGen = require(\"Gen.CtorGen\"),
@@ -382,7 +398,9 @@ end", fnGen.wrapper
 
     clsGen.generate(lib.library, exposer, clsMetaData, "var")
 
-    assert_equal %{-- \\brief 
+    assert_equal %{local class = require \"class\"
+
+-- \\brief 
 --
 local var = class "TestClass" {
 
@@ -399,7 +417,9 @@ operatorPork = get("LuaFunctions", "TestClass", "operatorPork")
 
     clsGen.generate(lib.library, exposer, clsMetaData2, "var")
 
-    assert_equal %{local TestClassIndexed_luaSample_wrapper_fwd = get("LuaFunctions", "TestClassIndexed", "")
+    assert_equal %{local class = require \"class\"
+
+local TestClassIndexed_luaSample_wrapper_fwd = get("LuaFunctions", "TestClassIndexed", "")
 local TestClassIndexed_luaSample_wrapper = function(...)
   local argCount = select("#")
   if 1 == argCount then
@@ -470,7 +490,9 @@ luaSample2 = TestClassIndexed_luaSample2_wrapper
 
     clsGen.generate(lib.library, exposer, clsMetaData, "var")
 
-    assert_equal %{local PropertyClass_getInstance_fwd = get("Properties", "PropertyClass", "getInstance")
+    assert_equal %{local class = require \"class\"
+
+local PropertyClass_getInstance_fwd = get("Properties", "PropertyClass", "getInstance")
 
 local PropertyClass_getPork_fwd = get("Properties", "PropertyClass", "getPork")
 
@@ -539,7 +561,9 @@ setPork = PropertyClass_setPork_fwd
 
     libGen.generate(lib, exposer)
 
-    assert_equal %{local HelperThing_setBar_fwd = getFunction("Named", "HelperThing", "setBar")
+    assert_equal %{local class = require \"class\"
+
+local HelperThing_setBar_fwd = getFunction("Named", "HelperThing", "setBar")
 
 local HelperThing_setFoo_fwd = getFunction("Named", "HelperThing", "setFoo")
 
@@ -575,6 +599,7 @@ local HelperThing_cls = class "HelperThing" {
     assert_not_nil cls2
 
     assert_equal %{local HelperThing = require \"Named.HelperThing\"
+local class = require \"class\"
 
 local NamedClass_doAPork_wrapper_fwd = getFunction("Named", "NamedClass", "")
 local NamedClass_doAPork_wrapper = function(...)
@@ -595,6 +620,7 @@ local NamedClass_cls = class "NamedClass" {
 }}, libGen.classes[clsMetaData2]
 
   assert_equal %{local HelperThing = require "Named.HelperThing"
+local class = require \"class\"
 
 local _doMorePork_wrapper_fwd = getFunction("Named", "", "")
 local _doMorePork_wrapper = function(...)
@@ -629,7 +655,9 @@ return Named}, libGen.library
 
     libGen.generate(lib, exposer)
 
-    assert_equal %{local Comments = {
+    assert_equal %{local class = require \"class\"
+
+local Comments = {
   -- nil Comments.doMorePork(number t)
   -- \\brief Extra pork function
   -- \\param t does the pork

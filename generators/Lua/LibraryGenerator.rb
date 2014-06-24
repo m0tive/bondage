@@ -41,19 +41,25 @@ module Lua
 
     def write(dir)
       @classes.each do |cls, data|
-        File.open(dir + "/#{cls.name}.lua", 'w') do |file|
+        path = dir + "/#{cls.name}.lua"
+        res = File.open(path, 'w') do |file|
           file.write(@headerHelper.filePrefix(:lua) + "\n\n")
           file.write(data)
           file.write("\n\nreturn #{localName(cls)}")
           file.write(@headerHelper.fileSuffix(:lua) + "\n")
         end
+
+        raise "Failed to write lua file #{path}" unless res
       end
 
-      File.open(dir + "/#{@libraryName}Library.lua", 'w') do |file|
+      libPath = dir + "/#{@libraryName}Library.lua"
+      res = File.open(libPath, 'w') do |file|
         file.write(@headerHelper.filePrefix(:lua) + "\n\n")
         file.write(@library)
         file.write(@headerHelper.fileSuffix(:lua) + "\n")
       end
+
+      raise "Failed to write lua file #{libPath}" unless libPath
     end
 
     def localName(cls)
@@ -81,7 +87,7 @@ module Lua
 
       fileData = data.join(",\n\n")
 
-      inc = Helper::generateRequires(@pathResolver, exposer, requiredClasses)
+      inc = Helper::generateRequires(@pathResolver, exposer, requiredClasses, "class")
 
       @library = "#{inc}#{extraDatas}local #{@libraryName} = {\n#{fileData}\n}\n\nreturn #{@libraryName}"
     end

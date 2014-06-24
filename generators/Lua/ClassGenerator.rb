@@ -54,12 +54,14 @@ module Lua
 
       pluginInsert = generatePluginData(requiredClasses)
 
-      inc = Helper::generateRequires(@resolver, exposer, requiredClasses)
+      clsName = "class"
+
+      inc = Helper::generateRequires(@resolver, exposer, requiredClasses, clsName)
 
       # generate class output.
       @classDefinition = "#{inc}#{extraDatas}#{Helper::formatDocsTag('', 'brief', brief)}
 --
-local #{localVarOut} = class \"#{cls.name}\" {
+local #{localVarOut} = #{clsName} \"#{cls.name}\" {
 #{parentInsert}#{pluginInsert}#{enumInsert}
 #{formattedFunctions.join(",\n\n")}
 }"

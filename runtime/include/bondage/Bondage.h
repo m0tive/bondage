@@ -13,6 +13,7 @@
 # define BONDAGE_BEGIN_WARNING_SCOPE \
   __pragma(warning(push))\
   __pragma(warning (disable : 4251)) //< needs to have dll-interface to be used by clients of class
+  __pragma(warning (disable : 4481)) //< needs to have dll-interface to be used by clients of class
 # define BONDAGE_END_WARNING_SCOPE \
   __pragma(warning(pop))
 #else
