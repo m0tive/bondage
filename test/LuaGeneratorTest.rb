@@ -174,6 +174,7 @@ local class = require \"class\"
 -- \\brief A CLASS!
 --
 local GenCls_cls = class \"GenCls\" {
+  library = \"Gen\",
 
   -- nil GenCls:test1(number myint, number myFloat, number arg3)
   -- \\brief This funciton is a test
@@ -208,6 +209,7 @@ local class = require \"class\"
 -- \\brief 
 --
 local InheritTest_cls = class \"InheritTest\" {
+  library = \"Gen\",
   super = require \"Gen.GenCls\",
 
   -- nil InheritTest:pork()
@@ -232,6 +234,7 @@ local class = require \"class\"
 -- \\brief 
 --
 local InheritTest2_cls = class \"InheritTest2\" {
+  library = \"Gen\",
   super = require \"Gen.InheritTest\",
 
   MyEnum = {
@@ -403,6 +406,7 @@ end", fnGen.wrapper
 -- \\brief 
 --
 local var = class "TestClass" {
+  library = \"LuaFunctions\",
 
 -- nil TestClass:luaSample()
 -- nil TestClass:luaSample(number arg1)
@@ -452,6 +456,7 @@ end
 -- \\brief 
 --
 local var = class "TestClassIndexed" {
+  library = \"LuaFunctions\",
 
 -- number TestClassIndexed:luaSample()
 -- number TestClassIndexed:luaSample(number idx)
@@ -503,6 +508,7 @@ local PropertyClass_setPork_fwd = get("Properties", "PropertyClass", "setPork")
 -- \\brief 
 --
 local var = class "PropertyClass" {
+  library = \"Properties\",
 
 properties = {
   "instance",
@@ -570,6 +576,7 @@ local HelperThing_setFoo_fwd = getFunction("Named", "HelperThing", "setFoo")
 -- \\brief 
 --
 local HelperThing_cls = class "HelperThing" {
+  library = \"Named\",
 
   properties = {
     "bar",
@@ -612,6 +619,7 @@ end
 -- \\brief 
 --
 local NamedClass_cls = class "NamedClass" {
+  library = \"Named\",
 
   -- nil NamedClass:doAPork(Named::HelperThing data)
   -- \\brief do a pork
