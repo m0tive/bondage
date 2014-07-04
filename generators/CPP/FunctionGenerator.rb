@@ -11,7 +11,7 @@ module CPP
       @wrapperGenerator = FunctionWrapperGenerator.new(@extraFunctionLineStart)
     end
 
-    attr_reader :bind, :extraFunctions
+    attr_reader :bind, :extraFunctions, :typedefs
 
     def generateSimpleCall(sig, name)
       fnDef = generateBuildCall(name, sig, false)
@@ -25,6 +25,7 @@ module CPP
       @bind = ""
       @files = nil
       @calls = { }
+      @typedefs = { }
       @extraFunctions = []
       @extraFunctionDecls = nil
       @types = types
@@ -33,6 +34,7 @@ module CPP
     def gatherFunctions(owner, exposer, files)
       functions = exposer.findExposedFunctions(owner)
       
+      typedefs = []
       methods = []
       extraMethods = []
 
@@ -44,6 +46,9 @@ module CPP
 
         methods << bind
         extraMethods = extraMethods.concat(extraFunctions)
+        @typedefs.each do |k,v|
+          typedefs << "struct #{k} : #{v} { };"
+        end
       end
 
       files.merge(types.map { |e|
@@ -53,14 +58,15 @@ module CPP
         next cls.library.root + "/" + cls.filename
       })
 
-      return methods, extraMethods
+      return methods, extraMethods, typedefs
     end
 
-    def generateFunctionArray(binders, extraMethods, namingHelper)
+    def generateFunctionArray(typedefs, binders, extraMethods, namingHelper)
       methodsSource = ""
       if (binders.length > 0)
         methodsSource = "  " + binders.join(",\n  ")
       end
+
       extraMethodSource = ""
       if (extraMethods.length > 0)
         extraMethodSource = "\n" + extraMethods.join("\n\n") + "\n"
@@ -71,7 +77,7 @@ module CPP
       methodsLiteral = "nullptr"
       if (binders.length > 0)
         methodsLiteral = namingHelper + "_methods";
-        methodsInfo = "\nconst #{TYPE_NAMESPACE}::Function #{methodsLiteral}[] = {\n#{methodsSource}\n};\n\n"
+        methodsInfo = "\n" +  typedefs.join("\n") + "\n\nconst #{TYPE_NAMESPACE}::Function #{methodsLiteral}[] = {\n#{methodsSource}\n};\n\n"
       end
 
       return methodsLiteral, methodsInfo, extraMethodSource
@@ -107,24 +113,31 @@ module CPP
       argCalls = @calls.map do |num, calls|
         raise "Invalid call" unless calls.length()
 
+        overloadTypedef = literalName(owner, name, num)
+
         if (calls.length > 1)
           callsJoined = calls.join(",\n#{ovOlLs}")
 
-        "Reflect::FunctionArgCountSelectorBlock<#{num}, Reflect::FunctionArgumentTypeSelector<
+          @typedefs[overloadTypedef] = "Reflect::FunctionArgCountSelectorBlock<#{num}, Reflect::FunctionArgumentTypeSelector<
 #{ovOlLs}#{callsJoined}
 #{ovOlLs}> >"
         else
-          "Reflect::FunctionArgCountSelectorBlock<#{num},
+          @typedefs[overloadTypedef] = "Reflect::FunctionArgCountSelectorBlock<#{num},
 #{ovOlLs}#{calls[0]}
 #{ovOlLs}>"
         end
+
+        next overloadTypedef
       end
 
       callsJoined = argCalls.join(",\n#{olLs}")
 
-@bind = "#{TYPE_NAMESPACE}::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
+      overloadTypedef = literalName(owner, name)
+      @typedefs[overloadTypedef] = "Reflect::FunctionArgumentCountSelector<
 #{olLs}#{callsJoined}
-#{olLs}> >(\"#{name}\")"
+#{olLs}>"
+
+      @bind = "#{TYPE_NAMESPACE}::FunctionBuilder::buildOverload< #{overloadTypedef} >(\"#{name}\")"
     end
 
     def visitFunction(owner, function, functionIndex, argCount)
@@ -143,8 +156,18 @@ module CPP
         functionIndex,
         argCount,
         callsArray,
+        @typedefs,
         @extraFunctions,
         @types)
+    end
+
+    def literalName(owner, name, id=nil)
+      niceName = name.gsub(/[^0-9A    -Za-z]/, '')
+      if (id != nil)
+        return "#{owner.name}_#{niceName}_overload_#{id}"
+      else
+        return "#{owner.name}_#{niceName}_overload"
+      end
     end
   end
 end

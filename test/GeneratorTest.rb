@@ -69,77 +69,105 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen.generate(cls, [ fn1 ], exposer, Set.new())
     assert_equal "bondage::FunctionBuilder::build<
-  bondage::FunctionBuilder::buildCall< void(::Gen::GenCls::*)(int, float, double), &::Gen::GenCls::test1 >
+  Gen_GenCls_test1_overload0_t
   >(\"test1\")", fnGen.bind
+    assert_equal "bondage::FunctionBuilder::buildCall< void(::Gen::GenCls::*)(int, float, double), &::Gen::GenCls::test1 >", fnGen.typedefs["Gen_GenCls_test1_overload0_t"]
     assert_equal [], fnGen.extraFunctions
 
 
     fnGen.generate(cls, [ fn2 ], exposer, Set.new())
-    assert_equal "bondage::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
-  Reflect::FunctionArgCountSelectorBlock<2,
-    bondage::FunctionBuilder::buildMemberStandinCall< void(*)(::Gen::GenCls &, int), &Gen_GenCls_test2_overload0 >
-    >,
-  Reflect::FunctionArgCountSelectorBlock<3,
-    bondage::FunctionBuilder::buildMemberStandinCall< void(*)(::Gen::GenCls &, int, float), &Gen_GenCls_test2_overload1 >
-    >,
-  Reflect::FunctionArgCountSelectorBlock<4,
-    bondage::FunctionBuilder::buildCall< void(::Gen::GenCls::*)(int, float, double), &::Gen::GenCls::test2 >
-    >
-  > >(\"test2\")", fnGen.bind
+    assert_equal "Reflect::FunctionArgumentCountSelector<
+  GenCls_test2_overload_2,
+  GenCls_test2_overload_3,
+  GenCls_test2_overload_4
+  >", fnGen.typedefs["GenCls_test2_overload"]
+    assert_equal "bondage::FunctionBuilder::buildMemberStandinCall< void(*)(::Gen::GenCls &, int), &Gen_GenCls_test2_overload0 >", fnGen.typedefs["Gen_GenCls_test2_overload0_t"]
+    assert_equal "Reflect::FunctionArgCountSelectorBlock<2,
+    Gen_GenCls_test2_overload0_t
+    >", fnGen.typedefs["GenCls_test2_overload_2"] 
+  assert_equal "bondage::FunctionBuilder::buildMemberStandinCall< void(*)(::Gen::GenCls &, int, float), &Gen_GenCls_test2_overload1 >", fnGen.typedefs["Gen_GenCls_test2_overload1_t"]
+  assert_equal "Reflect::FunctionArgCountSelectorBlock<3,
+    Gen_GenCls_test2_overload1_t
+    >", fnGen.typedefs["GenCls_test2_overload_3"] 
+  assert_equal "bondage::FunctionBuilder::buildCall< void(::Gen::GenCls::*)(int, float, double), &::Gen::GenCls::test2 >", fnGen.typedefs["Gen_GenCls_test2_overload2_t"]
+  assert_equal "Reflect::FunctionArgCountSelectorBlock<4,
+    Gen_GenCls_test2_overload2_t
+    >", fnGen.typedefs["GenCls_test2_overload_4"] 
+     
+    assert_equal "bondage::FunctionBuilder::buildOverload< GenCls_test2_overload >(\"test2\")", fnGen.bind
     assert_equal ["void Gen_GenCls_test2_overload0(::Gen::GenCls & inputArg0, int inputArg1)\n{\n  inputArg0.test2(std::forward<int>(inputArg1));\n}",
  "void Gen_GenCls_test2_overload1(::Gen::GenCls & inputArg0, int inputArg1, float inputArg2)\n{\n  inputArg0.test2(std::forward<int>(inputArg1), std::forward<float>(inputArg2));\n}"], fnGen.extraFunctions
 
 
     fnGen.generate(cls, [ fn3 ], exposer, Set.new())
+    assert_equal "bondage::FunctionBuilder::buildCall< void(*)(bool), &::Gen::GenCls::test3 >", fnGen.typedefs["Gen_GenCls_test3_overload0_t"]
     assert_equal "bondage::FunctionBuilder::build<
-  bondage::FunctionBuilder::buildCall< void(*)(bool), &::Gen::GenCls::test3 >
+  Gen_GenCls_test3_overload0_t
   >(\"test3\")", fnGen.bind
     assert_equal [], fnGen.extraFunctions
 
 
     fnGen.generate(cls, [ fn4 ], exposer, Set.new())
-    assert_equal "bondage::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
-  Reflect::FunctionArgCountSelectorBlock<2,
-    bondage::FunctionBuilder::buildCall< int(*)(bool, int), &Gen_GenCls_test3_overload0 >
-    >,
-  Reflect::FunctionArgCountSelectorBlock<3,
-    bondage::FunctionBuilder::buildCall< int(*)(bool, int, bool), &::Gen::GenCls::test3 >
-    >
-  > >(\"test3\")", fnGen.bind
+    assert_equal "bondage::FunctionBuilder::buildCall< int(*)(bool, int), &Gen_GenCls_test3_overload0 >", fnGen.typedefs["Gen_GenCls_test3_overload0_t"]
+    assert_equal "Reflect::FunctionArgCountSelectorBlock<2,
+    Gen_GenCls_test3_overload0_t
+    >", fnGen.typedefs["GenCls_test3_overload_2"]
+    assert_equal "bondage::FunctionBuilder::buildCall< int(*)(bool, int, bool), &::Gen::GenCls::test3 >", fnGen.typedefs["Gen_GenCls_test3_overload1_t"]
+    assert_equal "Reflect::FunctionArgCountSelectorBlock<3,
+    Gen_GenCls_test3_overload1_t
+    >", fnGen.typedefs["GenCls_test3_overload_3"]
+    assert_equal "Reflect::FunctionArgumentCountSelector<
+  GenCls_test3_overload_2,
+  GenCls_test3_overload_3
+  >", fnGen.typedefs["GenCls_test3_overload"]
+    assert_equal "bondage::FunctionBuilder::buildOverload< GenCls_test3_overload >(\"test3\")", fnGen.bind
     assert_equal ["int Gen_GenCls_test3_overload0(bool inputArg0, int inputArg1)\n{\n  auto result = ::Gen::GenCls::test3(std::forward<bool>(inputArg0), std::forward<int>(inputArg1));\n  return result;\n}"], fnGen.extraFunctions
 
 
     fnGen.generate(cls, [ fn3, fn4 ], exposer, Set.new())
-    assert_equal "bondage::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
-  Reflect::FunctionArgCountSelectorBlock<1,
-    bondage::FunctionBuilder::buildCall< void(*)(bool), &::Gen::GenCls::test3 >
-    >,
-  Reflect::FunctionArgCountSelectorBlock<2,
-    bondage::FunctionBuilder::buildCall< int(*)(bool, int), &Gen_GenCls_test3_overload1 >
-    >,
-  Reflect::FunctionArgCountSelectorBlock<3,
-    bondage::FunctionBuilder::buildCall< int(*)(bool, int, bool), &::Gen::GenCls::test3 >
-    >
-  > >(\"test3\")", fnGen.bind
+    assert_equal "bondage::FunctionBuilder::buildCall< void(*)(bool), &::Gen::GenCls::test3 >", fnGen.typedefs["Gen_GenCls_test3_overload0_t"]
+    assert_equal "Reflect::FunctionArgCountSelectorBlock<1,
+    Gen_GenCls_test3_overload0_t
+    >", fnGen.typedefs["GenCls_test3_overload_1"]
+    assert_equal "bondage::FunctionBuilder::buildCall< int(*)(bool, int), &Gen_GenCls_test3_overload1 >", fnGen.typedefs["Gen_GenCls_test3_overload1_t"]
+    assert_equal "Reflect::FunctionArgCountSelectorBlock<2,
+    Gen_GenCls_test3_overload1_t
+    >", fnGen.typedefs["GenCls_test3_overload_2"]
+    assert_equal "bondage::FunctionBuilder::buildCall< int(*)(bool, int, bool), &::Gen::GenCls::test3 >", fnGen.typedefs["Gen_GenCls_test3_overload2_t"]
+    assert_equal "Reflect::FunctionArgCountSelectorBlock<3,
+    Gen_GenCls_test3_overload2_t
+    >", fnGen.typedefs["GenCls_test3_overload_3"]
+    assert_equal "Reflect::FunctionArgumentCountSelector<
+  GenCls_test3_overload_1,
+  GenCls_test3_overload_2,
+  GenCls_test3_overload_3
+  >", fnGen.typedefs["GenCls_test3_overload"]
+    assert_equal "bondage::FunctionBuilder::buildOverload< GenCls_test3_overload >(\"test3\")", fnGen.bind
     assert_equal ["int Gen_GenCls_test3_overload1(bool inputArg0, int inputArg1)\n{\n  auto result = ::Gen::GenCls::test3(std::forward<bool>(inputArg0), std::forward<int>(inputArg1));\n  return result;\n}"], fnGen.extraFunctions
 
 
     fnGen.generate(cls, [ fn5 ], exposer, Set.new())
+    assert_equal "bondage::FunctionBuilder::buildCall< int(*)(bool, bool), &::Gen::test4 >", fnGen.typedefs["Gen_test4_overload0_t"]
     assert_equal "bondage::FunctionBuilder::build<
-  bondage::FunctionBuilder::buildCall< int(*)(bool, bool), &::Gen::test4 >
+  Gen_test4_overload0_t
   >(\"test4\")", fnGen.bind
     assert_equal [], fnGen.extraFunctions
 
 
     fnGen.generate(cls, [ fn6 ], exposer, Set.new())
-    assert_equal "bondage::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
-  Reflect::FunctionArgCountSelectorBlock<2,
-    bondage::FunctionBuilder::buildCall< int(*)(bool, bool), &Gen_test5_overload0 >
-    >,
-  Reflect::FunctionArgCountSelectorBlock<3,
-    bondage::FunctionBuilder::buildCall< int(*)(bool, bool, float), &::Gen::test5 >
-    >
-  > >(\"test5\")", fnGen.bind
+    assert_equal "Reflect::FunctionArgumentCountSelector<
+  GenCls_test5_overload_2,
+  GenCls_test5_overload_3
+  >", fnGen.typedefs["GenCls_test5_overload"]
+    assert_equal "Reflect::FunctionArgCountSelectorBlock<2,
+    Gen_test5_overload0_t
+    >", fnGen.typedefs["GenCls_test5_overload_2"]
+    assert_equal "Reflect::FunctionArgCountSelectorBlock<3,
+    Gen_test5_overload1_t
+    >", fnGen.typedefs["GenCls_test5_overload_3"]
+    assert_equal "bondage::FunctionBuilder::buildCall< int(*)(bool, bool), &Gen_test5_overload0 >", fnGen.typedefs["Gen_test5_overload0_t"]
+    assert_equal "bondage::FunctionBuilder::buildCall< int(*)(bool, bool, float), &::Gen::test5 >", fnGen.typedefs["Gen_test5_overload1_t"]
+    assert_equal "bondage::FunctionBuilder::buildOverload< GenCls_test5_overload >(\"test5\")", fnGen.bind
     assert_equal ["int Gen_test5_overload0(bool inputArg0, bool inputArg1)\n{\n  auto result = ::Gen::test5(std::forward<bool>(inputArg0), std::forward<bool>(inputArg1));\n  return result;\n}"], fnGen.extraFunctions
   end
 
@@ -163,17 +191,25 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen.generate(multiReturnCls, [ fn1, fn2 ], exposer, Set.new())
 
-    assert_equal "bondage::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
-  Reflect::FunctionArgCountSelectorBlock<2,
-    bondage::FunctionBuilder::buildMemberStandinCall< int(*)(::Gen::MultipleReturnGen &), &Gen_MultipleReturnGen_test_overload0 >
-    >,
-  Reflect::FunctionArgCountSelectorBlock<3,
-    bondage::FunctionBuilder::buildMemberStandinCall< int(*)(::Gen::MultipleReturnGen &, Gen::MultipleReturnGen *), &Gen_MultipleReturnGen_test_overload1 >
-    >,
-  Reflect::FunctionArgCountSelectorBlock<4,
-    bondage::FunctionBuilder::buildMemberStandinCall< std::tuple< double, Gen::MultipleReturnGen, const int >(*)(::Gen::MultipleReturnGen &, const int &, Gen::MultipleReturnGen &), &Gen_MultipleReturnGen_test_overload2 >
-    >
-  > >(\"test\")", fnGen.bind
+    assert_equal "bondage::FunctionBuilder::buildMemberStandinCall< int(*)(::Gen::MultipleReturnGen &), &Gen_MultipleReturnGen_test_overload0 >", fnGen.typedefs["Gen_MultipleReturnGen_test_overload0_t"]
+    assert_equal "Reflect::FunctionArgCountSelectorBlock<2,
+    Gen_MultipleReturnGen_test_overload0_t
+    >", fnGen.typedefs["MultipleReturnGen_test_overload_2"]
+    assert_equal "bondage::FunctionBuilder::buildMemberStandinCall< int(*)(::Gen::MultipleReturnGen &, Gen::MultipleReturnGen *), &Gen_MultipleReturnGen_test_overload1 >", fnGen.typedefs["Gen_MultipleReturnGen_test_overload1_t"]
+    assert_equal "Reflect::FunctionArgCountSelectorBlock<3,
+    Gen_MultipleReturnGen_test_overload1_t
+    >", fnGen.typedefs["MultipleReturnGen_test_overload_3"]
+    assert_equal "bondage::FunctionBuilder::buildMemberStandinCall< std::tuple< double, Gen::MultipleReturnGen, const int >(*)(::Gen::MultipleReturnGen &, const int &, Gen::MultipleReturnGen &), &Gen_MultipleReturnGen_test_overload2 >", fnGen.typedefs["Gen_MultipleReturnGen_test_overload2_t"]
+    assert_equal "Reflect::FunctionArgCountSelectorBlock<4,
+    Gen_MultipleReturnGen_test_overload2_t
+    >", fnGen.typedefs["MultipleReturnGen_test_overload_4"]
+    assert_equal "Reflect::FunctionArgumentCountSelector<
+  MultipleReturnGen_test_overload_2,
+  MultipleReturnGen_test_overload_3,
+  MultipleReturnGen_test_overload_4
+  >", fnGen.typedefs["MultipleReturnGen_test_overload"]
+
+    assert_equal "bondage::FunctionBuilder::buildOverload< MultipleReturnGen_test_overload >(\"test\")", fnGen.bind
 
     assert_equal ["int Gen_MultipleReturnGen_test_overload0(::Gen::MultipleReturnGen & inputArg0)
 {
@@ -225,14 +261,19 @@ class TestGenerator < Test::Unit::TestCase
 
     fnGen.generate(cls, ctors, exposer, Set.new())
 
-    assert_equal "bondage::FunctionBuilder::buildOverload< Reflect::FunctionArgumentCountSelector<
-  Reflect::FunctionArgCountSelectorBlock<1,
-    bondage::FunctionBuilder::buildCall< ::Gen::CtorGen *(*)(), &Gen_CtorGen_CtorGen_overload0 >
-    >,
-  Reflect::FunctionArgCountSelectorBlock<2,
-    bondage::FunctionBuilder::buildCall< std::tuple< ::Gen::CtorGen *, int >(*)(), &Gen_CtorGen_CtorGen_overload1 >
-    >
-  > >(\"CtorGen\")", fnGen.bind
+    assert_equal "bondage::FunctionBuilder::buildCall< ::Gen::CtorGen *(*)(), &Gen_CtorGen_CtorGen_overload0 >", fnGen.typedefs["Gen_CtorGen_CtorGen_overload0_t"]
+    assert_equal "Reflect::FunctionArgCountSelectorBlock<1,
+    Gen_CtorGen_CtorGen_overload0_t
+    >", fnGen.typedefs["CtorGen_CtorGen_overload_1"]
+    assert_equal "bondage::FunctionBuilder::buildCall< std::tuple< ::Gen::CtorGen *, int >(*)(), &Gen_CtorGen_CtorGen_overload1 >", fnGen.typedefs["Gen_CtorGen_CtorGen_overload1_t"]
+    assert_equal "Reflect::FunctionArgCountSelectorBlock<2,
+    Gen_CtorGen_CtorGen_overload1_t
+    >", fnGen.typedefs["CtorGen_CtorGen_overload_2"]
+    assert_equal "Reflect::FunctionArgumentCountSelector<
+  CtorGen_CtorGen_overload_1,
+  CtorGen_CtorGen_overload_2
+  >", fnGen.typedefs["CtorGen_CtorGen_overload"]
+    assert_equal "bondage::FunctionBuilder::buildOverload< CtorGen_CtorGen_overload >(\"CtorGen\")", fnGen.bind
     assert_equal ["::Gen::CtorGen * Gen_CtorGen_CtorGen_overload0()\n{\n  auto result = bondage::WrappedClassHelper< ::Gen::CtorGen >::create();\n  return result;\n}",
  "std::tuple< ::Gen::CtorGen *, int > Gen_CtorGen_CtorGen_overload1()\n{\n  std::tuple< ::Gen::CtorGen *, int > result;\n\n  std::get<0>(result) = bondage::WrappedClassHelper< ::Gen::CtorGen >::create(&std::get<1>(result));\n  return result;\n}"], fnGen.extraFunctions
   end
@@ -275,7 +316,7 @@ class TestGenerator < Test::Unit::TestCase
 
     assert_equal File.read(expectedHeader), libGen.header
     assert_equal File.read(expectedSource), libGen.source
-    #cleanLibrary(@gen)
+    cleanLibrary(@gen)
   end
 
   def test_stringLibGenerator

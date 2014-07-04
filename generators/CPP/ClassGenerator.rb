@@ -84,9 +84,9 @@ module CPP
       fullyQualified = @cls.fullyQualifiedName()
       @wrapperName = fullyQualified.sub("::", "").gsub("::", "_")
 
-      methods, extraMethods = @fnGen.gatherFunctions(@cls, @exposer, files)
+      methods, extraMethods, typedefs = @fnGen.gatherFunctions(@cls, @exposer, files)
 
-      methodsLiteral, methodsArray, extraMethodSource = @fnGen.generateFunctionArray(methods, extraMethods, @wrapperName)
+      methodsLiteral, methodsArray, extraMethodSource = @fnGen.generateFunctionArray(typedefs, methods, extraMethods, @wrapperName)
 
       classInfo =
 "#{MACRO_PREFIX}IMPLEMENT_EXPOSED_CLASS(

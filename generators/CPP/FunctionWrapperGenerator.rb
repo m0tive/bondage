@@ -28,7 +28,7 @@ module CPP
       @argumentHelper.reset(forceWrapper, types)
     end
 
-    def generateCall(owner, function, functionIndex, argCount, calls, extraFunctions, types)
+    def generateCall(owner, function, functionIndex, argCount, calls, typedefs, extraFunctions, types)
       reset(owner, function, functionIndex, argCount, types)
       
       if (!@static)
@@ -42,18 +42,22 @@ module CPP
       ArgumentVisitor.visitFunction(owner, function, functionIndex, argCount, @argumentHelper)
 
       if (@argumentHelper.needsWrapper)
-        generateWrapper(calls, extraFunctions)
+        generateWrapper(calls, typedefs, extraFunctions)
       else
+        typedefName = literalName() + "_t"
         sig = signature()
-        calls << "#{TYPE_NAMESPACE}::FunctionBuilder::buildCall< #{sig}, &#{@function.fullyQualifiedName} >"
+        typedefs[typedefName] = "#{TYPE_NAMESPACE}::FunctionBuilder::buildCall< #{sig}, &#{@function.fullyQualifiedName} >"
+        calls << typedefName
       end
     end
 
-    def generateWrapper(calls, extraFunctions)
+    def generateWrapper(calls, typedefs, extraFunctions)
       ret, resVar, inArgs, callArgs, initArgs, call = generateCallData()
 
       extraFnName = literalName()
-      calls << generateCallForwarder(extraFnName)
+      typedefName = extraFnName + "_t"
+      typedefs[typedefName] = generateCallForwarder(extraFnName)
+      calls << typedefName
 
       extraFunctions << Helpers::generateWrapperText(
         @lineStart,

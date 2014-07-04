@@ -201,9 +201,9 @@ namespace #{library.name}
 
     def generateLibrarySource(libraryName, library, exposer, rootNs, files)
       fnGen = CPP::FunctionGenerator.new("", "  ")
-      methods, extraMethods = fnGen.gatherFunctions(rootNs, exposer, files)
+      methods, extraMethods, typedefs = fnGen.gatherFunctions(rootNs, exposer, files)
 
-      methodsLiteral, methodsArray, extraMethodSource = fnGen.generateFunctionArray(methods, extraMethods, libraryName)
+      methodsLiteral, methodsArray, extraMethodSource = fnGen.generateFunctionArray(typedefs, methods, extraMethods, libraryName)
 
       return "using namespace #{library.namespaceName};\n\n#{extraMethodSource}#{methodsArray}
 bondage::Library #{libraryName}(
