@@ -45,8 +45,7 @@ module CPP
         generateWrapper(calls, typedefs, extraFunctions)
       else
         typedefName = literalName() + "_t"
-        sig = signature()
-        typedefs[typedefName] = "#{TYPE_NAMESPACE}::FunctionBuilder::buildCall< #{sig}, &#{@function.fullyQualifiedName} >"
+        typedefs[typedefName] = generateCallForwarder(@function.fullyQualifiedName)
         calls << typedefName
       end
     end
@@ -144,8 +143,13 @@ module CPP
 
     def generateCallForwarder(name)
       sig = signature()
-      callType = @static ? "buildCall" : "buildMemberStandinCall"
-      return "#{TYPE_NAMESPACE}::FunctionBuilder::#{callType}< #{sig}, &#{name} >"
+
+      caller = "bondage::FunctionCaller"
+      if (@static)
+        caller = "Reflect::MethodInjectorBuilder<bondage::FunctionCaller>"
+      end
+
+      return "Reflect::detail::CallHelper<Reflect::detail::FunctionHelper<#{sig}>, &#{name}, #{caller}>"
     end
 
     def signature()

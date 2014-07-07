@@ -7,6 +7,12 @@
 namespace bondage
 {
 
+#define BONDAGE_BUILD_CALL(SIG, NAME) \
+  Reflect::detail::CallHelper<Reflect::detail::FunctionHelper<SIG>, NAME, bondage::FunctionCaller>
+
+#define BONDAGE_BUILD_MEMBER_STANDIN_CALL(SIG, NAME) \
+  Reflect::detail::CallHelper<Reflect::detail::FunctionHelper<SIG>, NAME, Reflect::MethodInjectorBuilder<Fbondage::unctionCaller>>
+
 class FunctionBuilder
   {
 public:
@@ -17,25 +23,9 @@ public:
     return Function(name, Invoker::template buildWrappedCall<Fn, FunctionCaller>());
     }
 
-  template <typename Signature, Signature Fn> class buildCall :
-      public Reflect::WrappedFunction<Signature, Fn>::Builder
+  template <typename Fn> static Function buildOverload(const char *name)
     {
-  public:
-    typedef FunctionCaller Caller;
-    };
-
-  template <typename Signature, Signature Fn> class buildMemberStandinCall :
-      public Reflect::WrappedFunction<Signature, Fn>::Builder
-    {
-  public:
-    typedef Reflect::MethodInjectorBuilder<FunctionCaller> Caller;
-    };
-
-
-
-  template <typename Functions> static Function buildOverload(const char *name)
-    {
-    return Function(name, FunctionCaller::template buildWrappedCall<Functions, FunctionCaller>());
+    return Function(name, FunctionCaller::template buildWrappedCall<Fn, FunctionCaller>());
     }
   };
 
