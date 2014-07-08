@@ -149,7 +149,7 @@ module CPP
         caller = "Reflect::MethodInjectorBuilder<bondage::FunctionCaller>"
       end
 
-      return "Reflect::detail::CallHelper<Reflect::detail::FunctionHelper<#{sig}>, &#{name}, #{caller}>"
+      return "Reflect::FunctionCall<Reflect::FunctionSignature<#{sig}>, &#{name}, #{caller}>"
     end
 
     def signature()
