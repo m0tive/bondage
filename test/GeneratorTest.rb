@@ -84,16 +84,16 @@ class TestGenerator < Test::Unit::TestCase
     assert_equal "Reflect::FunctionCall<Reflect::FunctionSignature< void(*)(::Gen::GenCls &, int) >, &Gen_GenCls_test2_overload0, bondage::FunctionCaller>", fnGen.typedefs["Gen_GenCls_test2_overload0_t"]
     assert_equal "Reflect::FunctionArgCountSelectorBlock<2,
     Gen_GenCls_test2_overload0_t
-    >", fnGen.typedefs["GenCls_test2_overload_2"] 
+    >", fnGen.typedefs["GenCls_test2_overload_2"]
   assert_equal "Reflect::FunctionCall<Reflect::FunctionSignature< void(*)(::Gen::GenCls &, int, float) >, &Gen_GenCls_test2_overload1, bondage::FunctionCaller>", fnGen.typedefs["Gen_GenCls_test2_overload1_t"]
   assert_equal "Reflect::FunctionArgCountSelectorBlock<3,
     Gen_GenCls_test2_overload1_t
-    >", fnGen.typedefs["GenCls_test2_overload_3"] 
+    >", fnGen.typedefs["GenCls_test2_overload_3"]
   assert_equal "Reflect::FunctionCall<Reflect::FunctionSignature< void(::Gen::GenCls::*)(int, float, double) >, &::Gen::GenCls::test2, bondage::FunctionCaller>", fnGen.typedefs["Gen_GenCls_test2_overload2_t"]
   assert_equal "Reflect::FunctionArgCountSelectorBlock<4,
     Gen_GenCls_test2_overload2_t
-    >", fnGen.typedefs["GenCls_test2_overload_4"] 
-     
+    >", fnGen.typedefs["GenCls_test2_overload_4"]
+
     assert_equal "bondage::FunctionBuilder::buildOverload< GenCls_test2_overload >(\"test2\")", fnGen.bind
     assert_equal ["void Gen_GenCls_test2_overload0(::Gen::GenCls & inputArg0, int inputArg1)\n{\n  inputArg0.test2(std::forward<int>(inputArg1));\n}",
  "void Gen_GenCls_test2_overload1(::Gen::GenCls & inputArg0, int inputArg1, float inputArg2)\n{\n  inputArg0.test2(std::forward<int>(inputArg1), std::forward<float>(inputArg2));\n}"], fnGen.extraFunctions

@@ -226,7 +226,16 @@ module CPP
 
     def literalName
       fullyQualified = @function.fullyQualifiedName()
-      literalName = fullyQualified.sub("::", "").gsub("::", "_").gsub("<", "lt").gsub(">", "gt")
+      literalName = fullyQualified
+        .gsub("<", "lt")
+        .gsub(">", "gt")
+        .gsub("!", "n")
+        .gsub("=", "e")
+        .gsub("+", "p")
+        .gsub("-", "s")
+        .gsub("*", "m")
+        .gsub("/", "d")
+        .gsub(/[^0-9A-Za-z]/, '_')
       if (@functionIndex)
         literalName += "_overload#{@functionIndex}"
       end

@@ -141,7 +141,7 @@ module CPP
     end
 
     def visitFunction(owner, function, functionIndex, argCount)
-      thisCount = function.static ? 0 : 1
+      thisCount = (function.static || function.isConstructor) ? 0 : 1
       expectedCount = thisCount + argCount
 
       callsArray = @calls[expectedCount]
@@ -162,7 +162,7 @@ module CPP
     end
 
     def literalName(owner, name, id=nil)
-      niceName = name.gsub(/[^0-9A    -Za-z]/, '')
+      niceName = name.gsub(/[^0-9A-Za-z]/, '')
       if (id != nil)
         return "#{owner.name}_#{niceName}_overload_#{id}"
       else

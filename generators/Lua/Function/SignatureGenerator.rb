@@ -17,7 +17,7 @@ module Lua
         end
 
         # Extract signature
-        callConv = fn.static ? "." : ":"
+        callConv = (fn.static || fn.isConstructor) ? "." : ":"
 
         return "#{retString} #{cls.name}#{callConv}#{fn.name}(#{argString})"
       end
