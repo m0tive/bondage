@@ -382,14 +382,48 @@ class TestGenerator < Test::Unit::TestCase
     fns = exposer.findExposedFunctions(constCls)
     assert_equal 2, fns.length
 
-    #test = fns["test"]
-    #testPork = fns["testPork"]
+    test = fns["test"]
+    testPork = fns["testPork"]
 
-    #fnGen = CPP::FunctionGenerator.new("", "")
+    assert_equal 2, test.length
+    assert_equal 2, testPork.length
+
+    fnGen = CPP::FunctionGenerator.new("", "")
     
-    #fnGen.generate(constCls, test, exposer, Set.new())
+    fnGen.generate(constCls, test, exposer, Set.new())
 
-    #fnGen.generate(constCls, testPork, exposer, Set.new())
+    assert_equal 4, fnGen.typedefs.length
+    assert_equal "Reflect::FunctionCall<Reflect::FunctionSignature< float(::ConstFunctions::ConstClass::*)() >, &::ConstFunctions::ConstClass::test, bondage::FunctionCaller>", fnGen.typedefs["ConstFunctions_ConstClass_test_overload0_t"]
+    assert_equal "Reflect::FunctionCall<Reflect::FunctionSignature< float(::ConstFunctions::ConstClass::*)() const >, &::ConstFunctions::ConstClass::test, bondage::FunctionCaller>", fnGen.typedefs["ConstFunctions_ConstClass_test_overload1_t"]
+    assert_equal "Reflect::FunctionArgCountSelectorBlock<1, Reflect::FunctionArgumentTypeSelector<
+    ConstFunctions_ConstClass_test_overload0_t,
+    ConstFunctions_ConstClass_test_overload1_t
+    > >", fnGen.typedefs["ConstClass_test_overload_1"]
+    assert_equal "Reflect::FunctionArgumentCountSelector<
+  ConstClass_test_overload_1
+  >", fnGen.typedefs["ConstClass_test_overload"]
+    assert_equal "bondage::FunctionBuilder::buildOverload< ConstClass_test_overload >(\"test\")", fnGen.bind
+    assert_equal [], fnGen.extraFunctions
+
+    fnGen.generate(constCls, testPork, exposer, Set.new())
+
+    assert_equal 6, fnGen.typedefs.length
+    assert_equal "Reflect::FunctionCall<Reflect::FunctionSignature< void(::ConstFunctions::ConstClass::*)() >, &::ConstFunctions::ConstClass::testPork, bondage::FunctionCaller>", fnGen.typedefs["ConstFunctions_ConstClass_testPork_overload0_t"]
+    assert_equal "Reflect::FunctionCall<Reflect::FunctionSignature< void(*)(::ConstFunctions::ConstClass &) >, &ConstFunctions_ConstClass_testPork_overload1, bondage::FunctionCaller>", fnGen.typedefs["ConstFunctions_ConstClass_testPork_overload1_t"]
+    assert_equal "Reflect::FunctionCall<Reflect::FunctionSignature< void(::ConstFunctions::ConstClass::*)(float) const >, &::ConstFunctions::ConstClass::testPork, bondage::FunctionCaller>", fnGen.typedefs["ConstFunctions_ConstClass_testPork_overload2_t"]
+    assert_equal "Reflect::FunctionArgCountSelectorBlock<1, Reflect::FunctionArgumentTypeSelector<
+    ConstFunctions_ConstClass_testPork_overload0_t,
+    ConstFunctions_ConstClass_testPork_overload1_t
+    > >", fnGen.typedefs["ConstClass_testPork_overload_1"]
+    assert_equal "Reflect::FunctionArgCountSelectorBlock<2,
+    ConstFunctions_ConstClass_testPork_overload2_t
+    >", fnGen.typedefs["ConstClass_testPork_overload_2"]
+    assert_equal "Reflect::FunctionArgumentCountSelector<
+  ConstClass_testPork_overload_1,
+  ConstClass_testPork_overload_2
+  >", fnGen.typedefs["ConstClass_testPork_overload"]
+    assert_equal "bondage::FunctionBuilder::buildOverload< ConstClass_testPork_overload >(\"testPork\")", fnGen.bind
+    assert_equal ["void ConstFunctions_ConstClass_testPork_overload1(::ConstFunctions::ConstClass & inputArg0)\n{\n  inputArg0.testPork();\n}"], fnGen.extraFunctions
 
     cleanLibrary(conFn)
   end

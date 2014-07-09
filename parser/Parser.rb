@@ -19,9 +19,10 @@ end
 # Parser extracts data from the files in library,
 # and pastes them into the visitor passed
 class Parser
+  @@index = FFI::Clang::Index.new
+
   def initialize(library, coreIncludes=[], extraArgs=[], dbg=false)
     @debug = dbg
-    @index = FFI::Clang::Index.new
     @library = library
 
     host_os = RbConfig::CONFIG['host_os']
@@ -58,7 +59,7 @@ class Parser
 
     unsaved = FFI::Clang::UnsavedFile.new(sourceName, source)
 
-    @translator = @index.parse_translation_unit(nil, args, [ unsaved ], [ :detailed_preprocessing_record, :include_brief_comments_in_code_completion, :skip_function_bodies ])
+    @translator = @@index.parse_translation_unit(nil, args, [ unsaved ], [ :detailed_preprocessing_record, :include_brief_comments_in_code_completion, :skip_function_bodies ])
   end
 
   attr_reader :debug

@@ -93,7 +93,7 @@ module CPP
       singleCall = nil
       @calls.each do |num, calls|
         raise "Invalid call" unless calls.length()
-        if (singleCall)
+        if (singleCall || calls.length() != 1)
           singleCall = nil
           break
         end
@@ -104,6 +104,7 @@ module CPP
       ovOlLs = @lineStart + "    "
 
       if (singleCall)
+        puts "single calls #{@calls}" if @debug
         @bind = "#{TYPE_NAMESPACE}::FunctionBuilder::build<
 #{olLs}#{singleCall}
 #{olLs}>(\"#{name}\")"
