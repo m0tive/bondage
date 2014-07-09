@@ -70,15 +70,15 @@ std::tuple< ::Gen::CtorGen *, int > Gen_CtorGen_CtorGen_overload1()
 
 struct Gen_CtorGen_CtorGen_overload0_t : Reflect::FunctionCall<Reflect::FunctionSignature< ::Gen::CtorGen *(*)() >, &Gen_CtorGen_CtorGen_overload0, Reflect::MethodInjectorBuilder<bondage::FunctionCaller>> { };
 struct Gen_CtorGen_CtorGen_overload1_t : Reflect::FunctionCall<Reflect::FunctionSignature< std::tuple< ::Gen::CtorGen *, int >(*)() >, &Gen_CtorGen_CtorGen_overload1, Reflect::MethodInjectorBuilder<bondage::FunctionCaller>> { };
-struct CtorGen_CtorGen_overload_1 : Reflect::FunctionArgCountSelectorBlock<1,
+struct CtorGen_CtorGen_overload_0 : Reflect::FunctionArgCountSelectorBlock<0,
       Gen_CtorGen_CtorGen_overload0_t
       > { };
-struct CtorGen_CtorGen_overload_2 : Reflect::FunctionArgCountSelectorBlock<2,
+struct CtorGen_CtorGen_overload_1 : Reflect::FunctionArgCountSelectorBlock<1,
       Gen_CtorGen_CtorGen_overload1_t
       > { };
 struct CtorGen_CtorGen_overload : Reflect::FunctionArgumentCountSelector<
-    CtorGen_CtorGen_overload_1,
-    CtorGen_CtorGen_overload_2
+    CtorGen_CtorGen_overload_0,
+    CtorGen_CtorGen_overload_1
     > { };
 
 const bondage::Function Gen_CtorGen_methods[] = {

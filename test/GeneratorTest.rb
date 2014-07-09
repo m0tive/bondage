@@ -262,16 +262,17 @@ class TestGenerator < Test::Unit::TestCase
     fnGen.generate(cls, ctors, exposer, Set.new())
 
     assert_equal "Reflect::FunctionCall<Reflect::FunctionSignature< ::Gen::CtorGen *(*)() >, &Gen_CtorGen_CtorGen_overload0, Reflect::MethodInjectorBuilder<bondage::FunctionCaller>>", fnGen.typedefs["Gen_CtorGen_CtorGen_overload0_t"]
-    assert_equal "Reflect::FunctionArgCountSelectorBlock<1,
+    
+    assert_equal "Reflect::FunctionArgCountSelectorBlock<0,
     Gen_CtorGen_CtorGen_overload0_t
+    >", fnGen.typedefs["CtorGen_CtorGen_overload_0"]
+    assert_equal "Reflect::FunctionArgCountSelectorBlock<1,
+    Gen_CtorGen_CtorGen_overload1_t
     >", fnGen.typedefs["CtorGen_CtorGen_overload_1"]
     assert_equal "Reflect::FunctionCall<Reflect::FunctionSignature< std::tuple< ::Gen::CtorGen *, int >(*)() >, &Gen_CtorGen_CtorGen_overload1, Reflect::MethodInjectorBuilder<bondage::FunctionCaller>>", fnGen.typedefs["Gen_CtorGen_CtorGen_overload1_t"]
-    assert_equal "Reflect::FunctionArgCountSelectorBlock<2,
-    Gen_CtorGen_CtorGen_overload1_t
-    >", fnGen.typedefs["CtorGen_CtorGen_overload_2"]
     assert_equal "Reflect::FunctionArgumentCountSelector<
-  CtorGen_CtorGen_overload_1,
-  CtorGen_CtorGen_overload_2
+  CtorGen_CtorGen_overload_0,
+  CtorGen_CtorGen_overload_1
   >", fnGen.typedefs["CtorGen_CtorGen_overload"]
     assert_equal "bondage::FunctionBuilder::buildOverload< CtorGen_CtorGen_overload >(\"CtorGen\")", fnGen.bind
     assert_equal ["::Gen::CtorGen * Gen_CtorGen_CtorGen_overload0()\n{\n  auto result = bondage::WrappedClassHelper< ::Gen::CtorGen >::create();\n  return result;\n}",

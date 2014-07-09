@@ -227,6 +227,8 @@ module CPP
     def literalName
       fullyQualified = @function.fullyQualifiedName()
       literalName = fullyQualified
+        .sub("::", "")
+        .gsub("::", "_")
         .gsub("<", "lt")
         .gsub(">", "gt")
         .gsub("!", "n")
