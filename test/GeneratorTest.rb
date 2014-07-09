@@ -305,7 +305,7 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen.generate(lib, exposer)
 
-    if (true)
+    if (false)
       FileUtils.mkdir_p(lib.library.autogenPath(:cpp))
       File.open(expectedHeader, 'w') do |file|  
         file.write(libGen.header)
@@ -365,5 +365,32 @@ class TestGenerator < Test::Unit::TestCase
 
     cleanLibrary(stringLibrary)
     cleanLibrary(@gen)
+  end
+
+  def test_constFunctions
+    conFn = Library.new("Gen", "test/testData/ConstFunctions")
+    conFn.addIncludePath(".")
+    conFn.addFile("ConstFunctions.h")
+    setupLibrary(conFn)
+    exposer, conLib = exposeLibrary(conFn)
+
+    assert_equal 1, exposer.exposedMetaData.fullTypes.length
+
+    constCls = exposer.exposedMetaData.findClass("::ConstFunctions::ConstClass").parsed
+    assert_not_nil constCls
+
+    fns = exposer.findExposedFunctions(constCls)
+    assert_equal 2, fns.length
+
+    #test = fns["test"]
+    #testPork = fns["testPork"]
+
+    #fnGen = CPP::FunctionGenerator.new("", "")
+    
+    #fnGen.generate(constCls, test, exposer, Set.new())
+
+    #fnGen.generate(constCls, testPork, exposer, Set.new())
+
+    cleanLibrary(conFn)
   end
 end
