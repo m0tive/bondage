@@ -2,6 +2,8 @@
 #include "Crate/Traits.h"
 #include "bondage/Library.h"
 #include "bondage/CastHelper.h"
+#include "bondage/DerivableTraits.h"
+#include "bondage/DerivableNonCleanedTraits.h"
 
 namespace bondage
 {
@@ -62,12 +64,12 @@ class CastHelper;
 #define BONDAGE_EXPOSED_CLASS_DERIVABLE_MANAGED(EXP, CLS) \
   BONDAGE_CLASS_RESOLVER(EXP, CLS) \
   BONDAGE_CLASS_DERIVABLE(CLS) \
-  BONDAGE_CLASS_CRATER(CLS, ReferenceTraits)
+  BONDAGE_CLASS_CRATER(CLS, DerivableTraits)
 
 #define BONDAGE_EXPOSED_CLASS_DERIVABLE_UNMANAGED(EXP, CLS) \
   BONDAGE_CLASS_RESOLVER(EXP, CLS) \
   BONDAGE_CLASS_DERIVABLE(CLS) \
-  BONDAGE_CLASS_CRATER(CLS, ReferenceNonCleanedTraits)
+  BONDAGE_CLASS_CRATER(CLS, DerivableNonCleanedTraits)
 
 #define BONDAGE_EXPOSED_DERIVED_CLASS(EXP, CLS, PARENT, ROOT) \
   BONDAGE_CLASS_RESOLVER(EXP, CLS) \
