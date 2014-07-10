@@ -131,8 +131,6 @@ module CPP
         raise "Abstract class #{@cls.name} can not be copyable"
       end
 
-      raise "#{@cls.locationString}: A copyable class cannot be derivable." if @metaData.isDerivable && mode == :copyable
-
       return mode.to_s.upcase
     end
   end
