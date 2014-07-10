@@ -91,6 +91,7 @@ BONDAGE_IMPLEMENT_EXPOSED_CLASS(
   g_bondage_library_Gen,
   ::Gen,
   CtorGen,
+  void,
   Gen_CtorGen_methods,
   1);
 
@@ -150,6 +151,7 @@ BONDAGE_IMPLEMENT_EXPOSED_CLASS(
   g_bondage_library_Gen,
   ::Gen,
   MultipleReturnGen,
+  void,
   Gen_MultipleReturnGen_methods,
   1);
 
@@ -224,6 +226,7 @@ BONDAGE_IMPLEMENT_EXPOSED_CLASS(
   g_bondage_library_Gen,
   ::Gen,
   GenCls,
+  void,
   Gen_GenCls_methods,
   3);
 
@@ -248,6 +251,7 @@ BONDAGE_IMPLEMENT_EXPOSED_CLASS(
   g_bondage_library_Gen,
   ::Gen,
   InheritTest,
+  ::Gen::GenCls,
   Gen_InheritTest_methods,
   2);
 
@@ -259,6 +263,7 @@ BONDAGE_IMPLEMENT_EXPOSED_CLASS(
   g_bondage_library_Gen,
   ::Gen,
   InheritTest2,
+  ::Gen::InheritTest,
   nullptr,
   0);
 

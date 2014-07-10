@@ -42,7 +42,9 @@ HEADERS += \
     ../include/bondage/CastHelper.h \
     PackHelper.h \
     CastHelper.Gen_GenCls.h \
-    CrateTypeHelper.h
+    CrateTypeHelper.h \
+    ../include/bondage/DerivableNonCleanedTraits.h \
+    ../include/bondage/DerivableTraits.h
 
 INCLUDEPATH += \
   ../include/ \

@@ -36,10 +36,9 @@ public:
   {
     auto& helper = bondage::WrappedClassFinder<T>::castHelper();
     const bondage::WrappedClass* wrapper = helper.search(dataIn);
-    const Crate::Type* baseType = Base::getType();
-    const Crate::Type* type = wrapper ? &wrapper->type() : baseType;
+    const Crate::Type* type = wrapper ? &wrapper->type() : Base::getType();
 
-    if (ifc->template initialise<ReferenceNonCleanedTraits<T>, T>(data, baseType, type, dataIn, cleanup<Box>) == Base::AlreadyInitialised)
+    if (ifc->template initialise<ReferenceNonCleanedTraits<T>, T>(data, type, dataIn, cleanup<Box>) == Base::AlreadyInitialised)
       {
       return;
       }

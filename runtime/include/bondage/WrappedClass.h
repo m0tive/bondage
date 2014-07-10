@@ -4,10 +4,10 @@
 #include "Crate/Traits.h"
 #include "bondage/Function.h"
 
-#define BONDAGE_IMPLEMENT_EXPOSED_CLASS(varName, lib, parent, name, fns, fnCount) \
+#define BONDAGE_IMPLEMENT_EXPOSED_CLASS(varName, lib, parent, name, parentClass, fns, fnCount) \
   namespace Crate { namespace detail { \
   const Type *TypeResolver<parent::name>::find() \
-    { static Type t; t.initialise<parent::name>(#name); return &t; } } } \
+    { static Type t; t.initialise<parent::name>(#name, Crate::findType<parentClass>()); return &t; } } } \
   bondage::WrappedClass varName ( \
     lib, \
     Crate::findType<parent::name>(), \

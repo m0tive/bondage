@@ -88,12 +88,15 @@ module CPP
 
       methodsLiteral, methodsArray, extraMethodSource = @fnGen.generateFunctionArray(typedefs, methods, extraMethods, @wrapperName)
 
+      parent = @metaData.parentClass
+
       classInfo =
 "#{MACRO_PREFIX}IMPLEMENT_EXPOSED_CLASS(
   #{wrapperName},
   #{libraryVariable},
   #{@cls.parent.fullyQualifiedName()},
   #{@cls.name},
+  #{parent ? parent : "void"},
   #{methodsLiteral},
   #{methods.length});"
 

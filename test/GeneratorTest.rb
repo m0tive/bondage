@@ -305,7 +305,7 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen.generate(lib, exposer)
 
-    if (false)
+    if (true)
       FileUtils.mkdir_p(lib.library.autogenPath(:cpp))
       File.open(expectedHeader, 'w') do |file|  
         file.write(libGen.header)

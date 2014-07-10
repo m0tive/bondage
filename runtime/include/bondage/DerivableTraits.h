@@ -37,9 +37,9 @@ namespace Crate
     {
     auto& helper = bondage::WrappedClassFinder<T>::castHelper();
     const bondage::WrappedClass* wrapper = helper.search(dataIn);
-    assert(wrapper);
+    const Crate::Type* type = wrapper ? &wrapper->type() : Base::getType();
 
-    if (ifc->template initialise<DerivableTraits<T>, T>(data, Base::getType(), &wrapper->type(), dataIn, cleanup<Box>) == Base::AlreadyInitialised)
+    if (ifc->template initialise<DerivableTraits<T>, T>(data, type, dataIn, cleanup<Box>) == Base::AlreadyInitialised)
       {
       return;
       }
