@@ -4,6 +4,21 @@ require_relative "FunctionWrapperArgumentHelper.rb"
 
 module CPP
 
+  def self.toLiteralName(str)
+    return str
+      .sub("::", "")
+      .gsub("::", "_")
+      .gsub("<", "lt")
+      .gsub(">", "gt")
+      .gsub("!", "n")
+      .gsub("=", "e")
+      .gsub("+", "p")
+      .gsub("-", "s")
+      .gsub("*", "m")
+      .gsub("/", "d")
+      .gsub(/[^0-9A-Za-z]/, '_')
+  end
+
   class FunctionWrapperGenerator
     def initialize(ls)
       @lineStart = ls
@@ -225,19 +240,7 @@ module CPP
     end
 
     def literalName
-      fullyQualified = @function.fullyQualifiedName()
-      literalName = fullyQualified
-        .sub("::", "")
-        .gsub("::", "_")
-        .gsub("<", "lt")
-        .gsub(">", "gt")
-        .gsub("!", "n")
-        .gsub("=", "e")
-        .gsub("+", "p")
-        .gsub("-", "s")
-        .gsub("*", "m")
-        .gsub("/", "d")
-        .gsub(/[^0-9A-Za-z]/, '_')
+      literalName = CPP::toLiteralName(@function.fullyQualifiedName())
       if (@functionIndex)
         literalName += "_overload#{@functionIndex}"
       end

@@ -1,3 +1,4 @@
+require_relative "../GeneratorHelper.rb"
 require_relative "FunctionWrapperGenerator.rb"
 
 module CPP
@@ -163,7 +164,7 @@ module CPP
     end
 
     def literalName(owner, name, id=nil)
-      niceName = name.gsub(/[^0-9A-Za-z]/, '')
+      niceName = CPP::toLiteralName(name)
       if (id != nil)
         return "#{owner.name}_#{niceName}_overload_#{id}"
       else
