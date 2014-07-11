@@ -82,9 +82,14 @@ class CastHelper;
   BONDAGE_CLASS_DERIVED(CLS, ROOT) \
   namespace Crate { template <> class Traits<CLS> : public DerivedTraits<CLS, PARENT, ROOT> { }; }
 
+#define BONDAGE_EXPOSED_CLASS_DERIVED_MANAGED BONDAGE_EXPOSED_DERIVED_CLASS
+#define BONDAGE_EXPOSED_CLASS_DERIVED_UNMANAGED BONDAGE_EXPOSED_DERIVED_CLASS
+#define BONDAGE_EXPOSED_CLASS_DERIVED_COPYABLE(EXP, CLS, P, R) BONDAGE_EXPOSED_CLASS_COPYABLE(EXP, CLS)
+
 #define BONDAGE_EXPOSED_DERIVED_PARTIAL_CLASS(EXP, CLS, PARENT, ROOT) \
   BONDAGE_CLASS_RESOLVER(EXP, CLS) \
   namespace Crate { template <> class Traits<CLS> : public DerivedTraits<CLS, PARENT, ROOT> { }; }
 
 #define BONDAGE_EXPOSED_ENUM(EXP, CLS) \
-  BONDAGE_CLASS_RESOLVER_FORWARD(CLS, unsigned int)
+  BONDAGE_CLASS_RESOLVER_FORWARD(CLS, unsigned int)\
+  namespace Crate { template <> class Traits<CLS> : public EnumTraits<CLS> {}; }

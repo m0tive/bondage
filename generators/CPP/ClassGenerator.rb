@@ -64,8 +64,8 @@ module CPP
 
     def generateHeader()
       clsPath = @cls.fullyQualifiedName
+      type = classMode()
       if(!@metaData.hasParentClass())
-        type = classMode()
         derivable = ""
         if (@metaData.isDerivable)
           derivable = "DERIVABLE_"
@@ -74,7 +74,7 @@ module CPP
       else
         parent = @metaData.parentClass
         root, dist = findRootClass(@metaData)
-        @interface = "#{MACRO_PREFIX}EXPOSED_DERIVED_CLASS(#{@metaData.library.exportMacro}, #{clsPath}, #{parent}, #{root})"
+        @interface = "#{MACRO_PREFIX}EXPOSED_CLASS_DERIVED_#{type}(#{@metaData.library.exportMacro}, #{clsPath}, #{parent}, #{root})"
       end
     end
 
