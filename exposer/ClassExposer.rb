@@ -45,15 +45,17 @@ class ClassExposer
 
     # group these functions by overload
     exposableFunctions.each do |fn|
-      if(functions[fn.name] == nil)
-        functions[fn.name] = []
+      contents = functions[fn.name]
+      if(contents == nil)
+        contents = []
+        functions[fn.name] = contents
       end
 
       isConst = fn.isConst
 
-      idx = isConst ? nonConstCount[fn.name] : 0
+      idx = isConst ? nonConstCount[fn.name] : contents.length
 
-      functions[fn.name].insert(idx, fn)
+      contents.insert(idx, fn)
 
       if (!isConst)
         nonConstCount[fn.name] += 1

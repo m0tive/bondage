@@ -296,7 +296,7 @@ class TestGenerator < Test::Unit::TestCase
     assert_not_nil cls
 
     gen.generate(exposer, derived, "var", Set.new())
-    assert_equal "BONDAGE_EXPOSED_DERIVED_CLASS(GEN_EXPORT, ::Gen::InheritTest, ::Gen::GenCls, ::Gen::GenCls)", gen.interface
+    assert_equal "BONDAGE_EXPOSED_CLASS_DERIVED_MANAGED(GEN_EXPORT, ::Gen::InheritTest, ::Gen::GenCls, ::Gen::GenCls)", gen.interface
 
     libGen = CPP::LibraryGenerator.new(HeaderHelper.new)
 
@@ -305,7 +305,7 @@ class TestGenerator < Test::Unit::TestCase
 
     libGen.generate(lib, exposer)
 
-    if (true)
+    if (false)
       FileUtils.mkdir_p(lib.library.autogenPath(:cpp))
       File.open(expectedHeader, 'w') do |file|  
         file.write(libGen.header)
