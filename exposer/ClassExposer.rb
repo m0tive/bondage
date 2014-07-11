@@ -53,8 +53,7 @@ class ClassExposer
 
       idx = isConst ? nonConstCount[fn.name] : 0
 
-      #functions[fn.name].insert(idx, fn)
-      functions[fn.name] << fn
+      functions[fn.name].insert(idx, fn)
 
       if (!isConst)
         nonConstCount[fn.name] += 1

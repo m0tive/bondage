@@ -25,6 +25,7 @@ class CastHelper;
 #define BONDAGE_CLASS_UNDERIVABLE(CLS) namespace bondage { \
   template <> class WrappedClassFinder<CLS> { public: \
     static const WrappedClass *findBase(); \
+    static CastHelper &castHelper() { static CastHelper data; return data; } \
     static const WrappedClass *find(const void *) { return findBase(); } }; }
 
 #define BONDAGE_CLASS_DERIVABLE(CLS) namespace bondage { \
@@ -60,6 +61,11 @@ class CastHelper;
   BONDAGE_CLASS_RESOLVER(EXP, CLS) \
   BONDAGE_CLASS_UNDERIVABLE(CLS) \
   BONDAGE_CLASS_CRATER(CLS, ReferenceNonCleanedTraits)
+
+#define BONDAGE_EXPOSED_CLASS_DERIVABLE_COPYABLE(EXP, CLS) \
+  BONDAGE_CLASS_RESOLVER(EXP, CLS) \
+  BONDAGE_CLASS_UNDERIVABLE(CLS) \
+  BONDAGE_CLASS_CRATER(CLS, CopyTraits)
 
 #define BONDAGE_EXPOSED_CLASS_DERIVABLE_MANAGED(EXP, CLS) \
   BONDAGE_CLASS_RESOLVER(EXP, CLS) \
