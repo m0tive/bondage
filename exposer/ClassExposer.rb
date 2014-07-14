@@ -53,7 +53,7 @@ class ClassExposer
 
       isConst = fn.isConst
 
-      idx = isConst ? nonConstCount[fn.name] : contents.length
+      idx = isConst ? contents.length : nonConstCount[fn.name]
 
       contents.insert(idx, fn)
 
