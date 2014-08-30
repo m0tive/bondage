@@ -38,16 +38,28 @@ class ClassExposer
       puts "Gathering exposable functions from #{cls.name} with #{cls.functions.length} functions"
     end
 
+    nonConstCount = Hash.new { |hash, key| hash[key] = 0 }
+
     # find all exposable functions as an array
     exposableFunctions = cls.functions.select{ |fn| @functionExposer.canExposeMethod(cls, fn) }
 
     # group these functions by overload
     exposableFunctions.each do |fn|
-      if(functions[fn.name] == nil)
-        functions[fn.name] = []
+      contents = functions[fn.name]
+      if(contents == nil)
+        contents = []
+        functions[fn.name] = contents
       end
 
-      functions[fn.name] << fn
+      isConst = fn.isConst
+
+      idx = isConst ? contents.length : nonConstCount[fn.name]
+
+      contents.insert(idx, fn)
+
+      if (!isConst)
+        nonConstCount[fn.name] += 1
+      end
     end
 
     return functions

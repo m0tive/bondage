@@ -4,6 +4,21 @@ require_relative "FunctionWrapperArgumentHelper.rb"
 
 module CPP
 
+  def self.toLiteralName(str)
+    return str
+      .sub("::", "")
+      .gsub("::", "_")
+      .gsub("<", "lt")
+      .gsub(">", "gt")
+      .gsub("!", "n")
+      .gsub("=", "e")
+      .gsub("+", "p")
+      .gsub("-", "s")
+      .gsub("*", "m")
+      .gsub("/", "d")
+      .gsub(/[^0-9A-Za-z]/, '_')
+  end
+
   class FunctionWrapperGenerator
     def initialize(ls)
       @lineStart = ls
@@ -28,7 +43,7 @@ module CPP
       @argumentHelper.reset(forceWrapper, types)
     end
 
-    def generateCall(owner, function, functionIndex, argCount, calls, extraFunctions, types)
+    def generateCall(owner, function, functionIndex, argCount, calls, typedefs, extraFunctions, types)
       reset(owner, function, functionIndex, argCount, types)
       
       if (!@static)
@@ -42,18 +57,21 @@ module CPP
       ArgumentVisitor.visitFunction(owner, function, functionIndex, argCount, @argumentHelper)
 
       if (@argumentHelper.needsWrapper)
-        generateWrapper(calls, extraFunctions)
+        generateWrapper(calls, typedefs, extraFunctions)
       else
-        sig = signature()
-        calls << "#{TYPE_NAMESPACE}::FunctionBuilder::buildCall< #{sig}, &#{@function.fullyQualifiedName} >"
+        typedefName = literalName() + "_t"
+        typedefs[typedefName] = generateCallForwarder(@function.fullyQualifiedName)
+        calls << typedefName
       end
     end
 
-    def generateWrapper(calls, extraFunctions)
+    def generateWrapper(calls, typedefs, extraFunctions)
       ret, resVar, inArgs, callArgs, initArgs, call = generateCallData()
 
       extraFnName = literalName()
-      calls << generateCallForwarder(extraFnName)
+      typedefName = extraFnName + "_t"
+      typedefs[typedefName] = generateCallForwarder(extraFnName)
+      calls << typedefName
 
       extraFunctions << Helpers::generateWrapperText(
         @lineStart,
@@ -140,8 +158,13 @@ module CPP
 
     def generateCallForwarder(name)
       sig = signature()
-      callType = @static ? "buildCall" : "buildMemberStandinCall"
-      return "#{TYPE_NAMESPACE}::FunctionBuilder::#{callType}< #{sig}, &#{name} >"
+
+      caller = "bondage::FunctionCaller"
+      if (@static)
+        caller = "Reflect::MethodInjectorBuilder<bondage::FunctionCaller>"
+      end
+
+      return "Reflect::FunctionCall<Reflect::FunctionSignature< #{sig} >, &#{name}, #{caller}>"
     end
 
     def signature()
@@ -217,8 +240,7 @@ module CPP
     end
 
     def literalName
-      fullyQualified = @function.fullyQualifiedName()
-      literalName = fullyQualified.sub("::", "").gsub("::", "_").gsub("<", "lt").gsub(">", "gt")
+      literalName = CPP::toLiteralName(@function.fullyQualifiedName())
       if (@functionIndex)
         literalName += "_overload#{@functionIndex}"
       end

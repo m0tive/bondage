@@ -12,6 +12,8 @@ class BONDAGE_EXPORT Library
 public:
   Library(const char *name, const Function *functions, std::size_t functionCount);
 
+  const std::string& name() const { return m_name; }
+
   void registerClass(WrappedClass *cls);
 
   const WrappedClass *firstClass() const

@@ -64,8 +64,8 @@ module CPP
 
     def generateHeader()
       clsPath = @cls.fullyQualifiedName
+      type = classMode()
       if(!@metaData.hasParentClass())
-        type = classMode()
         derivable = ""
         if (@metaData.isDerivable)
           derivable = "DERIVABLE_"
@@ -74,7 +74,7 @@ module CPP
       else
         parent = @metaData.parentClass
         root, dist = findRootClass(@metaData)
-        @interface = "#{MACRO_PREFIX}EXPOSED_DERIVED_CLASS(#{@metaData.library.exportMacro}, #{clsPath}, #{parent}, #{root})"
+        @interface = "#{MACRO_PREFIX}EXPOSED_CLASS_DERIVED_#{type}(#{@metaData.library.exportMacro}, #{clsPath}, #{parent}, #{root})"
       end
     end
 
@@ -84,9 +84,11 @@ module CPP
       fullyQualified = @cls.fullyQualifiedName()
       @wrapperName = fullyQualified.sub("::", "").gsub("::", "_")
 
-      methods, extraMethods = @fnGen.gatherFunctions(@cls, @exposer, files)
+      methods, extraMethods, typedefs = @fnGen.gatherFunctions(@cls, @exposer, files)
 
-      methodsLiteral, methodsArray, extraMethodSource = @fnGen.generateFunctionArray(methods, extraMethods, @wrapperName)
+      methodsLiteral, methodsArray, extraMethodSource = @fnGen.generateFunctionArray(typedefs, methods, extraMethods, @wrapperName)
+
+      parent = @metaData.parentClass
 
       classInfo =
 "#{MACRO_PREFIX}IMPLEMENT_EXPOSED_CLASS(
@@ -94,6 +96,7 @@ module CPP
   #{libraryVariable},
   #{@cls.parent.fullyQualifiedName()},
   #{@cls.name},
+  #{parent ? parent : "void"},
   #{methodsLiteral},
   #{methods.length});"
 
@@ -130,8 +133,6 @@ module CPP
       if (@cls.hasPureVirtualFunctions && mode == :copyable)
         raise "Abstract class #{@cls.name} can not be copyable"
       end
-
-      raise "#{@cls.locationString}: A copyable class cannot be derivable." if @metaData.isDerivable && mode == :copyable
 
       return mode.to_s.upcase
     end

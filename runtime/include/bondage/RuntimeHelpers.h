@@ -2,6 +2,8 @@
 #include "Crate/Traits.h"
 #include "bondage/Library.h"
 #include "bondage/CastHelper.h"
+#include "bondage/DerivableTraits.h"
+#include "bondage/DerivableNonCleanedTraits.h"
 
 namespace bondage
 {
@@ -23,6 +25,7 @@ class CastHelper;
 #define BONDAGE_CLASS_UNDERIVABLE(CLS) namespace bondage { \
   template <> class WrappedClassFinder<CLS> { public: \
     static const WrappedClass *findBase(); \
+    static CastHelper &castHelper() { static CastHelper data; return data; } \
     static const WrappedClass *find(const void *) { return findBase(); } }; }
 
 #define BONDAGE_CLASS_DERIVABLE(CLS) namespace bondage { \
@@ -59,24 +62,34 @@ class CastHelper;
   BONDAGE_CLASS_UNDERIVABLE(CLS) \
   BONDAGE_CLASS_CRATER(CLS, ReferenceNonCleanedTraits)
 
+#define BONDAGE_EXPOSED_CLASS_DERIVABLE_COPYABLE(EXP, CLS) \
+  BONDAGE_CLASS_RESOLVER(EXP, CLS) \
+  BONDAGE_CLASS_UNDERIVABLE(CLS) \
+  BONDAGE_CLASS_CRATER(CLS, CopyTraits)
+
 #define BONDAGE_EXPOSED_CLASS_DERIVABLE_MANAGED(EXP, CLS) \
   BONDAGE_CLASS_RESOLVER(EXP, CLS) \
   BONDAGE_CLASS_DERIVABLE(CLS) \
-  BONDAGE_CLASS_CRATER(CLS, ReferenceTraits)
+  BONDAGE_CLASS_CRATER(CLS, DerivableTraits)
 
 #define BONDAGE_EXPOSED_CLASS_DERIVABLE_UNMANAGED(EXP, CLS) \
   BONDAGE_CLASS_RESOLVER(EXP, CLS) \
   BONDAGE_CLASS_DERIVABLE(CLS) \
-  BONDAGE_CLASS_CRATER(CLS, ReferenceNonCleanedTraits)
+  BONDAGE_CLASS_CRATER(CLS, DerivableNonCleanedTraits)
 
 #define BONDAGE_EXPOSED_DERIVED_CLASS(EXP, CLS, PARENT, ROOT) \
   BONDAGE_CLASS_RESOLVER(EXP, CLS) \
   BONDAGE_CLASS_DERIVED(CLS, ROOT) \
   namespace Crate { template <> class Traits<CLS> : public DerivedTraits<CLS, PARENT, ROOT> { }; }
 
+#define BONDAGE_EXPOSED_CLASS_DERIVED_MANAGED BONDAGE_EXPOSED_DERIVED_CLASS
+#define BONDAGE_EXPOSED_CLASS_DERIVED_UNMANAGED BONDAGE_EXPOSED_DERIVED_CLASS
+#define BONDAGE_EXPOSED_CLASS_DERIVED_COPYABLE(EXP, CLS, P, R) BONDAGE_EXPOSED_CLASS_COPYABLE(EXP, CLS)
+
 #define BONDAGE_EXPOSED_DERIVED_PARTIAL_CLASS(EXP, CLS, PARENT, ROOT) \
   BONDAGE_CLASS_RESOLVER(EXP, CLS) \
   namespace Crate { template <> class Traits<CLS> : public DerivedTraits<CLS, PARENT, ROOT> { }; }
 
 #define BONDAGE_EXPOSED_ENUM(EXP, CLS) \
-  BONDAGE_CLASS_RESOLVER_FORWARD(CLS, unsigned int)
+  BONDAGE_CLASS_RESOLVER_FORWARD(CLS, unsigned int)\
+  namespace Crate { template <> class Traits<CLS> : public EnumTraits<CLS> {}; }

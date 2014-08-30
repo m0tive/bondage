@@ -62,6 +62,7 @@ module Lua
       @classDefinition = "#{inc}#{extraDatas}#{Helper::formatDocsTag('', 'brief', brief)}
 --
 local #{localVarOut} = #{clsName} \"#{cls.name}\" {
+  library = \"#{library.name}\",
 #{parentInsert}#{pluginInsert}#{enumInsert}
 #{formattedFunctions.join(",\n\n")}
 }"
