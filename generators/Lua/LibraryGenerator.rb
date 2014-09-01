@@ -53,7 +53,7 @@ module Lua
       end
 
       libPath = dir + "/#{@libraryName}Library.lua"
-      res = File.open(libPath, 'w') do |file|
+      File.open(libPath, 'w') do |file|
         file.write(@headerHelper.filePrefix(:lua) + "\n\n")
         file.write(@library)
         file.write(@headerHelper.fileSuffix(:lua) + "\n")
@@ -67,11 +67,9 @@ module Lua
     end
 
     def generateLibrary(exposer, library, classes, rootNs)
-      formattedFunctions = []
-
       ls = "#{@lineStart}"
 
-      data = @classes.map{ |cls, data| "#{ls}#{cls.name} = require(\"#{@pathResolver.pathFor(cls)}\")" }
+      data = @classes.map{ |cls, idata| "#{ls}#{cls.name} = require(\"#{@pathResolver.pathFor(cls)}\")" }
 
       requiredClasses = Set.new
 

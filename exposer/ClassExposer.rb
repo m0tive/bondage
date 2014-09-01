@@ -117,9 +117,9 @@ private
     validSuperClasses = Set.new
 
     # find valid super classes
-    cls.superClasses.each do |cls|
-      if(cls[:accessSpecifier] == :public)
-        clsPath = cls[:type].fullyQualifiedName
+    cls.superClasses.each do |supercls|
+      if(supercls[:accessSpecifier] == :public)
+        clsPath = supercls[:type].fullyQualifiedName
         validSuperClasses << clsPath
       end
     end
@@ -260,25 +260,25 @@ private
 
     list = []
 
-    def append(list, parentMap, id)
-      data = parentMap[id]
-      if (data[:visited])
-        return
-      end
-
-      data[:children].each do |child|
-        append(list, parentMap, child)
-      end
-
-      data[:visited] = true
-      list << data[:data]
-    end
-
     parentMap.keys.each do |clsPath|
-      append(list, parentMap, clsPath)
+      appendClasses(list, parentMap, clsPath)
     end
 
     return list.reverse
+  end
+
+  def appendClasses(list, parentMap, id)
+    data = parentMap[id]
+    if (data[:visited])
+      return
+    end
+
+    data[:children].each do |child|
+      appendClasses(list, parentMap, child)
+    end
+
+    data[:visited] = true
+    list << data[:data]
   end
 
   def addExposedClass(visitor, cls)
@@ -318,7 +318,7 @@ private
 
   def exposeMsg(result, cls, msg)
     if (@debugOutput)
-      res = result == :yes ? 'Y' :
+      result == :yes ? 'Y' :
             result == :partial ? 'Y p' : 
             'N'
 

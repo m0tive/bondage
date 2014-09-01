@@ -26,7 +26,7 @@ class ParsedLibrary
   attr_reader :classes, :library, :rootItem
 
   def self.parse(library, platformIncludes=[], extraArgs=[], debug=false)
-    parser = Parser.new(library, platformIncludes, extraArgs, debug)
+    parser = Parser::Parser.new(library, platformIncludes, extraArgs, debug)
 
     parsed = ParsedLibrary.new(library)
     parser.parse(parsed)

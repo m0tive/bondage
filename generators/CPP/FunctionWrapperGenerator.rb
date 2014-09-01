@@ -67,6 +67,7 @@ module CPP
 
     def generateWrapper(calls, typedefs, extraFunctions)
       ret, resVar, inArgs, callArgs, initArgs, call = generateCallData()
+      callArgs = nil
 
       extraFnName = literalName()
       typedefName = extraFnName + "_t"
@@ -100,6 +101,7 @@ module CPP
         callArgs,
         resVar,
         @argumentHelper.outputs)
+      returnVal = nil
 
       return ret, resVar, inArgs, callArgs, initArgs, call
     end

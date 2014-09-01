@@ -5,168 +5,169 @@ require_relative "Comment.rb"
 require_relative "Type.rb"
 require_relative "ParserData.rb"
 
+module Parser
 
-def sourceError(cursor)
-  loc = cursor.location
-  return "Error, File: #{loc.file}, line: #{loc.line}, column: #{loc.column}: #{cursor.display_name}"
-end
-
-def sourceErrorDesc(cursor, desc)
-  loc = cursor.location
-  return "#{sourceError(cursor)}\n  #{desc}"
-end
-
-# Parser extracts data from the files in library,
-# and pastes them into the visitor passed
-class Parser
-  @@index = FFI::Clang::Index.new
-
-  def initialize(library, coreIncludes=[], extraArgs=[], dbg=false)
-    @debug = dbg
-    @library = library
-
-    host_os = RbConfig::CONFIG['host_os']
-    case host_os
-    when /mswin|msys|mingw|cygwin|bccwin|wince|emc/
-      @caseInsensitive = true
-    when /darwin|mac os/
-      @caseInsensitive = false
-    when /linux/
-      @caseInsensitive = false
-    when /solaris|bsd/
-      @caseInsensitive = false
-    end
-
-    sourceName = "DATA.cpp"
-
-    args = [
-      "-fparse-all-comments",
-      "-ferror-limit=100",
-      "-std=c++11",
-      "/TC",
-      sourceName
-    ].concat(coreIncludes.map { |i| "-I#{i}" }).concat(extraArgs)
-
-    library.includePaths.each do |path|
-      args << "-I#{path}"
-    end
-    args << "-I#{library.root}"
-
-    source = "#define BINDER_PARSING\n"
-    library.files.each do |file|
-      source << "#include \"#{file}\"\n"
-    end
-
-    unsaved = FFI::Clang::UnsavedFile.new(sourceName, source)
-
-    @translator = @@index.parse_translation_unit(nil, args, [ unsaved ], [ :detailed_preprocessing_record, :include_brief_comments_in_code_completion, :skip_function_bodies ])
+  def sourceError(cursor)
+    loc = cursor.location
+    return "Error, File: #{loc.file}, line: #{loc.line}, column: #{loc.column}: #{cursor.display_name}"
   end
 
-  attr_reader :debug
-
-  def parse(visitor)
-    cursor = @translator.cursor
-
-    @depth = 0
-
-    stateStack = [ :namespace ]
-    data = [ visitor.rootItem ]
-    visitChildren(cursor, visitor, stateStack, data)
-
-    raise "Incomplete source" unless (stateStack.size == 1 && stateStack[0] == :namespace)
+  def sourceErrorDesc(cursor, desc)
+    return "#{sourceError(cursor)}\n  #{desc}"
   end
 
-  def displayDiagnostics
-    diags = @translator.diagnostics
-    diags.each do |diag|
-      puts "#{diag.format}"
-    end
-  end
+  # Parser extracts data from the files in library,
+  # and pastes them into the visitor passed
+  class Parser
+    @@index = FFI::Clang::Index.new
 
-private
-  def shouldIgnoreCursor(cursor)
-    file = cursor.location.file ? cursor.location.file : cursor.extent.start.file
+    def initialize(library, coreIncludes=[], extraArgs=[], dbg=false)
+      @debug = dbg
+      @library = library
 
-    if (!file)
-      return true
-    end
-
-    toFind = Pathname.new(file).cleanpath.to_s
-    return !isLibraryFile(toFind)
-  end
-
-  def isLibraryFile(toFind)
-    if(@library.files.any?{ |path|
-        norm = Pathname.new(path).cleanpath.to_s
-        if (@caseInsensitive)
-          found = toFind[-norm.length, toFind.length]
-          if (norm == nil || found == nil)
-            next false
-          end
-
-          next found.downcase == norm.downcase
-        else
-          next toFind[-norm.length, toFind.length] == norm
-        end
-      })
-      return true
-    end
-
-    return false
-  end
-
-  def findNextState(oldType, cursor)
-    typeTransitions = TRANSITIONS[oldType]
-    if (!typeTransitions)
-      # raise formatParseError(cursor, "Unexpected child for #{oldType}, with child type #{cursor.kind}")
-      return UNUSED_STATE
-    end
-
-    newState = typeTransitions[cursor.kind]
-    if (!newState)
-      # raise formatParseError(cursor, "Unexpected transition #{oldType} -> #{cursor.kind}")
-      return UNUSED_STATE
-    end
-    return newState
-  end
-
-  def visitChildren(cursor, visitor, states, data)
-    cursor.visit_children do |cursor, parent|
-      if @debug then
-        file = ""
-        if (cursor.kind == :cursor_namespace or cursor.kind == :cursor_class_decl)
-          file = cursor.location.file ? cursor.location.file : cursor.extent.start.file
-        end
-        
-        puts ('  ' * @depth) + "#{cursor.kind} #{cursor.spelling.inspect} #{file} #{cursor.raw_comment_text}" unless not @debug
+      host_os = RbConfig::CONFIG['host_os']
+      case host_os
+      when /mswin|msys|mingw|cygwin|bccwin|wince|emc/
+        @caseInsensitive = true
+      when /darwin|mac os/
+        @caseInsensitive = false
+      when /linux/
+        @caseInsensitive = false
+      when /solaris|bsd/
+        @caseInsensitive = false
       end
 
-      newState = findNextState(states[-1], cursor)
+      sourceName = "DATA.cpp"
 
-      if(@depth == 0 && shouldIgnoreCursor(cursor))
+      args = [
+        "-fparse-all-comments",
+        "-ferror-limit=100",
+        "-std=c++11",
+        "/TC",
+        sourceName
+      ].concat(coreIncludes.map { |i| "-I#{i}" }).concat(extraArgs)
+
+      library.includePaths.each do |path|
+        args << "-I#{path}"
+      end
+      args << "-I#{library.root}"
+
+      source = "#define BINDER_PARSING\n"
+      library.files.each do |file|
+        source << "#include \"#{file}\"\n"
+      end
+
+      unsaved = FFI::Clang::UnsavedFile.new(sourceName, source)
+
+      @translator = @@index.parse_translation_unit(nil, args, [ unsaved ], [ :detailed_preprocessing_record, :include_brief_comments_in_code_completion, :skip_function_bodies ])
+    end
+
+    attr_reader :debug
+
+    def parse(visitor)
+      cursor = @translator.cursor
+
+      @depth = 0
+
+      stateStack = [ :namespace ]
+      data = [ visitor.rootItem ]
+      visitChildren(cursor, visitor, stateStack, data)
+
+      raise "Incomplete source" unless (stateStack.size == 1 && stateStack[0] == :namespace)
+    end
+
+    def displayDiagnostics
+      diags = @translator.diagnostics
+      diags.each do |diag|
+        puts "#{diag.format}"
+      end
+    end
+
+  private
+    def shouldIgnoreCursor(cursor)
+      file = cursor.location.file ? cursor.location.file : cursor.extent.start.file
+
+      if (!file)
+        return true
+      end
+
+      toFind = Pathname.new(file).cleanpath.to_s
+      return !isLibraryFile(toFind)
+    end
+
+    def isLibraryFile(toFind)
+      if(@library.files.any?{ |path|
+          norm = Pathname.new(path).cleanpath.to_s
+          if (@caseInsensitive)
+            found = toFind[-norm.length, toFind.length]
+            if (norm == nil || found == nil)
+              next false
+            end
+
+            next found.downcase == norm.downcase
+          else
+            next toFind[-norm.length, toFind.length] == norm
+          end
+        })
+        return true
+      end
+
+      return false
+    end
+
+    def findNextState(oldType, cursor)
+      typeTransitions = TRANSITIONS[oldType]
+      if (!typeTransitions)
+        # raise formatParseError(cursor, "Unexpected child for #{oldType}, with child type #{cursor.kind}")
+        return UNUSED_STATE
+      end
+
+      newState = typeTransitions[cursor.kind]
+      if (!newState)
+        # raise formatParseError(cursor, "Unexpected transition #{oldType} -> #{cursor.kind}")
+        return UNUSED_STATE
+      end
+      return newState
+    end
+
+    def visitChildren(cursor, visitor, states, data)
+      cursor.visit_children do |child, parent|
+        if @debug then
+          file = ""
+          if (child.kind == :cursor_namespace or child.kind == :cursor_class_decl)
+            file = child.location.file ? child.location.file : child.extent.start.file
+          end
+
+          puts ('  ' * @depth) + "#{child.kind} #{child.spelling.inspect} #{file} #{child.raw_comment_text}" unless not @debug
+        end
+
+        newState = findNextState(states[-1], child)
+
+        if(@depth == 0 && shouldIgnoreCursor(child))
+          next :continue
+        end
+
+        visitChild(newState, child, visitor, states, data)
+
         next :continue
       end
 
-      visitChild(newState, cursor, visitor, states, data)
-
-      next :continue
     end
 
-  end
+    def visitChild(newState, cursor, visitor, states, data)
+      enterChildren = newState.enter(self, states, data, cursor)
 
-  def visitChild(newState, cursor, visitor, states, data)
-    enterChildren = newState.enter(self, states, data, cursor)
+      if(enterChildren)
+        @depth += 1
+        visitChildren(cursor, visitor, states, data)
+        @depth -= 1
+      end
 
-    if(enterChildren)
-      @depth += 1
-      visitChildren(cursor, visitor, states, data)
-      @depth -= 1
+      newState.exit(self, states, data)
     end
 
-    newState.exit(self, states, data)
-  end
-
-  def formatParseError(cursor, desc)
-    return "\n\n" + sourceErrorDesc(cursor, desc)
+    def formatParseError(cursor, desc)
+      return "\n\n" + sourceErrorDesc(cursor, desc)
+    end
   end
 end

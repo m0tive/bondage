@@ -1,56 +1,59 @@
 require_relative "CommentExtractor.rb"
 
-EMPTY_COMMENT = Comment.new
+module Parser
 
-class ParserStateItem
-  def initialize(type, enter=nil)
-    @type = type
-    @onEnter = enter
-  end
+  EMPTY_COMMENT = Comment.new
 
-  def enter(parser, states, data, cursor)
-    states << @type
-
-    newInfo = buildData(parser, cursor)
-
-    newData = nil
-    if (@onEnter && data[-1])
-      newData = @onEnter.call(data[-1], newInfo)
+  class ParserStateItem
+    def initialize(type, enter=nil)
+      @type = type
+      @onEnter = enter
     end
 
-    data << newData
+    def enter(parser, states, data, cursor)
+      states << @type
 
-    return newData != nil
-  end
+      newInfo = buildData(parser, cursor)
 
-  def exit(parser, states, data)
-    states.pop()
-    data.pop()
-  end
+      newData = nil
+      if (@onEnter && data[-1])
+        newData = @onEnter.call(data[-1], newInfo)
+      end
 
-private
-  def buildData(parser, cursor)
-    comment = EMPTY_COMMENT
-    if(cursor.comment_range.start.file != nil)
-      comment = CommentExtractor.extract(
-        cursor.comment,
-        cursor.raw_comment_text,
-        cursor.comment_range,
-        parser.debug)
+      data << newData
+
+      return newData != nil
     end
 
-    type = nil
-    if(cursor.type.kind != :type_invalid)
-      type = Type.new(cursor.type)
+    def exit(parser, states, data)
+      states.pop()
+      data.pop()
     end
 
+  private
+    def buildData(parser, cursor)
+      comment = EMPTY_COMMENT
+      if(cursor.comment_range.start.file != nil)
+        comment = CommentExtractor.extract(
+          cursor.comment,
+          cursor.raw_comment_text,
+          cursor.comment_range,
+          parser.debug)
+      end
 
-    return {
-      :name => cursor.spelling,
-      :cursor => cursor,
-      :type => type,
-      :comment => comment,
-      :accessSpecifier => cursor.access_specifier
-    }
+      type = nil
+      if(cursor.type.kind != :type_invalid)
+        type = Type.new(cursor.type)
+      end
+
+
+      return {
+        :name => cursor.spelling,
+        :cursor => cursor,
+        :type => type,
+        :comment => comment,
+        :accessSpecifier => cursor.access_specifier
+      }
+    end
   end
 end

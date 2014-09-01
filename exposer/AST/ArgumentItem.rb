@@ -17,10 +17,6 @@ module AST
       @data[:name]
     end
 
-    def brief
-      @brief
-    end
-
     def input?
       @input
     end

@@ -59,6 +59,7 @@ module CPP
 
       parent = @metaData.parentClass
       root, dist = findRootClass(@metaData)
+      dist = nil
       @interface = "#{MACRO_PREFIX}EXPOSED_DERIVED_PARTIAL_CLASS(#{@metaData.library.exportMacro}, #{clsPath}, #{parent}, #{root})"
     end
 
@@ -74,6 +75,7 @@ module CPP
       else
         parent = @metaData.parentClass
         root, dist = findRootClass(@metaData)
+        dist = nil
         @interface = "#{MACRO_PREFIX}EXPOSED_CLASS_DERIVED_#{type}(#{@metaData.library.exportMacro}, #{clsPath}, #{parent}, #{root})"
       end
     end
@@ -113,7 +115,6 @@ module CPP
       cmd = @cls.comment.command("expose")
 
       mode = :default
-      defaultMode = :copyable
       CLASS_MODES.each do |possMode|
         str = possMode.to_s
         if (cmd.hasArg(str))

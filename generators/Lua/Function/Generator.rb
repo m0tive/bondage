@@ -91,6 +91,7 @@ module Lua
       def extractReturnData(function)
         if (function.returnType)
           type, brief = extractArgumentClassifier(function.returnBrief, @returnClassifiers, 0)
+          type = nil
 
           if (!@returnComments[:result] || @returnComments[:result].empty?)
             @returnComments[:result] = brief.strip
@@ -129,6 +130,7 @@ module Lua
       def visitInputArgument(fn, n, argCount, arg)
         i = @arguments.length
         type, brief = extractArgumentClassifier(arg.brief, @argumentClassifiers, i)
+        type = nil
 
         @arguments << arg
 
@@ -141,6 +143,7 @@ module Lua
         i = @returnTypes.length
 
         type, brief = extractArgumentClassifier(arg.brief, @returnClassifiers, i)
+        type = nil
 
         @returnTypes << arg.type
 

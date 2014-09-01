@@ -31,7 +31,7 @@ module Lua
 
         fwdName = "#{name}_fwd"
 
-        output = "#{ls}local #{fwdName} = #{@getter}(\"#{library.name}\", \"#{clsName}\", \"#{@name}\")
+        output = "#{ls}local #{fwdName} = #{@getter}(\"#{library.name}\", \"#{clsName}\", \"#{name}\")
 #{ls}local #{name} = function(...)\n#{lsT}local argCount = select(\"#\")\n"
 
         overloads.each do |argCount, overloadData|
@@ -122,15 +122,14 @@ Available classifiers: #{@classifiers.keys}" unless classifier
         arrayResult = arrays[0]
         raise "No types passed" unless arrayResult
 
-        1..arrays.length do |i|
+        arrays.length.times do |i|
           array = arrays[i]
 
           array.each_index do |eIdx|
-            if (yeild(array[eIdx]).name != yeild(arrayResult[eIdx]).name)
+            if (yield(array[eIdx]).name != yield(arrayResult[eIdx]).name)
               raise "non equal return types"
             end
           end
-
         end
 
         return arrayResult

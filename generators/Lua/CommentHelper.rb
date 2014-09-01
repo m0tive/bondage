@@ -30,10 +30,6 @@ module Lua
       return out + "\n" + (1..(lines.length-1)).map{ |i|
         "#{lineStart}-- #{lines[i]}"
       }.join("\n")
-
-      puts out
-
-      return out
     end
 
   end

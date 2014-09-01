@@ -164,8 +164,6 @@ local #{localVarOut} = #{clsName} \"#{cls.name}\" {
         parent = exposer.allMetaData.findClass(cls.parentClass)
         raise "Missing parent dependency '#{ls.parentClass}'" unless parent
 
-        parentName = "#{parent.name}_cls"
-
         parentRequirePath = @resolver.pathFor(parent)
 
         parentInsert = "  super = require \"#{parentRequirePath}\",\n"
