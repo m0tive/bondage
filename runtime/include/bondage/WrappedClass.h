@@ -8,6 +8,7 @@
   namespace Crate { namespace detail { \
   const Type *TypeResolver<parent::name>::find() \
     { static Type t; t.initialise<parent::name>(#name, Crate::findType<parentClass>()); return &t; } } } \
+  bondage::CastHelper &bondage::WrappedClassFinder<parent::name>::castHelper() { static bondage::CastHelper h; return h; } \
   bondage::WrappedClass varName ( \
     lib, \
     Crate::findType<parent::name>(), \

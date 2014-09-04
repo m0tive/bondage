@@ -22,24 +22,25 @@ class CastHelper;
   namespace detail { \
   template <> struct TypeResolver<CLS> : TypeResolver<FWD> { }; } }
 
-#define BONDAGE_CLASS_UNDERIVABLE(CLS) namespace bondage { \
-  template <> class WrappedClassFinder<CLS> { public: \
+#define BONDAGE_CLASS_UNDERIVABLE(EXP, CLS) namespace bondage { \
+  template <> class EXP WrappedClassFinder<CLS> { public: \
     static const WrappedClass *findBase(); \
-    static CastHelper &castHelper() { static CastHelper data; return data; } \
+    static CastHelper &castHelper(); \
     static const WrappedClass *find(const void *) { return findBase(); } }; }
 
-#define BONDAGE_CLASS_DERIVABLE(CLS) namespace bondage { \
-  template <> class WrappedClassFinder<CLS> { public: \
+#define BONDAGE_CLASS_DERIVABLE(EXP, CLS) namespace bondage { \
+  template <> class EXP WrappedClassFinder<CLS> { public: \
     static const WrappedClass *findBase(); \
-    static CastHelper &castHelper() { static CastHelper data; return data; } \
+    static CastHelper &castHelper(); \
     static const WrappedClass *find(const void *d) \
       { auto cls = castHelper().search(d); \
       if (cls) { return cls; } \
       return findBase(); } }; }
 
-#define BONDAGE_CLASS_DERIVED(CLS, ROOT) namespace bondage { \
-  template <> class WrappedClassFinder<CLS> { public: \
+#define BONDAGE_CLASS_DERIVED(EXP, CLS, ROOT) namespace bondage { \
+  template <> class EXP WrappedClassFinder<CLS> { public: \
     static const WrappedClass *findBase(); \
+    static CastHelper &castHelper(); \
     static const WrappedClass *find(const void *p) \
       { return WrappedClassFinder<ROOT>::find(p); } }; }
 
@@ -49,37 +50,37 @@ class CastHelper;
 
 #define BONDAGE_EXPOSED_CLASS_COPYABLE(EXP, CLS) \
   BONDAGE_CLASS_RESOLVER(EXP, CLS) \
-  BONDAGE_CLASS_UNDERIVABLE(CLS) \
+  BONDAGE_CLASS_UNDERIVABLE(EXP, CLS) \
   BONDAGE_CLASS_CRATER(CLS, CopyTraits)
 
 #define BONDAGE_EXPOSED_CLASS_MANAGED(EXP, CLS) \
   BONDAGE_CLASS_RESOLVER(EXP, CLS) \
-  BONDAGE_CLASS_UNDERIVABLE(CLS) \
+  BONDAGE_CLASS_UNDERIVABLE(EXP, CLS) \
   BONDAGE_CLASS_CRATER(CLS, ReferenceTraits)
 
 #define BONDAGE_EXPOSED_CLASS_UNMANAGED(EXP, CLS) \
   BONDAGE_CLASS_RESOLVER(EXP, CLS) \
-  BONDAGE_CLASS_UNDERIVABLE(CLS) \
+  BONDAGE_CLASS_UNDERIVABLE(EXP, CLS) \
   BONDAGE_CLASS_CRATER(CLS, ReferenceNonCleanedTraits)
 
 #define BONDAGE_EXPOSED_CLASS_DERIVABLE_COPYABLE(EXP, CLS) \
   BONDAGE_CLASS_RESOLVER(EXP, CLS) \
-  BONDAGE_CLASS_UNDERIVABLE(CLS) \
+  BONDAGE_CLASS_UNDERIVABLE(EXP, CLS) \
   BONDAGE_CLASS_CRATER(CLS, CopyTraits)
 
 #define BONDAGE_EXPOSED_CLASS_DERIVABLE_MANAGED(EXP, CLS) \
   BONDAGE_CLASS_RESOLVER(EXP, CLS) \
-  BONDAGE_CLASS_DERIVABLE(CLS) \
+  BONDAGE_CLASS_DERIVABLE(EXP, CLS) \
   BONDAGE_CLASS_CRATER(CLS, DerivableTraits)
 
 #define BONDAGE_EXPOSED_CLASS_DERIVABLE_UNMANAGED(EXP, CLS) \
   BONDAGE_CLASS_RESOLVER(EXP, CLS) \
-  BONDAGE_CLASS_DERIVABLE(CLS) \
+  BONDAGE_CLASS_DERIVABLE(EXP, CLS) \
   BONDAGE_CLASS_CRATER(CLS, DerivableNonCleanedTraits)
 
 #define BONDAGE_EXPOSED_DERIVED_CLASS(EXP, CLS, PARENT, ROOT) \
   BONDAGE_CLASS_RESOLVER(EXP, CLS) \
-  BONDAGE_CLASS_DERIVED(CLS, ROOT) \
+  BONDAGE_CLASS_DERIVED(EXP, CLS, ROOT) \
   namespace Crate { template <> class Traits<CLS> : public DerivedTraits<CLS, PARENT, ROOT> { }; }
 
 #define BONDAGE_EXPOSED_CLASS_DERIVED_MANAGED BONDAGE_EXPOSED_DERIVED_CLASS
