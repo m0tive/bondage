@@ -144,23 +144,28 @@ module CPP
 
     def visitFunction(owner, function, functionIndex, argCount)
       thisCount = (function.static || function.isConstructor) ? 0 : 1
-      expectedCount = thisCount + argCount
 
+      call, inArgs, hasWrapper = @wrapperGenerator.generateCall(
+        owner,
+        function,
+        functionIndex,
+        argCount,
+        @typedefs,
+        @extraFunctions,
+        @types)
+
+      expectedCount = (hasWrapper ? 0 : thisCount) + inArgs
       callsArray = @calls[expectedCount]
       if (callsArray == nil)
         callsArray = []
         @calls[expectedCount] = callsArray
       end
 
-      @wrapperGenerator.generateCall(
-        owner,
-        function,
-        functionIndex,
-        argCount,
-        callsArray,
-        @typedefs,
-        @extraFunctions,
-        @types)
+      if (function.name == "getPath")
+        puts "got #{inArgs} input args"
+      end
+
+      callsArray << call
     end
 
     def literalName(owner, name, id=nil)

@@ -43,7 +43,7 @@ module CPP
       @argumentHelper.reset(forceWrapper, types)
     end
 
-    def generateCall(owner, function, functionIndex, argCount, calls, typedefs, extraFunctions, types)
+    def generateCall(owner, function, functionIndex, argCount, typedefs, extraFunctions, types)
       reset(owner, function, functionIndex, argCount, types)
       
       if (!@static)
@@ -57,22 +57,21 @@ module CPP
       ArgumentVisitor.visitFunction(owner, function, functionIndex, argCount, @argumentHelper)
 
       if (@argumentHelper.needsWrapper)
-        generateWrapper(calls, typedefs, extraFunctions)
-      else
-        typedefName = literalName() + "_t"
-        typedefs[typedefName] = generateCallForwarder(@function.fullyQualifiedName)
-        calls << typedefName
+        return generateWrapper(typedefs, extraFunctions)
       end
+
+      typedefName = literalName() + "_t"
+      typedefs[typedefName] = generateCallForwarder(@function.fullyQualifiedName, false)
+      return typedefName, argCount, false
     end
 
-    def generateWrapper(calls, typedefs, extraFunctions)
+    def generateWrapper(typedefs, extraFunctions)
       ret, resVar, inArgs, callArgs, initArgs, call = generateCallData()
       callArgs = nil
 
       extraFnName = literalName()
       typedefName = extraFnName + "_t"
-      typedefs[typedefName] = generateCallForwarder(extraFnName)
-      calls << typedefName
+      typedefs[typedefName] = generateCallForwarder(extraFnName, true)
 
       extraFunctions << Helpers::generateWrapperText(
         @lineStart,
@@ -82,6 +81,8 @@ module CPP
         call,
         ret,
         @argumentHelper.outputs.length > 0 ? resVar : nil)
+
+      return typedefName, @argumentHelper.inputs.length, true
     end
 
   private
@@ -158,11 +159,11 @@ module CPP
       raise "invalid arg type #{arg.type}"
     end
 
-    def generateCallForwarder(name)
+    def generateCallForwarder(name, usingWrapper)
       sig = signature()
 
       caller = "bondage::FunctionCaller"
-      if (@static)
+      if (!@static && usingWrapper)
         caller = "Reflect::MethodInjectorBuilder<bondage::FunctionCaller>"
       end
 

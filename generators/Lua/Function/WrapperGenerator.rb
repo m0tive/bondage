@@ -32,7 +32,7 @@ module Lua
         fwdName = "#{name}_fwd"
 
         output = "#{ls}local #{fwdName} = #{@getter}(\"#{library.name}\", \"#{clsName}\", \"#{name}\")
-#{ls}local #{name} = function(...)\n#{lsT}local argCount = select(\"#\")\n"
+#{ls}local #{name} = function(...)\n#{lsT}local argCount = select(\"#\", ...)\n"
 
         overloads.each do |argCount, overloadData|
 
@@ -61,7 +61,7 @@ module Lua
 
         expectedArgCount = (static ? 0 : 1) + argCount
 
-        argumentsProcessed = formatArgumentData(arguments, argumentClassifiers, requiredClasses)
+        argumentsProcessed = formatArgumentData(arguments, argumentClassifiers, requiredClasses, static)
         
         returnCount, returns, returnProcessed = formatReturnData(returnTypes, returnClassifiers, requiredClasses)
 
@@ -82,10 +82,11 @@ module Lua
 "
       end
 
-      def formatArgumentData(arguments, argumentClassifiers, requiredClasses)
+      def formatArgumentData(arguments, argumentClassifiers, requiredClasses, static)
+        extra = static ? 0 : 1
         return arguments.length.times.map{ |i| 
           processArgument(
-            "select(#{i}, ...)",
+            "select(#{i+1+extra}, ...)",
             argumentClassifiers[i],
             arguments[i].type,
             :param,
