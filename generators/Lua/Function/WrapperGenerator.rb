@@ -41,7 +41,8 @@ module Lua
             overloadData,
             argumentClassifiers,
             returnClassifiers,
-            requiredClasses)
+            requiredClasses,
+            fwdName)
         end
 
         output += "#{ls}end"
@@ -50,7 +51,7 @@ module Lua
       end
 
     private
-      def generateOverloadCall(argCount, overloadData, argumentClassifiers, returnClassifiers, requiredClasses)
+      def generateOverloadCall(argCount, overloadData, argumentClassifiers, returnClassifiers, requiredClasses, fwdName)
         returnTypes = getCommonTypeArray(overloadData.returnTypes) { |a| a }
         arguments = getCommonTypeArray(overloadData.arguments) { |a| a.type }
 
@@ -70,9 +71,9 @@ module Lua
         if (returnCount == 0)
           raise "Return data for function without returns" unless returnProcessed.empty?
 
-          call = "#{@lineStart}    return fwdName(#{argumentsProcessed})"
+          call = "#{@lineStart}    return #{fwdName}(#{argumentsProcessed})"
         else
-          call = "#{@lineStart}    local #{returns} = fwdName(#{argumentsProcessed})
+          call = "#{@lineStart}    local #{returns} = #{fwdName}(#{argumentsProcessed})
 #{@lineStart}    return #{returnProcessed}"
         end
 
