@@ -47,14 +47,14 @@ module Lua
           clsName = cls.name
         end
 
-        @docs = DocumentationGenerator.generate(@lineStart, @signatures, @brief, @returnComments, @namedArgs)
+        @docs = DocumentationGenerator.new.generateFunction(@lineStart, @signatures, @brief, @returnComments, @namedArgs)
 
         # If any classifiers are used, we need to generate a wrapper
         if (@anyClassifiersUsed)
           localName = "#{clsName}_#{@name}_wrapper"
           @bind = localName
           @bindIsForwarder = true
-          @wrapper = @wrapperGenerator.generate(localName, library, clsName, @overloads, @argumentClassifiers, @returnClassifiers, requiredClasses)
+          @wrapper = @wrapperGenerator.generate(localName, @name, library, clsName, @overloads, @argumentClassifiers, @returnClassifiers, requiredClasses)
         else
           @bind = "#{@getter}(\"#{library.name}\", \"#{clsName}\", \"#{@name}\")"
           @wrapper = ""

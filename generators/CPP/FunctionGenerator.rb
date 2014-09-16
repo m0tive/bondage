@@ -161,10 +161,6 @@ module CPP
         @calls[expectedCount] = callsArray
       end
 
-      if (function.name == "getPath")
-        puts "got #{inArgs} input args"
-      end
-
       callsArray << call
     end
 

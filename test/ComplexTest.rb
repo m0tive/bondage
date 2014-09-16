@@ -7,14 +7,14 @@ require 'test/unit'
 
 class TestComplex < Test::Unit::TestCase
   def setup    
-    @example_lib = Library.new("Example", "test/testData/Complex/example_lib")
+    @example_lib = Parser::Library.new("Example", __dir__ + "/testData/Complex/example_lib")
     @example_lib.addIncludePath(".")
     @example_lib.addFile("example.h")
 
-    @example_manual = Library.new("Example_manual_lib", "test/testData/Complex/example_manual_lib")
+    @example_manual = Parser::Library.new("Example_manual_lib", __dir__ + "/testData/Complex/example_manual_lib")
     @example_manual.addIncludePath(".")
 
-    @test_lib = Library.new("Test", "test/testData/Complex/test")
+    @test_lib = Parser::Library.new("Test", __dir__ + "/testData/Complex/test")
     @test_lib.addIncludePath(".")
     @test_lib.addFile("test.h")
     @test_lib.addFile("test_2.h")

@@ -19,6 +19,7 @@ module Lua
       end
 
       def generate(
+          wrapperName,
           name,
           library,
           clsName,
@@ -29,10 +30,10 @@ module Lua
         ls = @lineStart
         lsT = ls + "  "
 
-        fwdName = "#{name}_fwd"
+        fwdName = "#{wrapperName}_fwd"
 
         output = "#{ls}local #{fwdName} = #{@getter}(\"#{library.name}\", \"#{clsName}\", \"#{name}\")
-#{ls}local #{name} = function(...)\n#{lsT}local argCount = select(\"#\", ...)\n"
+#{ls}local #{wrapperName} = function(...)\n#{lsT}local argCount = select(\"#\", ...)\n"
 
         overloads.each do |argCount, overloadData|
 
@@ -84,8 +85,18 @@ module Lua
       end
 
       def formatArgumentData(arguments, argumentClassifiers, requiredClasses, static)
-        extra = static ? 0 : 1
-        return arguments.length.times.map{ |i| 
+        extra = 0
+
+        thisArg = ""
+        if (!static)
+          thisArg = "select(1, ...)"
+          if (arguments.length > 0)
+            thisArg += ", "
+          end
+          extra = 1
+        end
+
+        return thisArg + arguments.length.times.map{ |i|
           processArgument(
             "select(#{i+1+extra}, ...)",
             argumentClassifiers[i],

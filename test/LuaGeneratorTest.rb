@@ -23,25 +23,25 @@ end
 
 class TestGenerator < Test::Unit::TestCase
   def setup
-    @gen = Library.new("Gen", "test/testData/Generator")
+    @gen = Parser::Library.new("Gen", __dir__ + "/testData/Generator")
     @gen.addIncludePath(".")
     @gen.addFile("Generator.h")
     
     setupLibrary(@gen)
 
-    @luaFuncs = Library.new("LuaFunctions", "test/testData/LuaFunctions")
+    @luaFuncs = Parser::Library.new("LuaFunctions", __dir__ + "/testData/LuaFunctions")
     @luaFuncs.addIncludePath(".")
     @luaFuncs.addFile("LuaFunctions.h")
 
-    @props = Library.new("Properties", "test/testData/Properties")
+    @props = Parser::Library.new("Properties", __dir__ + "/testData/Properties")
     @props.addIncludePath(".")
     @props.addFile("Properties.h")
 
-    @named = Library.new("Named", "test/testData/Named")
+    @named = Parser::Library.new("Named", __dir__ + "/testData/Named")
     @named.addIncludePath(".")
     @named.addFile("Named.h")
 
-    @comments = Library.new("Comments", "test/testData/Comments")
+    @comments = Parser::Library.new("Comments", __dir__ + "/testData/Comments")
     @comments.addIncludePath(".")
     @comments.addFile("Comments.h")
     
@@ -116,7 +116,7 @@ class TestGenerator < Test::Unit::TestCase
   end
 
   def test_stringLibGeneratorLua
-    stringLibrary = Library.new("String", "test/testData/StringLibrary")
+    stringLibrary = Parser::Library.new("String", __dir__ + "/testData/StringLibrary")
     stringLibrary.addIncludePath(".")
     stringLibrary.addFile("StringLibrary.h")
     setupLibrary(stringLibrary)
@@ -350,23 +350,23 @@ return Gen
 -- \\param[out] 1 idx2 the Index2
 -- \\param[out] 2 out2 sweet output", fnGen.docs
 
-    assert_equal "local TestClassIndexed_luaSample_wrapper_fwd = get(\"LuaFunctions\", \"TestClassIndexed\", \"\")
+    assert_equal "local TestClassIndexed_luaSample_wrapper_fwd = get(\"LuaFunctions\", \"TestClassIndexed\", \"luaSample\")
 local TestClassIndexed_luaSample_wrapper = function(...)
-  local argCount = select(\"#\")
+  local argCount = select(\"#\", ...)
   if 1 == argCount then
-    local ret0 = fwdName()
+    local ret0 = TestClassIndexed_luaSample_wrapper_fwd(select(1, ...))
     return (ret0-1)
   end
   if 2 == argCount then
-    local ret0 = fwdName((select(0, ...)-1))
+    local ret0 = TestClassIndexed_luaSample_wrapper_fwd(select(1, ...), (select(2, ...)-1))
     return (ret0-1)
   end
   if 3 == argCount then
-    local ret0 = fwdName((select(0, ...)-1), select(1, ...))
+    local ret0 = TestClassIndexed_luaSample_wrapper_fwd(select(1, ...), (select(2, ...)-1), select(3, ...))
     return (ret0-1)
   end
   if 4 == argCount then
-    local ret0, ret1, ret2 = fwdName((select(0, ...)-1), select(1, ...), select(2, ...), (select(3, ...)-1))
+    local ret0, ret1, ret2 = TestClassIndexed_luaSample_wrapper_fwd((select(1, ...)-1), select(2, ...), select(3, ...), (select(4, ...)-1))
     return (ret0-1), (ret1-1), ret2
   end
 end", fnGen.wrapper
@@ -379,11 +379,11 @@ end", fnGen.wrapper
     assert_equal "-- LuaFunctions::TestClassIndexed TestClassIndexed:luaSample2()
 -- \\brief [index]", fnGen.docs
 
-    assert_equal "local TestClassIndexed_luaSample2_wrapper_fwd = get(\"LuaFunctions\", \"TestClassIndexed\", \"\")
+    assert_equal "local TestClassIndexed_luaSample2_wrapper_fwd = get(\"LuaFunctions\", \"TestClassIndexed\", \"luaSample2\")
 local TestClassIndexed_luaSample2_wrapper = function(...)
-  local argCount = select(\"#\")
+  local argCount = select(\"#\", ...)
   if 1 == argCount then
-    local ret0 = fwdName()
+    local ret0 = TestClassIndexed_luaSample2_wrapper_fwd(select(1, ...))
     return from_native(ret0)
   end
 end", fnGen.wrapper
@@ -423,32 +423,32 @@ operatorPork = get("LuaFunctions", "TestClass", "operatorPork")
 
     assert_equal %{local class = require \"class\"
 
-local TestClassIndexed_luaSample_wrapper_fwd = get("LuaFunctions", "TestClassIndexed", "")
+local TestClassIndexed_luaSample_wrapper_fwd = get("LuaFunctions", "TestClassIndexed", "luaSample")
 local TestClassIndexed_luaSample_wrapper = function(...)
-  local argCount = select("#")
+  local argCount = select("#", ...)
   if 1 == argCount then
-    local ret0 = fwdName()
+    local ret0 = TestClassIndexed_luaSample_wrapper_fwd(select(1, ...))
     return (ret0-1)
   end
   if 2 == argCount then
-    local ret0 = fwdName((select(0, ...)-1))
+    local ret0 = TestClassIndexed_luaSample_wrapper_fwd(select(1, ...), (select(2, ...)-1))
     return (ret0-1)
   end
   if 3 == argCount then
-    local ret0 = fwdName((select(0, ...)-1), select(1, ...))
+    local ret0 = TestClassIndexed_luaSample_wrapper_fwd(select(1, ...), (select(2, ...)-1), select(3, ...))
     return (ret0-1)
   end
   if 4 == argCount then
-    local ret0, ret1, ret2 = fwdName((select(0, ...)-1), select(1, ...), select(2, ...), (select(3, ...)-1))
+    local ret0, ret1, ret2 = TestClassIndexed_luaSample_wrapper_fwd((select(1, ...)-1), select(2, ...), select(3, ...), (select(4, ...)-1))
     return (ret0-1), (ret1-1), ret2
   end
 end
 
-local TestClassIndexed_luaSample2_wrapper_fwd = get("LuaFunctions", "TestClassIndexed", "")
+local TestClassIndexed_luaSample2_wrapper_fwd = get("LuaFunctions", "TestClassIndexed", "luaSample2")
 local TestClassIndexed_luaSample2_wrapper = function(...)
-  local argCount = select("#")
+  local argCount = select("#", ...)
   if 1 == argCount then
-    local ret0 = fwdName()
+    local ret0 = TestClassIndexed_luaSample2_wrapper_fwd(select(1, ...))
     return from_native(ret0)
   end
 end
@@ -608,11 +608,11 @@ local HelperThing_cls = class "HelperThing" {
     assert_equal %{local HelperThing = require \"Named.HelperThing\"
 local class = require \"class\"
 
-local NamedClass_doAPork_wrapper_fwd = getFunction("Named", "NamedClass", "")
+local NamedClass_doAPork_wrapper_fwd = getFunction("Named", "NamedClass", "doAPork")
 local NamedClass_doAPork_wrapper = function(...)
-  local argCount = select("#")
+  local argCount = select("#", ...)
   if 2 == argCount then
-    return fwdName(from_named(select(0, ...), HelperThing))
+    return NamedClass_doAPork_wrapper_fwd(select(1, ...), from_named(select(2, ...), HelperThing))
   end
 end
 
@@ -630,11 +630,11 @@ local NamedClass_cls = class "NamedClass" {
   assert_equal %{local HelperThing = require "Named.HelperThing"
 local class = require \"class\"
 
-local _doMorePork_wrapper_fwd = getFunction("Named", "", "")
+local _doMorePork_wrapper_fwd = getFunction("Named", "", "doMorePork")
 local _doMorePork_wrapper = function(...)
-  local argCount = select("#")
+  local argCount = select("#", ...)
   if 1 == argCount then
-    return fwdName(from_named(select(0, ...), HelperThing))
+    return _doMorePork_wrapper_fwd(from_named(select(1, ...), HelperThing))
   end
 end
 

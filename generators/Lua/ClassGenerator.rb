@@ -1,7 +1,6 @@
 require_relative "../../exposer/ParsedLibrary.rb"
 require_relative "Function/Generator.rb"
 require_relative "RequireHelper.rb"
-require_relative "CommentHelper.rb"
 require_relative "EnumGenerator.rb"
 
 module Lua
@@ -59,7 +58,7 @@ module Lua
       inc = Helper::generateRequires(@resolver, exposer, requiredClasses, clsName)
 
       # generate class output.
-      @classDefinition = "#{inc}#{extraDatas}#{Helper::formatDocsTag('', 'brief', brief)}
+      @classDefinition = "#{inc}#{extraDatas}#{DocumentationGenerator.new.generateClass('', brief)}
 --
 local #{localVarOut} = #{clsName} \"#{cls.name}\" {
   library = \"#{library.name}\",

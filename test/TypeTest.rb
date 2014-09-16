@@ -10,7 +10,7 @@ require 'test/unit'
 
 class TestPod < Test::Unit::TestCase
   def setup
-    @podTest = Library.new("AstTest", "test/testData/BasicPodTypes")
+    @podTest = Parser::Library.new("AstTest", __dir__ + "/testData/BasicPodTypes")
     @podTest.addIncludePath(".")
     @podTest.addFile("BasicPodTypes.h")
     

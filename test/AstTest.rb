@@ -9,7 +9,7 @@ require 'test/unit'
 
 class TestAst < Test::Unit::TestCase
   def setup
-    @astTest = Library.new("AstTest", "test/testData/BasicAst")
+    @astTest = Parser::Library.new("AstTest", "test/testData/BasicAst")
     @astTest.addIncludePath(".")
     @astTest.addFile("BasicAst.h")
     

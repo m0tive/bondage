@@ -1,46 +1,45 @@
-require_relative 'TestUtils.rb'
+require_relative "TestUtils.rb"
 
 require_relative "../parser/Library.rb"
 require_relative "../parser/Parser.rb"
 require_relative "../exposer/ClassExposer.rb"
 
-require 'test/unit'
 
 
 class TestExpose < Test::Unit::TestCase
   def setup
-    @astTest = Library.new("AstTest", "test/testData/BasicAst")
+    @astTest = Parser::Library.new("AstTest", __dir__ + "/testData/BasicAst")
     @astTest.addIncludePath(".")
     @astTest.addFile("BasicAst.h")
 
-    @parentA = Library.new("ParentA", "test/testData/ParentA")
+    @parentA = Parser::Library.new("ParentA", __dir__ + "/testData/ParentA")
     @parentA.addIncludePath(".")
     @parentA.addFile("ParentA.h")
 
-    @parentBManual = Library.new("ParentBManual", "test/testData/ParentB/ParentBManual")
+    @parentBManual = Parser::Library.new("ParentBManual", __dir__ + "/testData/ParentB/ParentBManual")
 
-    @parentB = Library.new("ParentB", "test/testData/ParentB")
+    @parentB = Parser::Library.new("ParentB", __dir__ + "/testData/ParentB")
     @parentB.addIncludePath(".")
     @parentB.addFile("ParentB.h")
     @parentB.addDependency(@parentA)
     @parentB.addDependency(@parentBManual)
 
-    @enum = Library.new("Enum", "test/testData/Enum")
+    @enum = Parser::Library.new("Enum", __dir__ + "/testData/Enum")
     @enum.addIncludePath(".")
     @enum.addFile("Enum.h")
 
-    @functionsManual = Library.new("FunctionsManual", "test/testData/Functions/FunctionsManual")
+    @functionsManual = Parser::Library.new("FunctionsManual", __dir__ + "/testData/Functions/FunctionsManual")
 
-    @functions = Library.new("Functions", "test/testData/Functions")
+    @functions = Parser::Library.new("Functions", __dir__ + "/testData/Functions")
     @functions.addIncludePath(".")
     @functions.addFile("Functions.h")
     @functions.addDependency(@functionsManual)
 
-    @ctors = Library.new("Constructors", "test/testData/Constructors")
+    @ctors = Parser::Library.new("Constructors", __dir__ + "/testData/Constructors")
     @ctors.addIncludePath(".")
     @ctors.addFile("Constructors.h")
 
-    @vfun = Library.new("VirtualFunctions", "test/testData/VirtualFunctions")
+    @vfun = Parser::Library.new("VirtualFunctions", __dir__ + "/testData/VirtualFunctions")
     @vfun.addIncludePath(".")
     @vfun.addFile("VirtualFunctions.h")
 

@@ -18,9 +18,9 @@ int Gen_test5_overload0(bool inputArg0, bool inputArg1)
   return result;
 }
 
-struct Gen_test4_overload0_t : Reflect::FunctionCall<Reflect::FunctionSignature< int(*)(bool, bool) >, &::Gen::test4, Reflect::MethodInjectorBuilder<bondage::FunctionCaller>> { };
-struct Gen_test5_overload0_t : Reflect::FunctionCall<Reflect::FunctionSignature< int(*)(bool, bool) >, &Gen_test5_overload0, Reflect::MethodInjectorBuilder<bondage::FunctionCaller>> { };
-struct Gen_test5_overload1_t : Reflect::FunctionCall<Reflect::FunctionSignature< int(*)(bool, bool, float) >, &::Gen::test5, Reflect::MethodInjectorBuilder<bondage::FunctionCaller>> { };
+struct Gen_test4_overload0_t : Reflect::FunctionCall<Reflect::FunctionSignature< int(*)(bool, bool) >, &::Gen::test4, bondage::FunctionCaller> { };
+struct Gen_test5_overload0_t : Reflect::FunctionCall<Reflect::FunctionSignature< int(*)(bool, bool) >, &Gen_test5_overload0, bondage::FunctionCaller> { };
+struct Gen_test5_overload1_t : Reflect::FunctionCall<Reflect::FunctionSignature< int(*)(bool, bool, float) >, &::Gen::test5, bondage::FunctionCaller> { };
 struct Gen_test5_overload_2 : Reflect::FunctionArgCountSelectorBlock<2,
       Gen_test5_overload0_t
       > { };
@@ -68,17 +68,14 @@ std::tuple< ::Gen::CtorGen *, int > Gen_CtorGen_CtorGen_overload1()
   return result;
 }
 
-struct Gen_CtorGen_CtorGen_overload0_t : Reflect::FunctionCall<Reflect::FunctionSignature< ::Gen::CtorGen *(*)() >, &Gen_CtorGen_CtorGen_overload0, Reflect::MethodInjectorBuilder<bondage::FunctionCaller>> { };
-struct Gen_CtorGen_CtorGen_overload1_t : Reflect::FunctionCall<Reflect::FunctionSignature< std::tuple< ::Gen::CtorGen *, int >(*)() >, &Gen_CtorGen_CtorGen_overload1, Reflect::MethodInjectorBuilder<bondage::FunctionCaller>> { };
-struct CtorGen_CtorGen_overload_0 : Reflect::FunctionArgCountSelectorBlock<0,
-      Gen_CtorGen_CtorGen_overload0_t
-      > { };
-struct CtorGen_CtorGen_overload_1 : Reflect::FunctionArgCountSelectorBlock<1,
+struct Gen_CtorGen_CtorGen_overload0_t : Reflect::FunctionCall<Reflect::FunctionSignature< ::Gen::CtorGen *(*)() >, &Gen_CtorGen_CtorGen_overload0, bondage::FunctionCaller> { };
+struct Gen_CtorGen_CtorGen_overload1_t : Reflect::FunctionCall<Reflect::FunctionSignature< std::tuple< ::Gen::CtorGen *, int >(*)() >, &Gen_CtorGen_CtorGen_overload1, bondage::FunctionCaller> { };
+struct CtorGen_CtorGen_overload_0 : Reflect::FunctionArgCountSelectorBlock<0, Reflect::FunctionArgumentTypeSelector<
+      Gen_CtorGen_CtorGen_overload0_t,
       Gen_CtorGen_CtorGen_overload1_t
-      > { };
+      > > { };
 struct CtorGen_CtorGen_overload : Reflect::FunctionArgumentCountSelector<
-    CtorGen_CtorGen_overload_0,
-    CtorGen_CtorGen_overload_1
+    CtorGen_CtorGen_overload_0
     > { };
 
 const bondage::Function Gen_CtorGen_methods[] = {
@@ -123,22 +120,22 @@ std::tuple< double, Gen::MultipleReturnGen, const int > Gen_MultipleReturnGen_te
   return result;
 }
 
-struct Gen_MultipleReturnGen_test_overload0_t : Reflect::FunctionCall<Reflect::FunctionSignature< int(*)(::Gen::MultipleReturnGen &) >, &Gen_MultipleReturnGen_test_overload0, bondage::FunctionCaller> { };
-struct Gen_MultipleReturnGen_test_overload1_t : Reflect::FunctionCall<Reflect::FunctionSignature< int(*)(::Gen::MultipleReturnGen &, Gen::MultipleReturnGen *) >, &Gen_MultipleReturnGen_test_overload1, bondage::FunctionCaller> { };
-struct Gen_MultipleReturnGen_test_overload2_t : Reflect::FunctionCall<Reflect::FunctionSignature< std::tuple< double, Gen::MultipleReturnGen, const int >(*)(::Gen::MultipleReturnGen &, const int &, Gen::MultipleReturnGen &) >, &Gen_MultipleReturnGen_test_overload2, bondage::FunctionCaller> { };
-struct MultipleReturnGen_test_overload_2 : Reflect::FunctionArgCountSelectorBlock<2,
+struct Gen_MultipleReturnGen_test_overload0_t : Reflect::FunctionCall<Reflect::FunctionSignature< int(*)(::Gen::MultipleReturnGen &) >, &Gen_MultipleReturnGen_test_overload0, Reflect::MethodInjectorBuilder<bondage::FunctionCaller>> { };
+struct Gen_MultipleReturnGen_test_overload1_t : Reflect::FunctionCall<Reflect::FunctionSignature< int(*)(::Gen::MultipleReturnGen &, Gen::MultipleReturnGen *) >, &Gen_MultipleReturnGen_test_overload1, Reflect::MethodInjectorBuilder<bondage::FunctionCaller>> { };
+struct Gen_MultipleReturnGen_test_overload2_t : Reflect::FunctionCall<Reflect::FunctionSignature< std::tuple< double, Gen::MultipleReturnGen, const int >(*)(::Gen::MultipleReturnGen &, const int &, Gen::MultipleReturnGen &) >, &Gen_MultipleReturnGen_test_overload2, Reflect::MethodInjectorBuilder<bondage::FunctionCaller>> { };
+struct MultipleReturnGen_test_overload_1 : Reflect::FunctionArgCountSelectorBlock<1,
       Gen_MultipleReturnGen_test_overload0_t
       > { };
-struct MultipleReturnGen_test_overload_3 : Reflect::FunctionArgCountSelectorBlock<3,
+struct MultipleReturnGen_test_overload_2 : Reflect::FunctionArgCountSelectorBlock<2,
       Gen_MultipleReturnGen_test_overload1_t
       > { };
-struct MultipleReturnGen_test_overload_4 : Reflect::FunctionArgCountSelectorBlock<4,
+struct MultipleReturnGen_test_overload_3 : Reflect::FunctionArgCountSelectorBlock<3,
       Gen_MultipleReturnGen_test_overload2_t
       > { };
 struct MultipleReturnGen_test_overload : Reflect::FunctionArgumentCountSelector<
+    MultipleReturnGen_test_overload_1,
     MultipleReturnGen_test_overload_2,
-    MultipleReturnGen_test_overload_3,
-    MultipleReturnGen_test_overload_4
+    MultipleReturnGen_test_overload_3
     > { };
 
 const bondage::Function Gen_MultipleReturnGen_methods[] = {
@@ -175,8 +172,8 @@ int Gen_GenCls_test3_overload1(bool inputArg0, int inputArg1)
 }
 
 struct Gen_GenCls_test1_overload0_t : Reflect::FunctionCall<Reflect::FunctionSignature< void(::Gen::GenCls::*)(int, float, double) >, &::Gen::GenCls::test1, bondage::FunctionCaller> { };
-struct Gen_GenCls_test2_overload0_t : Reflect::FunctionCall<Reflect::FunctionSignature< void(*)(::Gen::GenCls &, int) >, &Gen_GenCls_test2_overload0, bondage::FunctionCaller> { };
-struct Gen_GenCls_test2_overload1_t : Reflect::FunctionCall<Reflect::FunctionSignature< void(*)(::Gen::GenCls &, int, float) >, &Gen_GenCls_test2_overload1, bondage::FunctionCaller> { };
+struct Gen_GenCls_test2_overload0_t : Reflect::FunctionCall<Reflect::FunctionSignature< void(*)(::Gen::GenCls &, int) >, &Gen_GenCls_test2_overload0, Reflect::MethodInjectorBuilder<bondage::FunctionCaller>> { };
+struct Gen_GenCls_test2_overload1_t : Reflect::FunctionCall<Reflect::FunctionSignature< void(*)(::Gen::GenCls &, int, float) >, &Gen_GenCls_test2_overload1, Reflect::MethodInjectorBuilder<bondage::FunctionCaller>> { };
 struct Gen_GenCls_test2_overload2_t : Reflect::FunctionCall<Reflect::FunctionSignature< void(::Gen::GenCls::*)(int, float, double) >, &::Gen::GenCls::test2, bondage::FunctionCaller> { };
 struct GenCls_test2_overload_2 : Reflect::FunctionArgCountSelectorBlock<2,
       Gen_GenCls_test2_overload0_t
@@ -192,10 +189,10 @@ struct GenCls_test2_overload : Reflect::FunctionArgumentCountSelector<
     GenCls_test2_overload_3,
     GenCls_test2_overload_4
     > { };
-struct Gen_GenCls_test3_overload0_t : Reflect::FunctionCall<Reflect::FunctionSignature< void(*)(bool) >, &::Gen::GenCls::test3, Reflect::MethodInjectorBuilder<bondage::FunctionCaller>> { };
-struct Gen_GenCls_test3_overload1_t : Reflect::FunctionCall<Reflect::FunctionSignature< int(*)(bool, int) >, &Gen_GenCls_test3_overload1, Reflect::MethodInjectorBuilder<bondage::FunctionCaller>> { };
-struct Gen_GenCls_test3_overload2_t : Reflect::FunctionCall<Reflect::FunctionSignature< int(*)(bool, int, bool) >, &::Gen::GenCls::test3, Reflect::MethodInjectorBuilder<bondage::FunctionCaller>> { };
-struct Gen_GenCls_test3_overload4_t : Reflect::FunctionCall<Reflect::FunctionSignature< int(*)(float, float) >, &::Gen::GenCls::test3, Reflect::MethodInjectorBuilder<bondage::FunctionCaller>> { };
+struct Gen_GenCls_test3_overload0_t : Reflect::FunctionCall<Reflect::FunctionSignature< void(*)(bool) >, &::Gen::GenCls::test3, bondage::FunctionCaller> { };
+struct Gen_GenCls_test3_overload1_t : Reflect::FunctionCall<Reflect::FunctionSignature< int(*)(bool, int) >, &Gen_GenCls_test3_overload1, bondage::FunctionCaller> { };
+struct Gen_GenCls_test3_overload2_t : Reflect::FunctionCall<Reflect::FunctionSignature< int(*)(bool, int, bool) >, &::Gen::GenCls::test3, bondage::FunctionCaller> { };
+struct Gen_GenCls_test3_overload4_t : Reflect::FunctionCall<Reflect::FunctionSignature< int(*)(float, float) >, &::Gen::GenCls::test3, bondage::FunctionCaller> { };
 struct GenCls_test3_overload_1 : Reflect::FunctionArgCountSelectorBlock<1,
       Gen_GenCls_test3_overload0_t
       > { };
