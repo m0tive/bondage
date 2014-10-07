@@ -60,7 +60,6 @@ module Lua
 
       # generate class output.
       @classDefinition = "#{inc}#{extraDatas}#{Helper::formatDocsTag('', 'brief', brief)}
---
 local #{localVarOut} = #{clsName} \"#{cls.name}\" {
   library = \"#{library.name}\",
 #{parentInsert}#{pluginInsert}#{enumInsert}
